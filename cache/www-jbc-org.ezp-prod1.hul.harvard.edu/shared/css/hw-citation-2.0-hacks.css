@@ -1,0 +1,49 @@
+/*  
+    This is a temporary file.  
+
+    We're in the process of converting sites over to a new citation system.
+    
+    The markup in the new citation builder is slightly different.  Most of the differences
+    are due to the new code inserting cit-first-element properly instead of the hackery
+     in the old citation code. 
+     
+     Unfortuantely, the CSS makes some assumptions about cit-first-element.  So I'm stuffing the necessary changes here.
+     
+  */
+  
+.cit .cit-metadata .cit-auth-list
+{
+    margin-top:0.2em;
+    padding-left:2em;
+}
+
+
+.cit .cit-metadata .cit-auth-list.cit-first-element,
+.cit .cit-metadata .cit-title.cit-first-element,
+{
+    margin-left:1.5em;
+    padding-left:0.4em;
+}
+
+/* This overrides the title indent on authindex pages */
+.aindex-cit .cit-metadata .cit-title-note, .aindex-cit cite, .aindex-cit .cit-views {
+    margin-left:0em;
+}
+
+/* Removes classing by global citatations, so we can reapply below */
+.cit .cit-extra span {
+    font-size: 1em;
+    font-weight: normal;
+    margin: 0; 
+    padding: 0;
+    text-transform: none;
+}
+
+.cit .cit-extra .cit-flags * {
+    font-size:0.9em;
+    font-weight: bold;
+    margin-left:0.5em;
+    padding-left:3em;
+    padding-top:0.4em;
+    text-transform:uppercase;
+}

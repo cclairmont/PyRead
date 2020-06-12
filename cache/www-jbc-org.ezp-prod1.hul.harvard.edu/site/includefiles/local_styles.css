@@ -1,0 +1,1266 @@
+/*
+Wayne Iobst 3/24/2016
+import bold, italic, and bold+italic Open Sans font for better text quality
+*/
+@import url('https://fonts-googleapis-com.ezp-prod1.hul.harvard.edu/css?family=Open+Sans:b,i,bi');
+
+
+@charset "utf-8";
+
+
+.clearfloat { /* this class should be placed on a div or break element and should be the final element before the close of a container that should fully contain a float */
+  clear: both;
+    height: 0;
+    font-size: 1px;
+    line-height: 0px;
+}
+
+
+    
+/* For Home Page Include------------------------------------------------------------ */
+
+/* Column 1 */
+
+
+#pageid-home .main-block
+{
+margin: 0px 0px 0px 0px;
+}
+
+
+#pageid-home .column1home
+{
+width: 220px;
+ float: left;
+  text-align: center;
+}
+
+#pageid-home .column1home h2
+{
+font-size: 14px;
+margin-left: 30px;
+font-family: open sans;
+}
+
+#pageid-home .pip h2
+{
+margin-top: 5px;
+ margin-bottom: 3px;
+  text-align: center;
+   font-family: open sans;
+  color: #951422;
+}
+                         
+#pageid-home .cover_box_home
+{ 
+margin-bottom: 10px;
+}
+
+#pageid-home .cover-img-wrap
+{
+text-align: left;
+  margin: 0;
+  padding: 0;
+}
+
+.cover_box_home .cover-img-wrap #cover-image
+{left: 0px;
+padding: 0px;}
+
+#pageid-home .cover-img-wrap #cover-image img
+{
+left: 0px;
+padding: 0px;
+width: 140px;
+}
+
+
+.current-link
+{
+font-size: 16px;
+  color: #1f495e;
+}
+
+#current-issue-label
+{
+font-size: 15px;
+}
+
+.current-date a, #current-issue-label a, .current-link a, #pageid-home #content-block h2.current-issue a
+{
+color: #000000;
+}
+
+#pageid-home #content-block h2.current-issue {
+  margin-left: 20px;
+  margin-bottom: 20px;
+  padding: 0;
+  width: auto;
+  text-align: left;
+  padding: 0 0 10px 0;
+}
+
+.current-date {
+  color: #0079c2;
+  display: inline;
+  font-size: 15px;
+  text-transform: none;
+}
+  
+  
+
+#pageid-home .new_at_jbc_home
+{
+text-align: left; 
+margin-top: 0px; 
+border-top: dashed #aaaaaa 1px; 
+margin-left: 30px; 
+padding: 5px 5px 10px 5px; 
+ color: #222222;
+}
+
+#pageid-home .new_at_jbc_home h3 
+{
+margin-bottom: 5px;
+margin-left: 0px;
+ color: #222222;
+  font-size: 15px;
+   padding-top: 10px; padding-bottom: 10px;
+    border-bottom: dashed #aaaaaa 1px;
+   font-family: open sans;
+}
+
+
+#podcast_image 
+{
+  width: 48px;
+  padding: 4px 10px 4px 4px;
+  float: left;
+}
+
+#pageid-home .new_at_jbc_home p
+{
+font-family: open sans;
+font-size: 12px;
+}
+
+#pageid-home .new_at_jbc_home ul
+{
+  list-style: none;
+  margin: 0px;
+  padding: 0px;
+}
+
+#pageid-home .new_at_jbc_home li
+{
+  padding: 0px;
+  margin-top: 3px;
+  margin-bottom: 0px;
+  margin-left: 5px;
+}
+
+#pageid-home #content-block h2, #pageid-home #content-block h3 {
+font-family: open sans;
+font-size:1.2em;
+}
+
+#pageid-home #content-block h1, #pageid-home #content-block h2, #pageid-home #content-block h2 a, #pageid-home #content-block h3, #pageid-home #content-block div.home-announce a 
+{
+ color:#000000;
+}
+
+#pageid-home #content-block h2.pip a
+{
+color:#951422;
+}
+
+#pageid-home #content-block h1
+{
+font-size: 25px;
+}
+
+#pageid-home #col-3 h3
+{
+color:#403838;
+font-family: open sans;
+font-size:1.2em;
+margin-bottom: 5px;
+ width: 100%;
+  text-align: center;
+   /*border-bottom: dashed #aaaaaa 1px;*/
+    padding-bottom: 5px;
+   margin-top: 20px;
+}
+
+
+
+/*CENTER OF PAGE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */    
+  
+#pageid-home #top_center_home
+{
+width: 690px;
+ margin-left: 20px;
+  float: left;
+   padding-right: 10px;
+    padding-left: 30px;
+   padding-top: 10px;
+#    border-left: dashed 1px #aaaaaa;
+#     border-right: dashed 1px #aaaaaa;
+      margin-bottom: 10px;
+}  
+  
+#pageid-home #top_center_home #mission
+{
+ width: 95%;
+  padding: 5px;
+}
+
+#pageid-home #top_center_home #mission h1 
+{
+  color: #8c282e;
+  font-size: 20px;
+  text-transform: uppercase;
+  padding: 0px;
+  margin-bottom: 10px;
+  font-family: open sans;
+  letter-spacing:1px;
+}
+
+#pageid-home #top_center_home #mission p
+{
+margin-bottom: 10px;
+ font-size: 13px;
+  color: #222222; 
+  padding: 0px;
+  margin: 0px;
+}
+
+#pageid-home #top_center_home #current_highlights_h
+{
+ width: 95%; 
+ padding: 25px 0px 5px 0px;
+   margin-top: 20px;
+    border-top: dashed #aaaaaa 1px;
+}
+
+#pageid-home #top_center_home #current_highlights_h h1 
+{
+  color: #3571a1; 
+  font-size: 20px;
+  text-transform: uppercase;
+  padding: 0px;
+  margin: 0px 0px 5px 0px;
+  font-family: open sans;
+  letter-spacing:1px;
+}
+
+.current-issue-date
+{
+font-size: 14px;
+  font-weight: bold;
+  font-style: italic;
+}
+
+.potw-current-date .current-issue-date
+{
+  font-style: normal;
+}
+
+#pageid-home #top_center_home h2 {
+font-size:18px;
+} 
+
+a img 
+{
+border: 0px;
+padding: 0px;
+}
+
+/*coverlines*/
+#pageid-home li.ti {
+  line-height: 20px;
+  margin-left: 20px;
+  margin-top: 2px;
+  font-size: 13px;
+  margin-bottom: 3px;
+}
+
+#pageid-home li.su  {
+  line-height: 20px;
+  margin-left: 25px;
+  margin-top: 2px;
+  font-size: 13px;
+}
+
+#pageid-home li.pro  {
+  line-height: 20px;
+  margin-left:50px;
+  margin-top: 2px;
+  font-size: 13px;
+  <!-- padding-bottom: 15px; -->
+}
+
+#pageid-home li.pro-last  {
+  line-height: 20px;
+  margin-left:50px;
+  margin-top: 2px;
+  padding-left: 45px; /*bullet*/
+  font-size: 13px;
+  padding-bottom: 0px;
+}
+
+#pageid-home li.pro em {
+  color: #000000;
+}
+
+#pageid-home li.se  {
+  padding: 10px 0px 10px 0px;
+  margin-left: 0px;
+}
+
+#pageid-home li.se-bold  {
+  padding: 10px 0px 5px 0px;
+  font-weight: bold;
+  font-style: italic;
+}
+
+#pageid-home li.se-bold2  {
+  padding-top: 10px;
+  font-weight: bold;
+  font-style: italic;
+}
+
+
+/* Column 3 */
+
+
+#col-3 .f1000_news
+{
+text-align: center;
+}
+
+#col-3 h3.f1000_news
+{
+margin-bottom: 5px; 
+width: 100%;
+ text-align: center;
+  border-bottom: dashed #aaaaaa 1px;
+   padding-bottom: 5px;
+}
+
+#col-3 #f1000_image
+{
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 204px;
+}
+
+#col-3 p.f1000_news 
+{
+text-align: left;
+ font-family: open sans;
+  font-size: 12px;
+   color: #222222;
+    line-height: 18px;
+}
+
+#col-3 .f1000_news a:link
+{
+color:   #36739F;
+}
+
+/* New */
+
+#proxied-contents td.editor
+{
+   padding: 15px;
+   text-align: left;
+   vertical-align: top;
+   border-bottom: 1px grey solid;
+}      
+#proxied-contents td.face
+{
+   padding: 15px; text-align: center; vertical-align: top; border-bottom: 1px grey solid;
+}
+
+#pageid-home #content-block .new-at-jbc .home-cover-right h3
+{
+  color: #0079c2;
+  padding-top: 10px;
+}
+
+/*
+Erik 5/31/2016
+Underline headers in new-at-jbc box
+*/
+#pageid-home #content-block .new-at-jbc .home-cover-right h3 a
+{
+  border-bottom:1px solid;
+}
+
+/*
+Erik 6/22/2016
+Improved layout of content in the new-at-jbc box
+*/
+#pageid-home #content-block .new-at-jbc .home-cover-right br {
+  margin-bottom: 3px;
+}
+#pageid-home #content-block .new-at-jbc .home-cover-right a
+{
+  color: #0079c2;
+  font-weight: bold;
+}
+
+#pageid-home #content-block .new-at-jbc .home-cover-right .hcr-p {
+  margin-bottom:0px;
+}
+
+/*
+Erik 10/31/2017
+Old Announement Stylings
+
+#pageid-home #content-block .home-announcement .home-announcement-text
+{
+  border: 2px solid #0079c2;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 40px;
+  text-align: center;
+  width: 90%;
+  font-size: 1.2em;
+  padding-right: 10px;
+  padding-left: 10px;
+  padding-top: 15px !important;
+  padding-bottom:15px !important;
+  color: #000000;
+  font-weight: bold;
+}
+*/
+#pageid-home #content-block .home-announcement iframe {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 25px;
+}
+
+.home-podcast { background-color: #ebf4f9; }
+
+.home-podcast h1
+{
+  padding-left: 30px;
+  padding-top: 20px;
+}
+
+#pageid-home #content-block .home-etoc-signup { margin-top: 40px; padding: 10px 10px 10px 30px; background-color: #ebf4f9; margin-bottom: 10px; }
+/*#pageid-home #content-block .home-etoc-signup .sign-in { background-color: #0079c2; padding: 10px; width: 50px; margin-bottom: 20px; font-weight: bold; }
+#pageid-home #content-block .home-etoc-signup .sign-in a { color: #fff; text-decoration: none; }*/
+#pageid-home #content-block .home-etoc-signup h2 { border-top: 1px solid #000; padding-top: 10px; padding-bottom: 10px;}
+#pageid-home #content-block .home-etoc-signup p a { color: #0079c2; text-decoration: none; font-weight: bold; }
+
+#col-3 .submit-box { background-image: url("/site/includefiles/images/submit-box.jpg"); background-size: cover; min-height: 220px; }
+#col-3 .submit-box .submit-box-wrap { padding: 10px; }
+
+/*
+Wayne Iobst 3/24/2016
+Make menu links non-bold (easier to read)
+*/
+
+#header .header-buttons li span
+{
+  font-weight: normal;
+}
+
+/*
+Wayne Iobst 3/24/2016
+Article Buttons - Make buttons clickable across the whole button area.
+*/
+
+.cit .cit-views li
+{
+  padding: 0;
+}
+
+.cit .cit-views li a
+{
+  display: inline-block;
+  padding: 10px;
+  border: 1px solid transparent;
+  background-image: none;
+}
+
+.cit .cit-views li a:hover
+{
+  border: none;
+  border: 1px solid #0079c2;
+}
+
+/*
+Wayne Iobst 3/24/2016
+Next/Prev Buttons on col2 - Make buttons clickable across the whole button area.
+*/
+
+#col-2 span.prev, #col-2 span.next
+{
+  padding: 0;
+  margin: 0;
+  display: block;
+  position: relative;
+  width: 76px;
+}
+
+#col-2 span.prev
+{
+  float: left;
+}
+
+#col-2 span.next
+{
+  float: right;
+}
+
+#col-2 span.prev a.previous
+{
+  display: block;
+  padding: 10px 10px 10px 17px;
+}
+
+#col-2 span.next a.next
+{
+  display: block;
+  padding: 10px 17px 10px 10px;
+}
+
+#col-2 span.prev a.previous:hover,
+#col-2 span.next a.next:hover
+{
+  border: none;
+}
+
+#col-2 span.prev a.prev-img
+{
+  position: absolute;
+  top: 9px;
+  left: 17px;
+}
+
+#col-2 span.next a.next-img
+{
+  position: absolute;
+  top: 9px;
+  right: 17px;
+}
+
+#col-2 div.sidebar-issue-nav
+{
+  margin-bottom: 19px;
+  margin-top: -6px;
+  padding: 0;
+}
+
+#col-2 div.sidebar-issue-nav:after
+{  
+  content: "."; 
+  visibility: hidden; 
+  display: block; 
+  height: 0; 
+  clear: both;
+}
+
+#pageid-content #col-2 div.article-nav 
+{
+  padding: 0 8px;
+  margin: 14px 0 25px 0;
+}
+
+#pageid-content #col-2 div.article-nav span.prev,
+#pageid-content #col-2 div.article-nav span.next
+{
+  margin: 0 0 10px 0;
+  width: 79px;
+}
+
+#pageid-content #col-2 div.article-nav span.toc-link
+{
+  padding: 0;
+  display: block;
+}
+
+#pageid-content #col-2 div.article-nav span.toc-link a
+{
+  padding: 10px;
+  display: block;
+}
+
+#pageid-content #col-2 div.article-nav span.toc-link a:hover
+{
+  border: none;
+}
+
+/*
+Search Button on col2 - Make button clickable across the whole button area and fix size.
+*/
+
+#col-2 div.search-nav
+{
+  width: auto;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+#col-2 div.search-nav h4 
+{
+  margin-bottom: 10px;
+}
+
+#col-2 div.search-nav span.search-link
+{
+  padding: 0;
+  margin-top: 14px;
+}
+
+#col-2 div.search-nav span.search-link a
+{
+  padding: 10px;
+  display: block;
+}
+
+#col-2 div.search-nav span.search-link a:hover
+{
+  border: none;
+}
+
+#col-2 div.sidebar ul 
+{
+  line-height: 1.5;
+  margin-left: 5px;
+}
+
+/*
+Wayne Iobst 3/24/2016
+Sign In Button in header - Make button clickable across the whole button area.
+*/
+
+#header .main-logo span.sign-in
+{
+  padding: 0;
+}
+
+#header .main-logo span.sign-in a
+{
+  display: block;
+  padding: 10px 14px;  
+}
+
+#header .main-logo span.sign-in a:hover
+{
+  border: none;
+}
+
+
+/*
+Wayne Iobst 3/24/2016
+Lighten abstract popup background
+*/
+
+div#hovering-abs
+{
+  background-color: #eeeeee;
+}
+
+/* 
+Wayne Iobst 3/24/2016
+Lense button - Remove hover effect, remove bottom border, and 
+remove fixed size to fit better in container.
+*/
+#col-2 div.highwire-lens-button a:hover
+{
+  border: none;
+}
+
+#col-2 div.highwire-lens-button
+{
+  border: none;
+  width: auto;
+}
+
+/*
+Wayne Iobst 3/28/2016
+Improve layout/styling of homepage "New at JBC" area
+
+Erik Chaulk 10/31/2017
+Commented out for new home page layout 
+
+#pageid-home .cover-img-wrap #cover-image img
+{
+  left: auto;
+  padding: 0;
+  width: 140px;
+  display: block;
+}
+*/
+#pageid-home #cover-image 
+{
+  left: auto;
+  display: block;
+}
+
+#pageid-home .home-cover-right 
+{
+  padding: 0;
+  float: left;
+  margin-left: 129px;
+  padding-left: 30px;
+  border-left: 1px dotted #bbb
+    bbb;
+  margin-bottom: 10px;
+}
+
+#pageid-home #content-block .cover-img-wrap 
+{
+  background: none;
+  padding: 0 0 0 20px;
+  margin: 0;
+  left: auto;
+  top: auto;
+  width: 160px;
+  height: auto !important;
+  box-sizing: border-box;
+}
+
+#pageid-home #content-block h2.current-issue 
+{
+  margin-bottom: 4px;
+}
+
+.new-at-jbc > h1
+{
+  margin-bottom: 15px;
+}
+
+#pageid-home #content-block .new-at-jbc .home-cover-right h3
+{
+  padding-top: 0;
+}
+
+/* 
+
+ETC 11/18/2016
+
+Paragraph margin stylings
+
+*/
+#pageid-home .home-cover-right p {
+  margin-bottom: 0px !important;
+  margin-top: 3px !important;
+}
+
+/*
+Erik Chaulk 3/31/2016 - 
+Submit button
+*/
+#submit-button a, #submit-button a:link, #submit-button a:visited {
+  display:block; 
+  margin:auto; 
+  background-color:#ffffff; 
+  color:#0079c2; 
+  padding:10px;
+  width:35%; 
+  text-align:center;
+  font-weight:bold;
+}
+
+#submit-button a:hover {
+  border:none;
+}
+
+ /*
+Erik Chaulk 3/31/2016 - 
+eTocs Sign Up button and "Become an ASBMB Member" button
+commented out original sign-in button (line 421-22)
+*/
+
+#pageid-home #content-block .home-etoc-signup .sign-in a { 
+  background-color: #0079c2; 
+  padding: 10px; 
+  width: 50px; 
+  margin-bottom: 20px; 
+  font-weight: bold; 
+  color: #fff; 
+  text-decoration: none; 
+}
+
+#pageid-home #content-block .home-etoc-signup .sign-in a:hover { 
+  border:none;
+}
+
+#pageid-home #content-block .home-etoc-signup .sign-in {
+  padding-top: 20px; 
+  padding-bottom: 20px;
+}
+
+#pageid-login #content-block {
+  width:755px;
+  border-right:none;
+  padding: 0px;
+}
+
+#pageid-login #content-block > div {
+  margin-top:20px;
+}
+
+#pageid-login.pagetype-content #content-block {
+  padding: 0px 20px 0px 5px;
+}
+
+/*
+Wayne Iobst 5/5/2016
+Remove yellow background from older Papers of the Week sections on TOC
+*/
+li.papers_of_the_week, li.potw_summary li.papers_of_the_week li.REV_papers_of_the_week 
+{
+  background-color: transparent;
+  border: none;
+}
+
+/* 
+Wayne Iobst 3/24/2016
+Prevent ad blocker display issues 
+-> 5/20/2016 - modified to include Firefox version of Ad Blocker
+*/
+
+div#header
+{
+  background: #cccccc;  
+}
+
+#header .main-logo
+{
+  clear: both;
+}
+
+div#ad-top 
+{
+  display: block !important;
+  float: left;
+}
+
+div#ad-top2
+{
+  position: static;
+  top: auto;
+  right: auto;
+  float: right;
+  display: block !important;
+  height: 112px;
+  padding-bottom: 0;
+}
+
+/* Fix display of "Become an ASBMB member" button on homepage */
+
+#pageid-home #content-block .home-etoc-signup .etocs-button a { 
+  display: block;
+  background-color:#0079c2; 
+  padding:15px 3px 15px 3px;
+  color:white; 
+  text-align:center;
+}
+
+#pageid-home #content-block .home-etoc-signup .etocs-button a:hover {
+ border:none;
+}
+
+
+/* JBC Twitter Feed */
+
+.jbc-twitter-feed {
+
+  height: 475px;
+  width: 45%;
+  overflow: auto;
+  padding-bottom: 30px;
+  padding-left: 30px;
+  display: inline-block;
+  margin-right: 30px;
+  float: left;  
+
+}
+
+.jbc-twitter-text {
+
+  width: 40%;
+  padding-left: 20px;
+  padding-top: 15px;
+  display: inline-block;
+  min-height: 450px;
+  background: white;
+  color: black;
+
+}
+
+.jbc-twitter-text a {
+  
+  font-weight:bold;
+  
+}
+
+/*
+.jbc-twitter-feed {
+  
+  height: 400px; 
+  width: 50%; 
+  overflow: auto; 
+  padding-bottom: 30px; 
+  padding-left: 30px;
+  
+}
+*/
+.home-podcast {
+  
+  padding-bottom: 30px;
+  
+}
+
+/* 
+   Alerts Page Stylings 
+   ETC 4/11/2017
+*/
+
+.alerts_page_main {
+
+  padding-top: 15px;
+
+}
+
+.alerts_page_main .other_alerts_link {
+
+  font-weight: bold;
+
+}
+
+.alerts_page_main li {
+
+  padding-top: 2px;
+
+}
+.alerts_page_main h2 {
+  
+  padding-top:15px
+
+}
+
+.alerts_page_main .alert_page_section_divider {
+
+  display: none;
+}
+
+.alerts_page_main .other_alerts_link {
+
+  border-bottom: 1px solid black;
+  padding-bottom: 15px;
+}
+
+.alerts_page_main h5 {
+
+  margin-left: 15px;
+
+}
+
+.alerts_page_main .ct_alert_information {
+
+  border: 1px solid black;
+  margin-left: 15px !important;
+
+}
+
+.alerts_page_main .ct_alert_information th {
+
+  padding-left: 15px;
+  padding-top: 10px;
+
+}
+
+.alerts_page_main .ct_alert_information td {
+
+  padding-left: 25px !important;
+
+}
+
+.alerts_page_main #all-alerts-modify-text {
+
+  padding-top: 15px;
+
+}
+
+.alerts_page_main .change-email-link {
+  
+  font-weight: bold;
+  margin: 5px 0px 0px 0px !important;
+
+}
+
+/* My JBC Page */
+
+#my_jbc {
+  
+  padding-top: 15px;
+  
+}
+
+/* Issue cover image size increase */
+
+img.cover-img {
+  width:100%;
+}
+
+/* Homepage pip styling */
+
+#homepage-pip .cit-metadata .cit-section {
+  color: black;
+}
+
+#homepage-pip .cit-metadata .cit-title {
+  padding-bottom: 7px;
+}
+
+#homepage-pip .cit-metadata .cit-auth-list {
+  color: black;
+  font-weight: normal;
+}
+
+/* Remove Reflections link from the Nav Bar */
+
+#header #reflections {
+   display: none; 
+}
+
+
+/*
+================ 
+Home page updates
+==================
+*/
+
+/* 
+   Primary home page container styling 
+   Update link within the quotes to the new image link to update the home page background image
+*/
+
+.new-at-jbc {
+    background-image: url("/site/images/hp/JUN-05.png");
+    background-repeat: no-repeat;
+    background-color: #ebf4f9;
+    height: 310px;
+    position: relative;
+}
+
+/* Text-box superimposed over center image */
+.home-cover-right {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 20px 20px 20px 20px !important;
+    border-left: none !important;
+    max-width: 450px;
+    max-height: 250px;
+    position: absolute;  
+    top: 30px;
+    right: 0;
+    margin: 20px !important;
+    box-shadow: 0 1px 8px 0 rgba(0, 0, 0, .5), 0 2px 15px 0 rgba(0, 0, 0, .5);
+    overflow: auto;
+}
+
+/* Text-box font stylings */  
+#pageid-home #content-block .new-at-jbc .home-cover-right a, #pageid-home #content-block .new-at-jbc .home-cover-right p {
+    color: white !important;
+    margin-bottom: 0px !important;
+    text-shadow: 1px 1px #000;
+}
+
+/* Hide default issue elements in primary container */
+.current-issue, .new-at-jbc h1 {
+    display: none;
+}
+
+/* Current issue image placement */
+.cover-img-wrap {
+    position: absolute !important;
+    top: 30px !important;
+    left: 0 !important;
+    margin: 20px !important;
+    padding: 0px !important;
+}
+
+/* Current issue image border */
+#pageid-home .cover-img-wrap #cover-image img {
+    box-shadow: 0 1px 8px 0 rgba(0, 0, 0, 0.2), 0 2px 15px 0 rgba(0, 0, 0, 0.19);
+    margin: 0px;
+    border: 4px solid white;
+}
+
+/* Header nav bar color */
+#header .header-buttons, #header .header-buttons a {
+    background-color: #5c6f7b;
+}
+
+/* Hide default elements in header search bar */
+#header-qs-input-author, #header-qs-input-year, #header-qs-input-vol, #header-qs-input-page {
+    display: none;
+}
+
+/* Alter position of header elements to reduce space */
+#header div#header-qs-jbc.header-qs {
+    background-color: transparent !important;
+}
+  
+#header-qs-jbc form.searchbox {
+    float: right;
+    margin-left: 0px;
+    width: 45%;
+}  
+  
+#header .main-logo span.sign-in, #header .main-logo span.sign-out {
+    background-color: #7ac142;
+    top: 65px;
+    border-radius: 2px;
+}
+ 
+#pageid-home #header div#header-qs-jbc.header-qs {
+    top: 115px;
+}
+
+#header .main-logo {
+    height: 157px;
+}
+  
+#header div#header-qs-jbc.header-qs {
+    top: 227px;
+}
+
+#header .header-qs input#header-qs-search-go {
+  background: url(http://www.jbc.org.ezp-prod1.hul.harvard.edu/site/images/search.png);
+}
+
+/* Green button styling */
+#header .no-link span, #pageid-home #content-block .home-etoc-signup .sign-in a, #pageid-home #content-block .home-etoc-signup .etocs-button a, #submit-button a, #submit-button a:link, #submit-button a:visited {
+  background-color: #7ac142;
+  color: white;
+  border-radius: 2px;
+}
+
+/* Header nav bar hover styling */
+#header .button-list.header-buttons li a:hover, #header .button-list.header-buttons li a:hover span  {
+  background-color: #7ac142 !important;
+  border-bottom: none;
+  border-radius: 2px;
+}
+
+#minireviews span {
+    background-color:#5c6f7b;
+    color:#ffffff;
+    padding:10px 14px;
+}
+
+#minireviews span:hover {
+    background-color:#7ac142;
+    color:#ffffff;
+    padding:10px 14px;
+}
+
+#pageid-home .home-cover-right .hcr-iti {
+  margin-bottom: 0px;
+}
+
+/* Grey background for eTOCs/Twitter sections */
+#pageid-home #content-block .home-etoc-signup, .home-podcast {
+  background-color: #f7f7f7;
+}
+
+/* Col-3 nav elements */
+#col-3 #sidebar-global-nav ul.button-list li {
+  border-top: 1px solid #5c6f7b;
+  border-right: 1px solid #5c6f7b;
+  border-left: 1px solid #5c6f7b;
+}
+
+#col-3 #sidebar-global-nav ul.button-list li.last {
+  border-bottom: 1px solid #5c6f7b;
+}
+
+#col-3 #sidebar-global-nav ul.button-list li a {
+  color: #4d4d4d;
+}
+
+
+#col-3 #sidebar-global-nav ul.button-list li a:hover {
+  background-color: #7ac142;
+  color: white !important;
+}
+
+/* Announcement section */
+.home-announcement {
+  background-color: #5c6f7b;
+  padding: 40px 20px;
+  color: white !important;
+  text-align: center;
+  font-size: 1.3em;
+}
+
+.home-announcement a {
+  color: #7ac142 !important;
+  font-weight: bold;
+}
+
+.home-announcement p:first-of-type {
+  margin-top: 0px !important;
+}
+
+.home-announcement p:last-of-type {
+  margin-bottom: 0px !important;
+}
+
+.home-announcement hr {
+  margin-bottom: 20px;
+  width: 50%;
+  color: white;
+}
+
+/* Hide HW Logo in Column-3 */
+
+#col-3 #f1000_image {
+  display: none;
+}
+
+/* Follow button in Column-3 */
+
+#col-3 #jbc-follow-button {
+  text-align: center;
+}
+
+#col-3 #jbc-follow-button a:hover {
+  border-bottom: none;
+}
+
+/* Classics Quiz Button */
+#quiz-button:hover {
+  border-bottom: none;
+}
+
+/* Footer/Private Policy */
+#footer .copyright-issn {
+  display: flex;
+  justify-content: space-around;  
+  padding: 10px;
+}
+
+#footer .copyright-issn .footer-copy {
+  padding: 0px;
+}
+
+#footer .copyright-issn .footer-issn {
+  left: 0px !important;
+  top: 0px;
+}
+
+#footer .copyright-issn .private-policy a {
+  color: #FFFFFF;
+}

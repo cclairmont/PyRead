@@ -1,0 +1,69 @@
+/****************************************************************************
+
+  ***  JBC control CSS
+
+ ****************************************************************************/
+
+ 
+.box
+{
+width: 209px;
+margin: 15px;
+border-radius: 20px;
+border-width:medium;
+border-color:#E82226;
+border: 2px solid;
+float: left;
+min-height: 200px;
+padding-right: 5px;
+box-sizing: border-box;
+padding-top: 8px;
+}
+
+#proxied-contents .profilepic
+{
+padding: 0px, 15px, 0px, 0px; 
+margin: 15px, 15px, 0px, 0px; 
+text-align: center; 
+vertical-align: top; 
+border: none;
+
+}
+
+#proxied-contents .editor
+{
+margin: 0px;
+padding: 0px, 15px, 0px, 0px; 
+text-align: left; 
+vertical-align: top; 
+
+}
+
+#content-block .editor
+{
+margin: 0px;
+padding: 0px, 15px, 0px, 0px;
+text-align: left;
+vertical-align: top;
+
+}
+
+
+#proxied-contents .editorname
+{
+font-weight:bold;
+}
+
+
+#col-3 #sidebar-global-nav ul.button-list li { list-style-type: none;  border-top: 1px solid #0079c2; border-right: 1px solid #0079c2; border-left: 1px solid #0079c2; padding: 0px; background-color: white;}
+#col-3 #sidebar-global-nav ul.button-list li a {
+  display:block;
+  padding: 8px;
+  border: 1px solid transparent;
+}
+#col-3 #sidebar-global-nav ul.button-list li.last { border-bottom: 1px solid #0079c2; }
+#col-3 #sidebar-global-nav ul.button-list li a { text-decoration: none; color: #0079c2; font-weight: bold; }
+#col-3 #sidebar-global-nav ul.pub-links-1 li.last, #col-3 #sidebar-global-nav ul.pub-links-2 li.last { margin-bottom: 20px; }
+
+#pageid-login #content-block #content-block { border-right: none; padding: 0px 20px 0px 5px; width: 730px; }
+

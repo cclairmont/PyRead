@@ -9,6 +9,9 @@ import selenium_utils as su
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException, InvalidCookieDomainException
 
+def scrape(url, data):
+    return 'hello'
+
 PROXY = {'Harvard': 'javascript:(function(){location.href="http://"+location.hostname+".ezp-prod1.hul.harvard.edu"+location.pathname})();'}
 USE_PROXY = 'Harvard'
 
@@ -407,7 +410,9 @@ class Article:
                         
 class ArticleParser:
     
-    def __init__(self, url, debug=False, dummy=False, max_retry=10):
+    def __init__(self, url, debug=False, dummy=False, log=None, max_retry=10):
+        if log is None:
+            self.log = print
         self.debug = debug
         self.url = url
         self.page_url = None
@@ -419,27 +424,27 @@ class ArticleParser:
         self.article = Article(self.get_doi())
         self.article.add_url(url)
         if debug:
-            print(f'Checking metadata for {self.article.doi}')
+            self.log(f'Checking metadata for {self.article.doi}')
         meta_date = self.article.meta_date()
         if meta_date is None:
             if debug:
-                print('Local metadata not found, fetching...')
+                self.log('Local metadata not found, fetching...')
             self.article.update_metadata(self.fetch_metadata())
         else:
             if debug:
-                print(f'Found local metadata from {meta_date}')
+                self.log(f'Found local metadata from {meta_date}')
         if debug:
             self.article.print_info()
         self.article.abstract = self.get_abstract()
         self.fetch_page()
         if not self.have_access(self.soup):
             if debug:
-                print('Closed Acess: Trying Proxy')
+                self.log('Closed Acess: Trying Proxy')
             self.proxy_auth()
         else:
             self.cookies = []
             if debug:
-                print('Open Acess Article')
+                self.log('Open Acess Article')
         self.article.content = self.get_content()
         for section in self.article.content:
             if isinstance(self.article.content[section], dict):
@@ -453,8 +458,8 @@ class ArticleParser:
         for key,val in figures.items():
             for res in ['lr', 'hr']:
                 if debug:
-                    print(f'Downloading {key} ({res}) from')
-                    print(val[res])
+                    self.log(f'Downloading {key} ({res}) from')
+                    self.log(val[res])
                 data = self.get_retry(val[res])
                 name = Path(val[res]).name
                 if key.startswith('Figure S'):
@@ -474,12 +479,12 @@ class ArticleParser:
                                           low_res=(res == 'lr'))
                 except FileExistsError:
                     if debug:
-                        print('File Exists - Not Overwriting')
+                        self.log('File Exists - Not Overwriting')
         other_files = self.get_files()
         for file,link in other_files.items():
             if debug:
-                print(f'Downloading {file} from:')
-                print(link)
+                self.log(f'Downloading {file} from:')
+                self.log(link)
             data = self.get_retry(link)
             name = Path(link).name
             info = data.headers.get('Content-Disposition')
@@ -498,7 +503,7 @@ class ArticleParser:
                                       title=title)
             except FileExistsError:
                 if debug:
-                    print('File Exists - Not overwriting')
+                    self.log('File Exists - Not overwriting')
                     
     def get_retry(self, url, timeout=10):
         retry = 0
@@ -509,7 +514,7 @@ class ArticleParser:
             except TimeoutException:
                 retry += 1
                 if self.debug:
-                    print(f'Timeout fetching {url} on attempt {retry}')
+                    self.log(f'Timeout fetching {url} on attempt {retry}')
         return r
             
     def fetch_page(self, refresh=False):
@@ -524,7 +529,7 @@ class ArticleParser:
         headers = {'Accept': 'application/vnd.crossref.unixsd+xml'}
         url = 'http://dx.doi.org/' + doi
         if self.debug:
-            print(f'Fetching metadata from: {url}')
+            self.log(f'Fetching metadata from: {url}')
         r = self.get_retry(url, headers=headers)
         if r.status_code != 200:
             raise RequestError
@@ -545,7 +550,6 @@ class ArticleParser:
             return
         driver = su.spawn_driver('firefox', options)
         driver.get(self.url)
-        print(driver.current_url)
         wait = WebDriverWait(driver, 5)
         wait.until(su.page_is_ready)
         driver.execute_script(PROXY[USE_PROXY])
@@ -554,12 +558,11 @@ class ArticleParser:
             try:
                 driver.add_cookie(c)
                 if self.debug:
-                    print(f"Added Cookie: {c['name']}")
+                    self.log(f"Added Cookie: {c['name']}")
             except InvalidCookieDomainException:
                 if self.debug:
-                    print(f"Failed Cookie: {c['name']}")
+                    self.log(f"Failed Cookie: {c['name']}")
         driver.refresh()
-        print(driver.current_url)
         try:
             wait.until(self.access)
             self.url = driver.current_url
@@ -580,8 +583,8 @@ class ArticleParser:
                 if current != self.url:
                     cookies = cookies + driver.get_cookies()
                     self.url = current
-                    print(self.url)
-                    print(cookies)
+                    self.log(self.url)
+                    self.log(cookies)
                 if self.access(driver):
                     break
             except:
@@ -625,10 +628,10 @@ class ArticleParser:
         
 class SeleniumParser(ArticleParser):
     
-    def __init__(self, url, browser='firefox', debug=False, dummy=False):
+    def __init__(self, *args, browser='firefox', **kwargs):
         self.browser = browser
         self.driver = None
-        super().__init__(url, debug, dummy)
+        super().__init__(*args, **kwargs)
     
     def get_driver(self):
         if self.driver is None:
@@ -643,9 +646,9 @@ class SeleniumParser(ArticleParser):
                 try:
                     self.driver.add_cookie(c)
                     if self.debug:
-                        print(f"Added Cookie: {c['name']}")
+                        self.log(f"Added Cookie: {c['name']}")
                 except:
                     if self.debug:
-                        print(f"Failed Cookie: {c['name']}")
+                        self.log(f"Failed Cookie: {c['name']}")
                     pass
             self.driver.get(self.url)

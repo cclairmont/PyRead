@@ -1,0 +1,97 @@
+@charset "utf-8";
+/* CSS Document */
+
+.inset {
+	align: left;
+	float: right;
+	border: 1px dotted #666666;
+	background-color: #e6e6e6;
+	width: 250px;
+padding: 5px;
+margin-left: 5px;
+	}
+	
+#insetheader
+{
+	margin-right: 10px;
+	padding-top: 2px;
+	padding-right: 2px;
+	padding-left: 5px;
+	padding-bottom: 4px;
+	margin-top: 5px;
+}
+
+#insetheader2
+{
+	margin-right: 10px;
+	padding-top: 2px;
+	padding-right: 2px;
+	padding-left: 5px;
+	padding-bottom: 3px;
+	margin-top: 5px;
+}
+
+.inset p {
+	font-size: 12px;
+	margin-left: 10px;
+	margin-top: 10px;
+	margin-bottom: 5px;
+	margin-right: 5px;
+		}
+	
+.updated
+{
+	font-size: 12px;
+	margin-left: 15px;
+	font-style: italic;
+	line-height: 12px;
+}
+
+.description
+{
+	margin-top: 0px;
+	margin-left: 5px;
+	padding: 0px;
+	}
+	
+.tipsheet
+	{
+	margin-bottom: 3px;
+	font-weight: bold;
+	font-size: 13px;
+	}
+
+
+.clearfloat { /* this class should be placed on a div or break element and should be the final element before the close of a container that should fully contain a float */
+	clear: both;
+    height: 0;
+    font-size: 1px;
+    line-height: 0px;
+}
+
+
+
+/*LINKS  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */		
+#insetheader2, 
+.blue_background a:link
+{
+		color: #ffffff;
+		text-decoration: none;
+		}
+		
+	#insetheader2, 						
+.blue_background a:visited
+		{
+		color: #FFFFFF;
+		text-decoration: none
+		}	
+#insetheader2, 							
+.blue_background a:hover
+{
+		color: #36739f;
+		text-decoration: none;
+		background: #FFFFFF;
+		}
+
+a img 
+{border: 0px;}

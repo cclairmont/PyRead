@@ -1,0 +1,188 @@
+
+#pageid-home #content-block div.main-block {
+	float: left;
+	width: 350px;
+	margin-bottom: 10px;
+}
+#pageid-home #content-block .main-block li, #pageid-home #content-block .main-block ul {
+	margin: 0;
+}
+
+#pageid-home #content-block h2, #pageid-home #content-block h3 {
+	font-size: 1.2em;
+	font-family: Arial, "Lucida Grande", "Lucida Sans Unicode", Tahoma, Verdana, Helvetica, sans-serif;
+}
+#pageid-home #content-block h2, #pageid-home #content-block h3, #pageid-home #content-block h2 a, #pageid-home #content-block div.home-announce a {
+
+	color:#0083A8; /* override in local */
+}
+
+#content-block div.home-announce a:hover {
+
+	border:0px;
+	text-decoration:underline;
+}
+#pageid-home #content-block h2.current-issue {
+	padding: 20px 0 20px 0;
+	margin: 0;
+}
+
+#pageid-home #content-block a.current-issue-link  {
+	border-bottom: 1px dotted #0083A8; /* override in local */
+}
+#pageid-home #content-block .cover-img-wrap {
+	background-image: url(/shared/img/standard-design/design2/cover_shadow.png);
+	background-repeat: no-repeat;
+	position: relative;
+	top: -25px;
+	left: 20px;
+}
+#pageid-home #cover-image {
+	position: relative;
+	left: 5px;
+}
+#pageid-home #cover-image img {
+	padding: 5px;
+	border: none;
+	background-color: white;
+}
+
+#pageid-home div.cover-img-wrap a:hover {
+	border-bottom:0px solid;
+}
+
+#pageid-home #content-block div.home-announce-wrapper {
+	width: 282px;
+	background-image: url(/shared/img/standard-design/design2/announce_shadow_top.2.png);
+	background-repeat: no-repeat;
+	position: relative;
+	left: 20px;
+/*	margin-bottom: 20px;*/
+	margin: 0;
+}
+#pageid-home #content-block div.home-announce-wrapper-bottomTRYWITHOUT {
+	width: 282px;
+	height: 10px;
+	background-image: url(/shared/img/standard-design/design2/announce_shadow_bottom.png);
+	background-repeat: no-repeat;
+	background-position: bottom left;
+}
+
+#pageid-home #content-block div.home-announce-bottom {
+	width: 282px;
+	height: 10px;
+	background: #e0e0e0 url(/shared/img/standard-design/design2/announce_shadow_bottom.3.png) no-repeat bottom left; 
+	position: relative;
+	left: 20px;
+	padding: 0;
+	margin-bottom: 20px;
+}
+
+#pageid-home #content-block div.home-announce {
+	width: 242px;
+	background-color: #e0e0e0;
+	position: relative;
+	left: 5px;
+	padding-right: 10px;
+	padding-left:10px;
+	padding-top: 10px;
+	border-style: solid;
+	border-color: white;
+	border-width: 0px 5px;
+}
+
+#pageid-home #content-block div.home-announce-spaceTRYWITHOUT {
+	width: 262px;
+	background-color: #e0e0e0;
+	border-style: solid;
+	border-color: white;
+	border-width: 0px 5px;
+	position: relative;
+	left: 5px;
+	padding: 0;
+}
+
+#pageid-home #content-block div.home-announce {
+	font-weight: bold;
+}
+#pageid-home #content-block ul {
+	list-style: none;
+}
+#pageid-home #content-block ul.jnl-links {
+	padding: 0;
+	margin-left:0;
+}
+#pageid-home #content-block ul.jnl-links p {
+        margin: 0 0 20px 0;
+	font-size:1.2em;
+}
+
+#pageid-home #content-block ul.jnl-links li.empty  h3{
+        margin: 0 0 20px 0;
+}
+
+#pageid-home #content-block .in-this-issue h2 {
+	padding-top: 10px;
+	border-top: 1px dotted #0083A8; /* override color in local */
+}
+
+#pageid-home #content-block .in-this-issue ul {
+	margin: 0;
+	padding: 0;
+}
+#pageid-home #content-block .in-this-issue ul li {
+	padding: 0 0 5px 0;
+	line-height: 1.3;
+}
+#pageid-home #content-block .in-this-issue ul a {
+	border-left: 5px solid #0083A8; /* override color in local */
+	padding-left: .5em;
+}
+
+#pageid-home #content-block .content-block-clear {
+        clear: both;
+        height: 2px;
+        width:100%;
+}
+#pageid-home #content-block {
+	float: left;
+/***version 1****/
+	/*960 -210 -1*/
+	/*width: 749px;*/
+/***version 2****/
+	/*960 -203 -1*/
+	width: 756px;
+	margin: 0;
+	padding: 0;
+	overflow:visible;
+	font-family: arial,sans-serif;
+	color: #666666;
+	background-color: white;
+	border-right: 1px dashed #aaaaaa;
+}
+
+#pageid-home #col-3 {
+/***version 1****/
+        /*width: 210px;*/
+/***version 2****/
+	width: 203px; /*210 minus pub-link indent*/
+	margin: 0;
+	padding: 0;
+	float: left;
+	text-align: left;
+	overflow: visible;
+	background-color: white;
+}
+
+
+#pageid-home  #intl-content {
+	font-size:1em;
+	text-align:center;
+}
+#pageid-home  #intl-content a {
+	color:#333333
+}
+
+#pageid-home  #intl-content span.intl-help {
+	font-size:0.75em
+}
