@@ -1,107 +1,151 @@
+__version__ = '0.1'
+
 import http.server
 import http.cookies
 from http import HTTPStatus
 import ast
 import requests
 import pickle
+import json
 import urllib.parse
 from bs4 import BeautifulSoup
 from pathlib import Path
 import articleparser as ap
+import pyread
+
 
 class PyRead(http.server.BaseHTTPRequestHandler):
-    
+
+    server_version = "PyRead/" + __version__
+
     def __init__(self, *args, debug=False, domain='localhost', port=8000,
                  **kwargs):
         self.debug = debug
         self.domain = domain
         self.port = port
+        self.session = requests.Session()
         try:
-            with open('links.json','r') as l:
-                self.url_dict = ast.literal_eval(l.read())
+            with open('links.json', 'r') as f:
+                self.url_dict = ast.literal_eval(f.read())
         except FileNotFoundError:
             self.url_dict = {}
         super().__init__(*args, **kwargs)
-        
+
+    def fetch(self, url, headers={}, cache=True):
+        try:
+            with open('cookies.pik', 'rb') as cfile:
+                self.session.cookies.update(pickle.load(cfile))
+        except FileNotFoundError:
+            pass
+        self.session.headers = headers
+        if not url.startswith('http'):
+            with open('proxy_url.txt', 'r') as u:
+                url = u.read() + url
+        status, content, name = self.request_cache('GET', url, cache)
+        print(status)
+        return status, content, name
+
+    def inject_content(self, elem_type, content):
+        message = {'elem_type': elem_type,
+                   'content': content}
+        with open('message.json', 'w') as f:
+            f.write(json.dumps(message))
+
     def inject_script(self, content):
         head_start = content.find(b'<head>') + 6
-        content = (content[:head_start] + 
-                   b'\n      <script type="text/javascript" src="?pyreadasset=pyreadproxy.js"></script>' + 
-                   content[head_start:])
+        content = b''.join([content[:head_start],
+                            b'\n      <script type="text/javascript" src="?',
+                            b'pyreadasset=pyreadproxy.js"></script>',
+                            content[head_start:]])
         return content
-        
+
     def scrape(self, data):
-        try:
-            print(data['url'])
-            self.send_response_only(HTTPStatus.OK)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            doi = ap.scrape(data['url'], data['data'])
-            print(doi)
-            if doi is None:
-                self.wfile.write(b'{"doi": "none"}')
-            else:
-                self.wfile.write(b''.join([b'{"doi": "',
-                                           doi.encode('utf-8'),
-                                           b'"}']))
-        except KeyError:
-            self.send_response(HTTPStatus.BAD_REQUEST)
-            self.end_headers()
-        
-    def request_cache(self, session, request_type, url, data=None):
+        doi = pyread.scrape(data, self.inject_content, self.fetch)
+        print(doi)
+        self.send_response(HTTPStatus.OK)
+        self.send_header('Content-Type', 'application/json')
+        self.end_headers()
+        if doi is None:
+            self.wfile.write(b'{"doi": "none"}')
+        else:
+            self.wfile.write(b''.join([b'{"doi": "',
+                                       doi.encode('utf-8'),
+                                       b'"}']))
+
+    def request_cache(self, request_type, url, cache=True, data=None):
         parsed_url = urllib.parse.urlparse(url)
         netloc = parsed_url.netloc
         path = parsed_url.path
         cache_path = Path.cwd().joinpath('cache', netloc, path[1:])
-        if cache_path.suffix == '':
+        fname = cache_path.name.split('&')[-1].split('=')[-1]
+        cache_path = cache_path.with_name(fname)
+        for parent in cache_path.parents:
+            if parent.is_file():
+                parent.rename(parent.with_suffix('.cache'))
+                break
+        if cache_path.is_dir():
             cache_path = cache_path.with_suffix('.cache')
-        if cache_path.exists():
-            print('CACHE_HIT')
+        alias_path = cache_path.with_name('.alias')
+        if alias_path.exists():
+            with alias_path.open(mode='r') as a:
+                alias = json.loads(a.read())
+        else:
+            alias = {}
+        if url in alias:
+            cache_path = cache_path.with_name(alias[url])
+        if cache and cache_path.exists():
             with cache_path.open(mode='rb') as f:
                 content = f.read()
-            return HTTPStatus.OK, content
+            return HTTPStatus.OK, content, cache_path.name
         else:
-            print('CACHE_MISS')
             if request_type == 'GET':
-                response = session.get(url)
+                response = self.session.get(url)
             elif request_type == 'POST':
-                response = session.post(url, data=data)
-            if response.status_code == HTTPStatus.OK:
+                response = self.session.post(url, data=data)
+            content_disp = response.headers.get('Content-Disposition')
+            if content_disp is not None:
+                fname = content_disp.find('filename=')
+                if fname != -1:
+                    fname = content_disp[fname + 9:]
+                    alias[url] = fname
+                    cache_path = cache_path.with_name(fname)
+            if cache and response.status_code == HTTPStatus.OK:
                 cache_path.parent.mkdir(parents=True, exist_ok=True)
+                with alias_path.open(mode='w') as a:
+                    a.write(json.dumps(alias))
                 with cache_path.open(mode='wb') as f:
                     f.write(response.content)
-            return HTTPStatus(response.status_code), response.content
-            
-        
+            return (HTTPStatus(response.status_code), response.content,
+                    cache_path.name)
+
     def proxy_form(self, response):
         soup = BeautifulSoup(response.content, 'lxml')
         for f in soup.find_all('form'):
             action = f.get('action')
-            if not action is None:
+            if action is not None:
                 print(action)
                 if f['action'].startswith('http'):
                     f['action'] = '/?pyreadproxyurl=' + f['action']
-        return 
-    
+        return
+
     def proxy_links(self, response):
         soup = BeautifulSoup(response.content, 'lxml')
         for f in soup.find_all('a'):
             action = f.get('href')
-            if not action is None:
+            if action is not None:
                 if f['href'].startswith('http'):
                     f['href'] = '?pyreadproxyurl=' + f['href']
-                    #print(f['href'])
-                    
+                    # print(f['href'])
+
         return soup.encode('utf-8')
-        
+
     def proxy(self, request_type, data=None):
-        session = requests.Session()
-        session.headers = self.headers
+        self.session.headers = self.headers
         cookie = http.cookies.SimpleCookie(self.headers.get('Cookie'))
-        session.cookies.update(cookie)
+        self.session.cookies.update(cookie)
         try:
             with open('cookies.pik', 'rb') as cfile:
-                session.cookies.update(pickle.load(cfile))
+                self.session.cookies.update(pickle.load(cfile))
         except FileNotFoundError:
             pass
         if self.path.startswith('/?pyreadproxyurl='):
@@ -113,8 +157,8 @@ class PyRead(http.server.BaseHTTPRequestHandler):
             cookies = urllib.parse.unquote(self.path[cookies+15:]).split('; ')
             domain = '.' + '.'.join(parsed_url.netloc.split('.')[-2:])
             for c in cookies:
-                name,val = c.split('=',1)
-                session.cookies.set(name,val,domain=domain)
+                name, val = c.split('=', 1)
+                self.session.cookies.set(name, val, domain=domain)
             with open('proxy_url.txt', 'w') as u:
                 u.write(base_url)
             path = url
@@ -126,62 +170,119 @@ class PyRead(http.server.BaseHTTPRequestHandler):
                 path = base_url + self.path
             else:
                 path = self.path
-        status,content = self.request_cache(session, request_type, path, data)
+        status, content, name = self.request_cache(request_type, path, data)
         if main_page:
             content = self.inject_script(content)
-        self.send_response_only(status)
+        self.send_response(status)
         self.end_headers()
         with open('cookies.pik', 'wb') as cfile:
-            pickle.dump(session.cookies, cfile)
+            pickle.dump(self.session.cookies, cfile)
         self.wfile.write(content)
-            
-        
+
     def do_GET(self):
-        print(self.path)
         if self.path.startswith('/?pyreadasset='):
             path = Path.cwd().joinpath('assets', self.path[14:])
             if path.exists():
                 with path.open(mode='rb') as f:
-                    self.send_response_only(HTTPStatus.OK)
+                    self.send_response(HTTPStatus.OK)
                     self.end_headers()
                     self.wfile.write(f.read())
             else:
                 self.send_response(HTTPStatus.NOT_FOUND)
         elif self.path.startswith('/pyreadhome'):
-            parsed_url = urllib.parse.urlparse(self.path)
-            query = urllib.parse.parse_qs(parsed_url.query)
-            self.send_response_only(HTTPStatus.OK)
+            self.send_response(HTTPStatus.OK)
             self.end_headers()
             with open('assets/index.html', 'rb') as f:
                 self.wfile.write(f.read())
+        elif self.path.startswith('/pyreadinfo'):
+            self.send_response(HTTPStatus.OK)
+            self.send_header('Content-Type', 'application/json')
+            with open('message.json', 'rb+') as f:
+                message = f.read()
+                f.truncate(0)
+            if len(message) == 0:
+                message = b'{}'
+            self.send_header('Content-Length', len(message))
+            self.end_headers()
+            self.wfile.write(message)
         else:
             self.proxy('GET')
-    
+
     def do_POST(self):
-        content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
+        content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
-        post_data = post_data.decode('utf-8').split('&')
+        if self.path.startswith('/pyreadscrape'):
+            self.scrape(post_data)
+            return
         data = {}
         for elem in post_data:
             try:
-                k,v = elem.split('=', 1)
+                k, v = elem.split('=', 1)
             except ValueError:
                 continue
             data[k] = v
-        if self.path.startswith('/?pyreadscrape'):
-            self.scrape(data)
+        if self.path.startswith('/pyreadapi'):
+            self.api(data)
         else:
             self.proxy('POST', data=data)
-        
-    def do_HEAD(self):
-        self.proxy('GET')
-        
+
+    def api(self, data):
+        try:
+            doi = data['doi']
+            request_type = data['type']
+            name = data.get('name')
+        except KeyError:
+            self.send_response(HTTPStatus.BAD_REQUEST)
+            self.end_headers()
+            return
+        doi_path = Path.cwd().joinpath('files', doi)
+        if not doi_path.exists():
+            self.send_response(HTTPStatus.NOT_FOUND)
+            self.end_headers()
+            return
+        else:
+            manifest_path = doi_path.joinpath('manifest.json')
+            with manifest_path.open() as m_file:
+                manifest = json.loads(m_file.read())
+            if request_type == 'info':
+                content_type = 'application/json'
+                del manifest['files']
+                content = json.dumps(manifest).encode('utf-8')
+                content_length = len(content)
+            elif request_type == 'file':
+                try:
+                    content_type = manifest['files'][name]['content_type']
+                    content_length = manifest['files'][name]['content_length']
+                except KeyError:
+                    self.send_response(HTTPStatus.NOT_FOUND)
+                    self.end_headers()
+                    return
+                file_path = doi_path.joinpath(name)
+                if file_path.exists():
+                    with file_path.open(mode='rb') as f:
+                        content = f.read()
+                else:
+                    self.send_response(HTTPStatus.NOT_FOUND)
+                    self.end_headers()
+                    return
+            else:
+                self.send_response(HTTPStatus.BAD_REQUEST)
+                self.end_headers()
+                return
+            self.send_response(HTTPStatus.OK)
+            self.send_header('Content-Type', content_type)
+            self.send_header('Content-Length', content_length)
+            self.end_headers()
+            self.wfile.write(content)
+            return
+
+
 if __name__ == '__main__':
     PORT = 8000
     domain = 'localhost'
-    
+
     Handler = PyRead
-    
+
     with http.server.HTTPServer(("", PORT), Handler) as httpd:
         print("serving at port", PORT)
         httpd.serve_forever()
