@@ -215,7 +215,9 @@ class PyRead(http.server.BaseHTTPRequestHandler):
             self.scrape(post_data)
             return
         data = {}
-        for elem in post_data:
+        post_data = urllib.parse.unquote(post_data.decode('utf-8'))
+        for elem in post_data.split('&'):
+            print(elem)
             try:
                 k, v = elem.split('=', 1)
             except ValueError:
@@ -246,17 +248,9 @@ class PyRead(http.server.BaseHTTPRequestHandler):
                 manifest = json.loads(m_file.read())
             if request_type == 'info':
                 content_type = 'application/json'
-                del manifest['files']
                 content = json.dumps(manifest).encode('utf-8')
                 content_length = len(content)
             elif request_type == 'file':
-                try:
-                    content_type = manifest['files'][name]['content_type']
-                    content_length = manifest['files'][name]['content_length']
-                except KeyError:
-                    self.send_response(HTTPStatus.NOT_FOUND)
-                    self.end_headers()
-                    return
                 file_path = doi_path.joinpath(name)
                 if file_path.exists():
                     with file_path.open(mode='rb') as f:
