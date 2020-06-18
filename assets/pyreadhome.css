@@ -1,0 +1,66 @@
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #303030;
+}
+
+.ref {
+  color: Blue;
+}
+
+.section-title, .subsection-title {
+  font-weight: bold;
+  user-select: none;
+  border: 2px solid #EEEEEE;
+  border-radius: 5px;
+  color: #909090;
+  margin-top: 5px;
+  padding-left: 10px;
+}
+
+.section-title {
+  font-size: 30px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.subsection-title {
+  font-size: 24px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+ol {
+  font-size: 20px;
+  padding-left: 10px;
+}
+
+li {
+  margin-bottom: 10px;
+}
+
+p {
+  font-size: 20px;
+  padding-left: 10px;
+}
+
+table {
+  font-size: 20px;
+  padding-left: 10px;
+}
+
+th, td {
+  border-bottom: 1px solid #ddd;
+}
+
+.active, .section-title:hover, .subsection-title:hover {
+  background-color: #F0F8FF;
+}
+
+.active {
+  color: RoyalBlue;
+}
+
+.section-content, .subsection-content {
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}

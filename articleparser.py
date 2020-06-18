@@ -195,6 +195,12 @@ class Article:
                 self.files[f] = ArticleFile(self.path,
                                             manifest=manifest['files'][f])
 
+    def save(self):
+        with self.path.joinpath('content.json').open(mode='w') as f:
+            f.write(json.dumps(self.content))
+        with self.path.joinpath('references.json').open(mode='w') as f:
+            f.write(json.dumps(self.references))
+
     def add_file(self, name, source, data, identity=None, overwrite=False,
                  date=None, content_type=None, content_length=None, number=0,
                  title=None, caption='', low_res=False):
@@ -340,8 +346,8 @@ class Article:
 
 
 class ArticleParser:
-    def __init__(self, content, inject, fetch, debug=False, dummy=False,
-                 log=None, max_retry=10):
+    def __init__(self, content, inject, fetch, status, debug=False,
+                 dummy=False, log=None, max_retry=10):
         if log is None:
             def log(m):
                 with open('aplog.txt', 'a') as f:
@@ -353,9 +359,19 @@ class ArticleParser:
         self.page_url = None
         self.max_retry = 10
         self.fetch = fetch
+        self.update_status = lambda: status(self.status)
+        self.status = []
         if dummy:
             return
+        self.status.append({'caption': 'Identifying Article...',
+                            'messages': [],
+                            'status': 'working'})
+        self.update_status()
         self.article = Article(self.get_doi())
+        self.status[-1]['messages'].append(f'DOI: {self.article.doi}')
+        self.status[-1]['messages'].append(self.article.manifest.get('title'))
+        self.status[-1]['status'] = 'success'
+        self.update_status()
         if debug:
             self.log(f'Checking metadata for {self.article.doi}')
         meta_date = self.article.meta_date()
@@ -381,6 +397,7 @@ class ArticleParser:
                     self.clean_html(BeautifulSoup(section['content'], 'lxml'))
 
         self.article.references = self.get_references()
+        self.article.save()
         figures = self.get_figures()
         other_files = self.get_files()
         for key, val in figures.items():

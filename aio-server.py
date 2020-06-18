@@ -1,4 +1,4 @@
-__version__ = '0.1'
+__version__ = '0.2'
 
 import http.server
 import http.cookies
@@ -64,7 +64,7 @@ class PyRead(http.server.BaseHTTPRequestHandler):
     def inject_script(self, content):
         head_start = content.find(b'<head>') + 6
         content = b''.join([content[:head_start],
-                            b'\n      <script type="text/javascript" src="/',
+                            b'\n      <script type="text/javascript" src="?',
                             b'pyreadasset=pyreadproxy.js"></script>',
                             content[head_start:]])
         return content
@@ -193,9 +193,8 @@ class PyRead(http.server.BaseHTTPRequestHandler):
         self.wfile.write(content)
 
     def do_GET(self):
-        if self.path.startswith('/pyreadasset='):
-            path = Path.cwd().joinpath('assets', self.path[13:])
-            print(f'Asset {self.path[13:]}')
+        if self.path.startswith('/?pyreadasset='):
+            path = Path.cwd().joinpath('assets', self.path[14:])
             if path.exists():
                 with path.open(mode='rb') as f:
                     self.send_response(HTTPStatus.OK)
@@ -255,7 +254,6 @@ class PyRead(http.server.BaseHTTPRequestHandler):
             self.proxy('POST', data=data)
 
     def api(self, data):
-        print(data)
         try:
             doi = data['doi']
             request_type = data['type']
@@ -270,14 +268,14 @@ class PyRead(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             return
         else:
-            content_type = 'application/json'
             manifest_path = doi_path.joinpath('manifest.json')
             with manifest_path.open() as m_file:
                 manifest = json.loads(m_file.read())
             if request_type == 'info':
+                content_type = 'application/json'
                 content = json.dumps(manifest).encode('utf-8')
+                content_length = len(content)
             elif request_type == 'file':
-                content_type = ''
                 file_path = doi_path.joinpath(name)
                 if file_path.exists():
                     with file_path.open(mode='rb') as f:
@@ -286,31 +284,13 @@ class PyRead(http.server.BaseHTTPRequestHandler):
                     self.send_response(HTTPStatus.NOT_FOUND)
                     self.end_headers()
                     return
-            elif request_type == 'content':
-                content_path = doi_path.joinpath('content.json')
-                if content_path.exists():
-                    with content_path.open(mode='rb') as f:
-                        content = f.read()
-                else:
-                    self.send_response(HTTPStatus.NOT_FOUND)
-                    self.end_headers
-                    return
-            elif request_type == 'references':
-                ref_path = doi_path.joinpath('references.json')
-                if ref_path.exists():
-                    with ref_path.open(mode='rb') as f:
-                        content = f.read()
-                else:
-                    self.send_response(HTTPStatus.NOT_FOUND)
-                    self.end_headers
-                    return
             else:
                 self.send_response(HTTPStatus.BAD_REQUEST)
                 self.end_headers()
                 return
             self.send_response(HTTPStatus.OK)
             self.send_header('Content-Type', content_type)
-            self.send_header('Content-Length', len(content))
+            self.send_header('Content-Length', content_length)
             self.end_headers()
             self.wfile.write(content)
             return

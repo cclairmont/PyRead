@@ -3,7 +3,7 @@ import sciencedirect
 from articleparser import ParserException
 
 
-def scrape(data, inject, fetch):
+def scrape(data, inject, fetch, status):
     soup = BeautifulSoup(data, 'lxml')
     if soup.title is None:
         return None
@@ -11,6 +11,7 @@ def scrape(data, inject, fetch):
     if soup.title.text.endswith('ScienceDirect'):
         try:
             article = sciencedirect.ScienceDirectParser(soup, inject, fetch,
+                                                        status,
                                                         debug=True).article
             return article.doi
         except ParserException as e:

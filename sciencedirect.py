@@ -1,5 +1,7 @@
 from articleparser import ArticleParser, ParserException
 from bs4 import BeautifulSoup
+import re
+
 
 class ScienceDirectParser(ArticleParser):
 
@@ -24,22 +26,89 @@ class ScienceDirectParser(ArticleParser):
         return ''.join(str(a) for a in abstract)
 
     def clean_html(self, soup):
-        for s in soup.find_all(['span', 'a', 'figure']):
+        for s in soup.find_all(['span', 'a', 'figure', 'p', 'div', 'tr']):
             class_attr = s.get('class')
             if class_attr == ['workspace-trigger']:
-                if s['href'].startswith('#ref'):
-                    s['class'] = 'reference'
-                    s['href'] = '#ref' + s['href'][4:]
-                elif s['href'].startswith('#fig'):
+                if s['href'].startswith('#bib'):
+                    rnum = s['href'][4:]
+                    s.clear()
+                    s.name = 'span'
+                    s['data-refnum'] = rnum
+                    s['class'] = 'ref'
+                elif (s['href'].startswith('#fig') or
+                      s['href'].startswith('#mmc')):
                     s['class'] = 'figure_ref'
+                    s.name = 'span'
+                    inner_html = s.string.encode('utf-8')
+                    outer_html = s.encode('utf-8')
+                    parent_html = s.parent.encode('utf-8')
+                    s.clear()
+                    fig_num = inner_html[::-1].find(b' ')
+                    if fig_num == -1:
+                        fig_num = inner_html[::-1].find(b'\xc2\xa0'[::-1])
+                    if fig_num == -1:
+                        fig_num = 0
+                    fig_num = inner_html[-fig_num:]
+                    fig_panel = []
+                    fp_start = (parent_html.find(outer_html) +
+                                len(outer_html))
+                    fp_end_p = parent_html[fp_start:].find(b')')
+                    fp_end_s = parent_html[fp_start:].find(b'<a')
+                    if fp_end_p != -1 and fp_end_s != -1:
+                        fp_end = min(fp_end_p, fp_end_s)
+                    elif fp_end_p != -1:
+                        fp_end = fp_end_p
+                    elif fp_end_s != -1:
+                        fp_end = fp_end_p
+                    else:
+                        fp_end = 0
+                        fig_panel = []
+                        print(parent_html, fp_start)
+                    for i in range(fp_start, fp_start + fp_end):
+                        if (parent_html[i] >= 65 and parent_html[i] <= 90):
+                            print(parent_html[i], parent_html[i-1])
+                            if ((parent_html[i-1] >= 48 and
+                                    parent_html[i-1] <= 57) or
+                                    parent_html[i-1] == 62):
+                                fig_panel.append(bytes([parent_html[i]]))
+                    fig_num = fig_num + b','.join(fig_panel)
+                    s['data-fignum'] = fig_num.decode('utf-8')
+                    if s['href'].startswith('#mmc'):
+                        s['data-fignum'] = (s['data-fignum']
+                                            + '-' + s['href'][1:])
+                    if str(s).startswith('Table'):
+                        s['data-fignum'] = 'T' + s['data-fignum']
+                del s['href']
                 del s['name']
             elif s.name == 'span' or s.name == 'a':
                 s.replaceWithChildren()
-            elif s.name == 'figure':
+            elif s.name in ['figure', 'p', 'div', 'tr']:
                 del s['class']
-        return str(soup)
+                del s['id']
+        html = str(soup)
+        html = re.sub(r'data-fignum="([\-mcA-Z1-9,]*)"></span>[^\)]*'
+                      r'<span class="figure_ref"',
+                      r'data-fignum="\1"></span><span class="figure_ref"',
+                      html)
+        html = re.sub(r'data-fignum="([\-mcA-Z1-9,]*)"></span>[^<]*\)',
+                      r'data-fignum="\1"></span>)', html)
+        html = re.sub(r' ?\(?<span', '<span', html)
+        html = re.sub(r'</span>[;, ]', '</span>', html)
+        html = re.sub(r'</span>\)', '</span>', html)
+        return html
 
     def get_content(self):
+        soup = None
+        for s in self.soup.find_all('section'):
+            if s.get('id') is not None and s['id'].startswith('ack'):
+                soup = s
+                break
+        if soup is None:
+            raise ParserException("Acknowledgments not found")
+        ack = {'title': 'Acknowledgments',
+                        'content': ''.join(str(a) for a in
+                                           soup.find_all('p'))}
+        soup.clear()
         section = 0
         content = []
         while True:
@@ -52,6 +121,9 @@ class ScienceDirectParser(ArticleParser):
             soup = BeautifulSoup(soup.encode('utf-8'), 'lxml')
             if soup.h2 is not None:
                 sec_title = soup.h2.string
+                if sec_title is None:
+                    sec_title = ''.join(str(a) for a in
+                                        soup.h2.contents)
             else:
                 sec_title = None
             for elem in soup.find_all('figure'):
@@ -68,25 +140,19 @@ class ScienceDirectParser(ArticleParser):
                                      f'sec{str(section)}.{str(subsect)}'})
                 if subsoup is None:
                     break
-                subsect_title = subsoup.h3.text
+                subsect_title = subsoup.h3.string
+                if subsect_title is None:
+                    subsect_title = ''.join(str(a) for a in
+                                            subsoup.h3.contents)
                 subsect_content = ''.join(str(a) for a in
-                                          soup.find_all(['p', 'figure']))
+                                          subsoup.find_all(['p', 'figure']))
                 content[-1]['content'].append({'title': subsect_title,
                                                'content': subsect_content})
             if content[-1]['content'] == []:
                 content[-1]['content'] = ''.join(str(a) for a in
                                                  soup.find_all(
                                                      ['p', 'figure']))
-        soup = None
-        for s in self.soup.find_all('section'):
-            if s.get('id') is not None and s['id'].startswith('ack'):
-                soup = s
-                break
-        if soup is None:
-            raise ParserException("Acknowledgments not found")
-        content.append({'title': 'Acknowledgments',
-                        'content': ''.join(str(a) for a in
-                                           soup.find_all('p'))})
+        content.append(ack)
         return content
 
     def get_references(self):
@@ -161,8 +227,9 @@ class ScienceDirectParser(ArticleParser):
         soup = self.soup.find('div', {'class': 'Appendices'})
         links = []
         for a in soup.find_all('a'):
-            if (a not in links and
-                    a['title'].find('Help (Opens in new window)') == -1):
+            if (a not in links and (a.get('title') is None or
+                                    a['title'].find('Help (Opens '
+                                                    'in new window)') == -1)):
                 links.append(a['href'])
         for i, a in enumerate(soup.find_all('span', {'class': 'label'})):
             result[a.text] = links[i]
