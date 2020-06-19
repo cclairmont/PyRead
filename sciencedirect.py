@@ -227,9 +227,8 @@ class ScienceDirectParser(ArticleParser):
         soup = self.soup.find('div', {'class': 'Appendices'})
         links = []
         for a in soup.find_all('a'):
-            if (a not in links and (a.get('title') is None or
-                                    a['title'].find('Help (Opens '
-                                                    'in new window)') == -1)):
+            if (a['href'] not in links and (a.get('title') is None or not
+                                            a['title'].startswith('Help'))):
                 links.append(a['href'])
         for i, a in enumerate(soup.find_all('span', {'class': 'label'})):
             result[a.text] = links[i]
@@ -237,6 +236,7 @@ class ScienceDirectParser(ArticleParser):
             if key.find('Supplemental Information') != -1:
                 result['extended'] = result.pop(key)
                 break
+        print(result)
         return result
 
 

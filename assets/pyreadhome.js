@@ -1,9 +1,13 @@
 var get_content = new XMLHttpRequest();
 var get_refs = new XMLHttpRequest();
+var get_info = new XMLHttpRequest();
+var metadata;
 
 function after_load() {
   make_collapsible();
   add_reflinks();
+  add_figlinks();
+  //add_figures();
 }
 
 function make_collapsible() {
@@ -21,20 +25,44 @@ function make_collapsible() {
         parent.style.maxHeight = parent.scrollHeight + content.scrollHeight + "px";
         content.style.maxHeight = content.scrollHeight + "px";
       }
-      console.log(content);
-      console.log(parent);
     });
+  }
+}
+
+function elemsAreAdjacent(e1, e2) {
+  if (e1.parentElement.isSameNode(e2.parentElement)) {
+    var p_html = e1.parentElement.innerHTML;
+    var c1_html = e1.outerHTML;
+    var c2_html = e2.outerHTML;
+    var distance = p_html.indexOf(c2_html) - p_html.indexOf(c1_html)
+    if (distance == c1_html.length) {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    return false;
   }
 }
 
 function merge_refs(ref_list) {
   var ref_str = "";
   var num_consec = 0;
+  var char = false;
   for (var i = 0; i < ref_list.length; i++) {
+    var curr = ref_list[i];
+    if (isNaN(parseInt(ref_list[i]))) {
+      char = true;
+      curr = curr.charCodeAt(0);
+    }
     if (i == 0) {
       continue;
     } else {
-      if (ref_list[i] - ref_list[i - 1] == 1) {
+      var prev = ref_list[i - 1];
+      if (char) {
+        prev = prev.charCodeAt(0);
+      }
+      if (curr - prev == 1) {
         num_consec++;
       } else {
         if (num_consec == 0) {
@@ -61,55 +89,77 @@ function merge_refs(ref_list) {
 function add_reflinks() {
   var ref_links = document.querySelectorAll("span.ref");
   var consec_elems = [];
-  var new_span;
-  var adjacent = true;
   for (var i = 0; i < ref_links.length; i++) {
-    if (consec_elems.length == 0) {
+    if (consec_elems.length == 0 ||
+        elemsAreAdjacent(ref_links[i-1], ref_links[i])) {
       consec_elems.push(ref_links[i])
     } else {
-      if (ref_links[i - 1].parentElement.isSameNode(ref_links[i].
-                                                    parentElement)) {
-        var p_html = ref_links[i].parentElement.innerHTML;
-        var pr_html = ref_links[i - 1].outerHTML;
-        var cr_html = ref_links[i].outerHTML;
-        var distance = p_html.indexOf(cr_html) - p_html.indexOf(pr_html)
-        if (distance == pr_html.length) {
-          consec_elems.push(ref_links[i]);
-          adjacent = true;
+      var ref_nums = [];
+      for (var j = 0; j < consec_elems.length; j++) {
+        ref_nums.push(consec_elems[j].dataset.refnum);
+      }
+      var ref_str = merge_refs(ref_nums);
+      var spans = ref_str.split(",");
+      for (var j = 0; j < spans.length; j++) {
+        var s = document.createElement("span");
+        s.className = "ref";
+        s.dataset.refnum = spans[j];
+        s.innerHTML = spans[j]
+        consec_elems[0].insertAdjacentElement("beforebegin", s)
+        if (j == 0) {
+          s.insertAdjacentText("beforebegin", " (");
+        }
+        if (j + 1 < spans.length) {
+          s.insertAdjacentText("afterend", ",");
         } else {
-          adjacent = false;
+          s.insertAdjacentText("afterend", ")");
         }
-      } else {
-        adjacent = false;
       }
-      if (!adjacent) {
-        var ref_nums = [];
-        for (var j = 0; j < consec_elems.length; j++) {
-          ref_nums.push(consec_elems[j].dataset.refnum);
+      for (var j = 0; j < consec_elems.length; j++) {
+        consec_elems[j].remove();
+      }
+      consec_elems = [];
+    }
+  }
+}
+
+function add_figlinks() {
+  var fig_links = document.querySelectorAll("span.figure_ref");
+  var consec_elems = [];
+  for (var i = 0; i < fig_links.length; i++) {
+    if (consec_elems.length == 0 ||
+        elemsAreAdjacent(fig_links[i-1], fig_links[i])) {
+      consec_elems.push(fig_links[i])
+    } else {
+      for (var j = 0; j < consec_elems.length; j++) {
+        var fignum = consec_elems[j].dataset.fignum;
+        var file = fignum.indexOf("-");
+        if (file > -1) {
+          fignum = fignum.substring(0, file);
         }
-        var ref_str = merge_refs(ref_nums);
-        console.log(ref_str);
-        var spans = ref_str.split(",");
-        for (var j = 0; j < spans.length; j++) {
-          var s = document.createElement("span");
-          s.className = "ref";
-          s.dataset.refnum = spans[j];
-          s.innerHTML = spans[j]
-          consec_elems[0].insertAdjacentElement("beforebegin", s)
-          if (j == 0) {
-            s.insertAdjacentText("beforebegin", " (");
-          }
-          if (j + 1 < spans.length) {
-            s.insertAdjacentText("afterend", ", ");
+        if (fignum[0] == "S") {
+          num_index = 2;
+        } else {
+          num_index = 1;
+        }
+        var fig_str = fignum.substring(0, num_index) +
+                      merge_refs(fignum.substring(num_index).split(","));
+        consec_elems[j].innerHTML = fig_str
+        if (j == 0) {
+          if (consec_elems.length == 1 && fig_str.indexOf(",") == -1 &&
+              fig_str.indexOf("-") == -1) {
+            consec_elems[j].insertAdjacentText("beforebegin", " (Figure ");
           } else {
-            s.insertAdjacentText("afterend", ")");
+            consec_elems[j].insertAdjacentText("beforebegin", " (Figures ");
           }
         }
-        for (var j = 0; j < consec_elems.length; j++) {
-          consec_elems[j].remove();
+        if (j + 1 < consec_elems.length) {
+          consec_elems[j].insertAdjacentText("afterend", ",");
+        } else {
+          consec_elems[j].insertAdjacentText("afterend", ")");
         }
-        consec_elems = [];
       }
+      consec_elems = [];
     }
   }
 }
@@ -119,7 +169,6 @@ function parse_args(uri) {
   var q_string = uri.substring(arg_start+1);
   var result = Object();
   while (true) {
-   console.log(q_string);
    var q_sep = q_string.indexOf("=");
    var q_end = q_string.substring(q_sep).indexOf("&") + q_sep;
    if (q_end - q_sep == -1) {
@@ -192,7 +241,6 @@ get_refs.onload = function () {
     var next_ref = document.createElement("li");
     next_ref.id = "ref" + i;
     var ref_string = "";
-    console.log(response_data[i].authors)
     for (var j = 0; j < response_data[i].authors.length; j++) {
       if (j > 0 && j == response_data[i].authors.length - 1 &&
           response_data[i].authors[j].indexOf("et al.") == -1) {
@@ -215,10 +263,18 @@ get_refs.onload = function () {
   after_load();
 }
 
+get_info.onload = function() {
+  response_data = JSON.parse(get_info.response);
+  console.log(response_data);
+}
+
 var queries = parse_args(location.href);
-get_content.open('POST', 'pyreadapi')
-var params = "doi=" + queries.doi + "&type=content"
-get_content.send(params)
-params = "doi=" + queries.doi + "&type=references"
-get_refs.open('POST', 'pyreadapi')
-get_refs.send(params)
+get_content.open("POST", "pyreadapi");
+var params = "doi=" + queries.doi + "&type=content";
+get_content.send(params);
+params = "doi=" + queries.doi + "&type=references";
+get_refs.open("POST", "pyreadapi");
+get_refs.send(params);
+params = "doi=" + queries.doi + "&type=info";
+get_info.open("POST", "pyreadapi");
+get_info.send(params);

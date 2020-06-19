@@ -216,38 +216,51 @@ class Article:
                                          'date': date,
                                          'content_type': content_type,
                                          'content_length': content_length})
-        if low_res:
-            res = 'lr'
-        else:
-            res = 'hr'
         if name in self.files and not overwrite:
             if new_file != self.files[name]:
                 raise FileExistsError
-        entry = {name: {'title': title,
-                        'caption': caption}}
+        entry = {'name': name,
+                 'title': title,
+                 'caption': caption}
+        if low_res:
+            entry['lr'] = entry.pop('name')
 
         def do_pdf(what):
             if self.manifest.get(what) is not None:
                 raise FileExistsError
+            self.manifest[what] = entry
 
         def do_files(what):
             if self.manifest.get(what) is None:
-                self.manifest[what] = entry
-            else:
-                self.manifest[what] = {**self.manifest[what], **entry}
+                self.manifest[what] = []
+            for f in self.manifest[what]:
+                if f['title'] == entry['title']:
+                    if low_res and 'lr' not in f:
+                        f['lr'] = entry['lr']
+                        return
+                    elif not low_res and 'name' not in f:
+                        f['name'] = entry['name']
+                        return
+                    else:
+                        raise FileExistsError
+            self.manifest[what].append(entry)
 
         def do_order(what):
             if self.manifest.get(what) is None:
-                self.manifest[what] = {}
-            if res not in self.manifest[what]:
-                self.manifest[what][res] = []
+                self.manifest[what] = []
             if number == 0:
                 raise FileTypeError
-            if number > len(self.manifest[what][res]):
-                for i in range(number - len(self.manifest[what][res])):
-                    self.manifest[what][res].append(None)
-            if self.manifest[what][res][number - 1] is None or overwrite:
-                self.manifest[what][res][number - 1] = entry
+            if number > len(self.manifest[what]):
+                for i in range(number - len(self.manifest[what])):
+                    self.manifest[what].append(None)
+            if self.manifest[what][number - 1] is None or overwrite:
+                self.manifest[what][number - 1] = entry
+            elif (low_res and
+                  self.manifest[what][number - 1].get('lr') is None):
+                self.manifest[what][number - 1]['lr'] = entry['lr']
+            elif (not low_res and
+                  self.manifest[what][number - 1].get('name') is None):
+                self.manifest[what][number - 1]['name'] = entry['name']
             else:
                 raise FileExistsError
 

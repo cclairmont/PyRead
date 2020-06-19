@@ -3,8 +3,16 @@ body {
   color: #303030;
 }
 
-.ref {
+.ref, .figure_ref {
   color: Blue;
+  user-select: none;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+.ref:hover, .figure_ref:hover {
+  background-color: #F0F8FF;
+  border-radius: 5px;
 }
 
 .section-title, .subsection-title {
