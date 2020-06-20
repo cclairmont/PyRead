@@ -2,16 +2,51 @@ var get_content = new XMLHttpRequest();
 var get_refs = new XMLHttpRequest();
 var get_info = new XMLHttpRequest();
 var metadata;
+var queries;
 
 function after_load() {
   make_collapsible();
   add_reflinks();
   add_figlinks();
-  //add_figures();
+}
+
+function add_figures() {
+  var figures = document.querySelectorAll("figure");
+  for (var i = 0; i < figures.length; i++) {
+    if (i == metadata.figures.length) {
+      break;
+    }
+    if ("lr" in metadata.figures[i]) {
+      console.log("lr");
+      var fname = metadata.figures[i].lr;
+    } else {
+      var fname = metadata.figures[i].name;
+    }
+    var params = "doi=" + queries.doi + "&type=file&name=" + fname;
+    var caption = document.createElement("div");
+    caption.id = "figcap" + i;
+    caption.className = "fig-cap";
+    caption.innerHTML = metadata.figures[i].title;
+    figures[i].appendChild(caption);
+    var legend = document.createElement("div");
+    legend.id = "figleg" + 1;
+    legend.className = "fig-leg";
+    var img = new Image();
+    img.src = "/pyreadapi?" + params;
+    img.className = "fig-img";
+    legend.appendChild(img);
+    var detail = document.createElement("div");
+    detail.id = "figdet" + i;
+    detail.className = "fig-details";
+    detail.innerHTML = metadata.figures[i].caption;
+    legend.appendChild(detail);
+    figures[i].appendChild(legend);
+  }
 }
 
 function make_collapsible() {
-  var titles = document.querySelectorAll(".section-title,.subsection-title");
+  var titles = document.querySelectorAll(".section-title,.subsection-title," +
+                                         ".fig-cap");
   for (var i = 0; i < titles.length; i++) {
     titles[i].classList.toggle("active");
     titles[i].addEventListener("click", function() {
@@ -90,10 +125,13 @@ function add_reflinks() {
   var ref_links = document.querySelectorAll("span.ref");
   var consec_elems = [];
   for (var i = 0; i < ref_links.length; i++) {
+    var consec = false;
     if (consec_elems.length == 0 ||
         elemsAreAdjacent(ref_links[i-1], ref_links[i])) {
-      consec_elems.push(ref_links[i])
-    } else {
+      consec_elems.push(ref_links[i]);
+      consec = true;
+    }
+    if (!consec || i + 1 == ref_links.length) {
       var ref_nums = [];
       for (var j = 0; j < consec_elems.length; j++) {
         ref_nums.push(consec_elems[j].dataset.refnum);
@@ -118,7 +156,7 @@ function add_reflinks() {
       for (var j = 0; j < consec_elems.length; j++) {
         consec_elems[j].remove();
       }
-      consec_elems = [];
+    consec_elems = [ref_links[i]];
     }
   }
 }
@@ -127,10 +165,13 @@ function add_figlinks() {
   var fig_links = document.querySelectorAll("span.figure_ref");
   var consec_elems = [];
   for (var i = 0; i < fig_links.length; i++) {
+    var consec = false;
     if (consec_elems.length == 0 ||
         elemsAreAdjacent(fig_links[i-1], fig_links[i])) {
       consec_elems.push(fig_links[i])
-    } else {
+      consec = true
+    }
+    if (!consec || i + 1 == fig_links.length) {
       for (var j = 0; j < consec_elems.length; j++) {
         var fignum = consec_elems[j].dataset.fignum;
         var file = fignum.indexOf("-");
@@ -159,7 +200,7 @@ function add_figlinks() {
           consec_elems[j].insertAdjacentText("afterend", ")");
         }
       }
-      consec_elems = [];
+      consec_elems = [fig_links[i]];
     }
   }
 }
@@ -260,15 +301,15 @@ get_refs.onload = function () {
     ref_list.appendChild(next_ref);
   }
   document.body.appendChild(refs)
-  after_load();
 }
 
 get_info.onload = function() {
-  response_data = JSON.parse(get_info.response);
-  console.log(response_data);
+  metadata = JSON.parse(get_info.response);
+  add_figures();
+  after_load();
 }
 
-var queries = parse_args(location.href);
+queries = parse_args(location.href);
 get_content.open("POST", "pyreadapi");
 var params = "doi=" + queries.doi + "&type=content";
 get_content.send(params);

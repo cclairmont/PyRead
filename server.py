@@ -10,7 +10,6 @@ import json
 import urllib.parse
 from bs4 import BeautifulSoup
 from pathlib import Path
-import articleparser as ap
 import pyread
 
 
@@ -195,7 +194,6 @@ class PyRead(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path.startswith('/pyreadasset='):
             path = Path.cwd().joinpath('assets', self.path[13:])
-            print(f'Asset {self.path[13:]}')
             if path.exists():
                 with path.open(mode='rb') as f:
                     self.send_response(HTTPStatus.OK)
@@ -203,6 +201,14 @@ class PyRead(http.server.BaseHTTPRequestHandler):
                     self.wfile.write(f.read())
             else:
                 self.send_response(HTTPStatus.NOT_FOUND)
+        elif self.path.startswith('/pyreadapi'):
+            query = self.path[11:]
+            queries = query.split('&')
+            data = {}
+            for q in queries:
+                [key, val] = q.split('=', 1)
+                data[key] = val
+            self.api(data)
         elif self.path.startswith('/pyreadhome'):
             self.send_response(HTTPStatus.OK)
             self.end_headers()
@@ -255,7 +261,6 @@ class PyRead(http.server.BaseHTTPRequestHandler):
             self.proxy('POST', data=data)
 
     def api(self, data):
-        print(data)
         try:
             doi = data['doi']
             request_type = data['type']

@@ -3,9 +3,11 @@ from pathlib import Path
 import json
 import hashlib
 import enum
-import requests
 from bs4 import BeautifulSoup
 from requests.exceptions import Timeout
+from difflib import SequenceMatcher
+from http import HTTPStatus
+
 
 class FileType(enum.Enum):
     HTML = 0
@@ -296,6 +298,9 @@ class Article:
         if url not in self.url:
             self.url.append(url)
 
+    def set_pmid(self, pmid):
+        self.manifest['pmid'] = pmid
+
     def meta_date(self):
         return self.manifest.get('metadate')
 
@@ -381,6 +386,8 @@ class ArticleParser:
                             'status': 'working'})
         self.update_status()
         self.article = Article(self.get_doi())
+        self_ref = self.resolve_refs([{'doi': self.article.doi}])
+        self.article.set_pmid(self_ref[0]['pmid'])
         self.status[-1]['messages'].append(f'DOI: {self.article.doi}')
         self.status[-1]['messages'].append(self.article.manifest.get('title'))
         self.status[-1]['status'] = 'success'
@@ -399,17 +406,7 @@ class ArticleParser:
             self.article.print_info()
         self.article.abstract = self.get_abstract()
         self.article.content = self.get_content()
-        for i, section in enumerate(self.article.content):
-            if isinstance(section['content'], list):
-                for j, subsect in enumerate(section['content']):
-                    self.article.content[i]['content'][j]['content'] = \
-                        self.clean_html(BeautifulSoup(subsect['content'],
-                                                      'lxml'))
-            else:
-                self.article.content[i]['content'] = \
-                    self.clean_html(BeautifulSoup(section['content'], 'lxml'))
-
-        self.article.references = self.get_references()
+        self.article.references = self.resolve_refs(self.get_references())
         self.article.save()
         figures = self.get_figures()
         other_files = self.get_files()
@@ -459,11 +456,175 @@ class ArticleParser:
                 if debug:
                     self.log('File Exists - Not overwriting')
 
+    def update_dbentry(self, db, ref):
+        for k1, v1 in db.items():
+            if k1 in ref:
+                if isinstance(v1, str):
+                    if v1 == ref[k1]:
+                        continue
+                    else:
+                        v1 = [v1].append(ref[k1])
+                elif isinstance(v1, list):
+                    # Either author list of list of variants
+                    if isinstance(ref[k1], str):
+                        # Must not be an author list
+                        if ref[k1] in v1:
+                            continue
+                        else:
+                            v1.append(ref[k1])
+                    elif isinstance(ref[k1], list):
+                        # Must be an author list
+                        match = False
+                        nested = False
+                        for i, e1 in enumerate(v1):
+                            # If these are strings, its not a nested list
+                            if isinstance(e1, str):
+                                if e1 != ref[k1][i]:
+                                    break
+                            elif isinstance(e1, list):
+                                # DB is a nested list
+                                nested = True
+                                for i, e2 in enumerate(e1):
+                                    if e2 != ref[k1][i]:
+                                        break
+                                if i == len(e2) and i == len(ref[k1]):
+                                    match = True
+                                    break
+                            else:
+                                if e1 != ref[k1][i]:
+                                    break
+                        if not nested and i == len(e1) and i == len(ref[k1]):
+                            match = True
+                        if not match:
+                            if nested:
+                                v1.append(ref[k1])
+                            if not nested:
+                                v1 = [v1].append(ref[k1])
+                    else:
+                        if ref[k1] in v1:
+                            continue
+                        else:
+                            v1.append(ref[k1])
+                else:
+                    if v1 == ref[k1]:
+                        continue
+                    else:
+                        v1 = [v1].append(ref[k1])
+            else:
+                ref[k1] = v1
+        for k2, v2 in ref.items():
+            if k2 not in db:
+                db[k2] = v2
+        return db, ref
+
+    def resolve_refs(self, refs):
+        required_entries = ['doi', 'pmid']
+        count = 1
+        db_path = Path.cwd().joinpath('files', 'database.json')
+        if db_path.exists():
+            with db_path.open(mode='r') as f:
+                db = json.loads(f.read())
+        else:
+            db = {'doi': {}, 'pmid': {}, 'title': {}}
+        for r in refs:
+            doi_entry = None
+            title_entry = None
+            pmid_entry = None
+            print(f'Resolving Ref {count}:')
+            if 'doi' in r:
+                print('DOI!')
+                doi_entry = db['doi'].get(r['doi'])
+                if doi_entry is not None:
+                    doi_entry, r = self.update_dbentry(doi_entry, r)
+            if 'title' in r:
+                print('TITLE!')
+                title_entry = db['title'].get(r['title'])
+                if title_entry is not None:
+                    title_entry, r = self.update_dbentry(title_entry, r)
+            if 'pmid' in r:
+                print('PMID!')
+                pmid_entry = db['pmid'].get(r['pmid'])
+                if pmid_entry is not None:
+                    pmid_entry, r = self.update_dbentry(pmid_entry, r)
+            incomplete = False
+            for e in required_entries:
+                if e not in r:
+                    incomplete = True
+                    break
+            if incomplete:
+                if 'doi' in r:
+                    status, content, name = self.get_retry(
+                        'https://pubmed.ncbi.nlm.nih.gov/?term=' + r['doi'],
+                        cache=False)
+                    soup = BeautifulSoup(content, 'lxml')
+                    r['pmid'] = soup.find('strong',
+                                          {'class': 'current-id'}).text.strip()
+                else:
+                    status, content, name = self.get_retry(
+                        'https://pubmed.ncbi.nlm.nih.gov/?term="' +
+                        r['title'].replace(' ', '+') + '"', cache=False)
+                    soup = BeautifulSoup(content, 'lxml')
+                    d_soup = soup.find('span', {'class': 'doi'})
+                    if d_soup is None:
+                        print(soup.title)
+                        d_soup = soup.find_all('a',
+                                               {'class': 'labs-docsum-title'})
+                        max_score = 0
+                        max_link = ''
+                        for d in d_soup:
+                            print(r['title'])
+                            print(d.text)
+                            score = SequenceMatcher(None, r['title'],
+                                                    d.text).ratio()
+                            print(score)
+                            if score > max_score:
+                                max_score = score
+                                max_link = d['href']
+                        status, content, name = self.get_retry(
+                            'https://pubmed.ncbi.nlm.nih.gov' + max_link,
+                            cache=False)
+                        soup = BeautifulSoup(content, 'lxml')
+                        print(soup.title)
+                        d_soup = soup.find('span', {'class': 'doi'})
+                    r['doi'] = d_soup.find('a').text.strip()
+                    r['pmid'] = soup.find('strong',
+                                          {'class': 'current-id'}).text.strip()
+            doi_entry = db['doi'].get(r['doi'])
+            if doi_entry is None:
+                doi_entry = r
+            else:
+                doi_entry, r = self.update_dbentry(doi_entry, r)
+            pmid_entry = db['pmid'].get(r['pmid'])
+            if pmid_entry is None:
+                pmid_entry = r
+            else:
+                pmid_entry, r = self.update_dbentry(pmid_entry, r)
+            if 'title' in r:
+                title_entry = db['title'].get(r['title'])
+                if title_entry is None:
+                    title_entry = r
+                else:
+                    title_entry, r = self.update_dbentry(title_entry,
+                                                         r)
+            if 'doi' in r:
+                db['doi'][r['doi']] = doi_entry
+            if 'pmid' in r:
+                db['pmid'][r['pmid']] = pmid_entry
+            if 'title' in r:
+                db['title'][r['title']] = title_entry
+            with db_path.open(mode='w') as f:
+                f.write(json.dumps(db))
+            print(f"DOI: {r['doi']}, PMID: {r['pmid']}")
+            count += 1
+        return refs
+
     def get_retry(self, url, headers=None, timeout=10, cache=True):
         retry = 0
         while retry <= self.max_retry:
             try:
                 status, content, name = self.fetch(url, headers, cache)
+                if status == HTTPStatus.BAD_GATEWAY:
+                    continue
                 break
             except Timeout:
                 retry += 1
@@ -498,9 +659,6 @@ class ArticleParser:
         raise NotImplementedError
 
     def get_references(self):
-        raise NotImplementedError
-
-    def clean_html(self, html):
         raise NotImplementedError
 
     @classmethod
