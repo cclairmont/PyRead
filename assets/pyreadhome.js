@@ -3,6 +3,7 @@ var get_refs = new XMLHttpRequest();
 var get_info = new XMLHttpRequest();
 var metadata;
 var queries;
+var references;
 
 function after_load() {
   make_collapsible();
@@ -143,7 +144,15 @@ function add_reflinks() {
         s.className = "ref";
         s.dataset.refnum = spans[j];
         s.innerHTML = spans[j]
-        consec_elems[0].insertAdjacentElement("beforebegin", s)
+        var slicers = spans[j].split("-");
+        console.log(slicers);
+        if (slicers.length == 2) {
+          s.dataset.doi = references.slice(
+            slicers[0] - 1, slicers[1]).map(a => a.doi).join(",");
+        } else {
+          s.dataset.doi = references[slicers[0] - 1].doi;
+        }
+        consec_elems[0].insertAdjacentElement("beforebegin", s);
         if (j == 0) {
           s.insertAdjacentText("beforebegin", " (");
         }
@@ -279,6 +288,9 @@ get_refs.onload = function () {
   ref_list.className = "section-content";
   refs.appendChild(ref_list);
   for (var i = 0; i < response_data.length; i++) {
+    if (Object.keys(response_data[i]).length == 0) {
+      continue;
+    }
     var next_ref = document.createElement("li");
     next_ref.id = "ref" + i;
     var ref_string = "";
@@ -299,6 +311,7 @@ get_refs.onload = function () {
     ref_string = ref_string + " " + response_data[i].year;
     next_ref.innerHTML = ref_string;
     ref_list.appendChild(next_ref);
+    references = response_data;
   }
   document.body.appendChild(refs)
 }

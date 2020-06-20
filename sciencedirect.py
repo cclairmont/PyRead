@@ -30,6 +30,7 @@ class ScienceDirectParser(ArticleParser):
             if class_attr == ['workspace-trigger']:
                 if s['href'].startswith('#bib'):
                     rnum = s['href'][4:]
+                    print(rnum)
                     s.clear()
                     s.name = 'span'
                     s['data-refnum'] = rnum
@@ -61,20 +62,15 @@ class ScienceDirectParser(ArticleParser):
                                 fp_end = end
                             else:
                                 fp_end = min(end, fp_end)
-                    print(fig_num)
-                    print(parent_html[fp_start: fp_start + fp_end])
                     if fp_end == -1:
                         fp_end = 0
                         fig_panel = []
-                        print(parent_html, fp_start)
                     for i in range(fp_start, fp_start + fp_end):
-                        print(parent_html[i], parent_html[i-1])
                         if (parent_html[i] >= 65 and parent_html[i] <= 90):
                             if ((parent_html[i-1] >= 48 and
                                     parent_html[i-1] <= 57) or
                                     parent_html[i-1] == 62):
                                 fig_panel.append(bytes([parent_html[i]]))
-                            print(fig_panel)
                     fig_num = fig_num + b','.join(fig_panel)
                     s['data-fignum'] = fig_num.decode('utf-8')
                     if s['href'].startswith('#mmc'):
@@ -168,10 +164,22 @@ class ScienceDirectParser(ArticleParser):
                 break
         if soup is None:
             raise ParserException("References Not Found")
-        labels = [a.text for a in soup.find_all('dt', {'class': 'label'})]
+        labels = []
+        refnum = []
+        for a in soup.find_all('dt', {'class': 'label'}):
+            labels.append(a.text)
+            a_soup = a.find('a')
+            refnum.append(int(a_soup['href'][5:]))
+        missing = []
+        for i, j in enumerate(refnum):
+            if i + 1 < j - len(missing):
+                for k in range(i + 1, j - len(missing)):
+                    missing.append(k)
         ref_list = []
         count = 0
         for r in soup.find_all('dd'):
+            while len(ref_list) + 1 in missing:
+                ref_list.append({})
             if r['id'].find('sref') != -1:
                 auth_title = r.find('div', {'class': 'contribution'})
                 title = auth_title.strong.text

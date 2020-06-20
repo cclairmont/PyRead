@@ -411,7 +411,6 @@ class ArticleParser:
         figures = self.get_figures()
         other_files = self.get_files()
         for key, val in figures.items():
-            print(key)
             for res in ['lr', 'hr']:
                 if res not in val:
                     continue
@@ -527,22 +526,21 @@ class ArticleParser:
         else:
             db = {'doi': {}, 'pmid': {}, 'title': {}}
         for r in refs:
+            if r == {}:
+                continue
             doi_entry = None
             title_entry = None
             pmid_entry = None
             print(f'Resolving Ref {count}:')
             if 'doi' in r:
-                print('DOI!')
                 doi_entry = db['doi'].get(r['doi'])
                 if doi_entry is not None:
                     doi_entry, r = self.update_dbentry(doi_entry, r)
             if 'title' in r:
-                print('TITLE!')
                 title_entry = db['title'].get(r['title'])
                 if title_entry is not None:
                     title_entry, r = self.update_dbentry(title_entry, r)
             if 'pmid' in r:
-                print('PMID!')
                 pmid_entry = db['pmid'].get(r['pmid'])
                 if pmid_entry is not None:
                     pmid_entry, r = self.update_dbentry(pmid_entry, r)
@@ -557,38 +555,48 @@ class ArticleParser:
                         'https://pubmed.ncbi.nlm.nih.gov/?term=' + r['doi'],
                         cache=False)
                     soup = BeautifulSoup(content, 'lxml')
-                    r['pmid'] = soup.find('strong',
-                                          {'class': 'current-id'}).text.strip()
-                else:
+                    pmid = soup.find('strong', {'class': 'current-id'})
+                    if pmid is None:
+                        del r['doi']
+                    else:
+                        r['pmid'] = pmid.text.strip()
+                if 'doi' not in r:
                     status, content, name = self.get_retry(
                         'https://pubmed.ncbi.nlm.nih.gov/?term="' +
                         r['title'].replace(' ', '+') + '"', cache=False)
                     soup = BeautifulSoup(content, 'lxml')
                     d_soup = soup.find('span', {'class': 'doi'})
                     if d_soup is None:
-                        print(soup.title)
                         d_soup = soup.find_all('a',
                                                {'class': 'labs-docsum-title'})
                         max_score = 0
                         max_link = ''
+                        print(r['title'])
                         for d in d_soup:
-                            print(r['title'])
-                            print(d.text)
                             score = SequenceMatcher(None, r['title'],
-                                                    d.text).ratio()
+                                                    d.text.strip()).ratio()
+                            print(d.text.strip())
                             print(score)
                             if score > max_score:
                                 max_score = score
                                 max_link = d['href']
-                        status, content, name = self.get_retry(
-                            'https://pubmed.ncbi.nlm.nih.gov' + max_link,
-                            cache=False)
-                        soup = BeautifulSoup(content, 'lxml')
-                        print(soup.title)
-                        d_soup = soup.find('span', {'class': 'doi'})
-                    r['doi'] = d_soup.find('a').text.strip()
-                    r['pmid'] = soup.find('strong',
-                                          {'class': 'current-id'}).text.strip()
+                        if max_score > 0.9:
+                            status, content, name = self.get_retry(
+                                'https://pubmed.ncbi.nlm.nih.gov' + max_link,
+                                cache=False)
+                            soup = BeautifulSoup(content, 'lxml')
+                            d_soup = soup.find('span', {'class': 'doi'})
+                        else:
+                            d_soup = None
+                            soup = None
+                    if d_soup is None:
+                        r['doi'] = None
+                        r['pmid'] = None
+                    else:
+                        r['doi'] = d_soup.find('a').text.strip()
+                        r['pmid'] = soup.find('strong',
+                                              {'class':
+                                               'current-id'}).text.strip()
             doi_entry = db['doi'].get(r['doi'])
             if doi_entry is None:
                 doi_entry = r
@@ -614,7 +622,6 @@ class ArticleParser:
                 db['title'][r['title']] = title_entry
             with db_path.open(mode='w') as f:
                 f.write(json.dumps(db))
-            print(f"DOI: {r['doi']}, PMID: {r['pmid']}")
             count += 1
         return refs
 

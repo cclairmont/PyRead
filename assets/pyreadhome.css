@@ -89,6 +89,7 @@ figure {
 
 .fig-img {
   flex-shrink: 0;
+  max-width: 90vw;
   align-self: center;
 }
 

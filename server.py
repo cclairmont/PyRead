@@ -41,7 +41,6 @@ class PyRead(http.server.BaseHTTPRequestHandler):
             with open('proxy_url.txt', 'r') as u:
                 url = u.read() + url
         status, content, name = self.request_cache('GET', url, cache)
-        print(status)
         return status, content, name
 
     def inject_content(self, elem_type, content):
@@ -71,7 +70,6 @@ class PyRead(http.server.BaseHTTPRequestHandler):
     def scrape(self, data):
         doi = pyread.scrape(data, self.inject_content, self.fetch,
                             self.update_status)
-        print(doi)
         self.send_response(HTTPStatus.OK)
         self.send_header('Content-Type', 'application/json')
         self.end_headers()
@@ -133,7 +131,6 @@ class PyRead(http.server.BaseHTTPRequestHandler):
         for f in soup.find_all('form'):
             action = f.get('action')
             if action is not None:
-                print(action)
                 if f['action'].startswith('http'):
                     f['action'] = '/?pyreadproxyurl=' + f['action']
         return
@@ -235,7 +232,6 @@ class PyRead(http.server.BaseHTTPRequestHandler):
             self.send_header('Content-Length', len(status))
             self.end_headers()
             self.wfile.write(status)
-            print(status)
 
         else:
             self.proxy('GET')
@@ -249,7 +245,6 @@ class PyRead(http.server.BaseHTTPRequestHandler):
         data = {}
         post_data = urllib.parse.unquote(post_data.decode('utf-8'))
         for elem in post_data.split('&'):
-            print(elem)
             try:
                 k, v = elem.split('=', 1)
             except ValueError:
