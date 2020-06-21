@@ -18168,3 +18168,71 @@ File Exists - Not overwriting
 Downloading extended from:
 https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-mmc3.pdf
 File Exists - Not overwriting
+Checking metadata for 10.1016/j.molcel.2019.09.024
+Found local metadata from 2020-06-20T21:37:31.292000
+Checking metadata for 10.1016/j.molcel.2019.09.024
+Found local metadata from 2020-06-20T21:37:31.292000
+Checking metadata for 10.1016/j.molcel.2019.09.024
+Found local metadata from 2020-06-20T21:37:31.292000
+Checking metadata for 10.1016/j.molcel.2019.09.024
+Found local metadata from 2020-06-20T21:37:31.292000
+Downloading Graphical Abstract (lr) from
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-fx1.jpg
+File Exists - Not Overwriting
+Downloading Graphical Abstract (hr) from
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-fx1_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 1 (lr) from
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-gr1.jpg
+File Exists - Not Overwriting
+Downloading Figure 1 (hr) from
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-gr1_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 2 (lr) from
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-gr2.jpg
+File Exists - Not Overwriting
+Downloading Figure 2 (hr) from
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-gr2_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 3 (lr) from
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-gr3.jpg
+File Exists - Not Overwriting
+Downloading Figure 3 (hr) from
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-gr3_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 4 (lr) from
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-gr4.jpg
+File Exists - Not Overwriting
+Downloading Figure 4 (hr) from
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-gr4_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 5 (lr) from
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-gr5.jpg
+File Exists - Not Overwriting
+Downloading Figure 5 (hr) from
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-gr5_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 6 (lr) from
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-gr6.jpg
+File Exists - Not Overwriting
+Downloading Figure 6 (hr) from
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-gr6_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 7 (lr) from
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-gr7.jpg
+File Exists - Not Overwriting
+Downloading Figure 7 (hr) from
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-gr7_lrg.jpg
+File Exists - Not Overwriting
+Downloading pdf from:
+https://pdf.sciencedirectassets.com/272198/1-s2.0-S1097276519X00027/1-s2.0-S1097276519307294/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEB0aCXVzLWVhc3QtMSJIMEYCIQDgZZQatT94l6vGkXBE01xI1sXxV1ms1%2B4Nz3XP%2BR70QQIhAL%2BeAzowknEcyO3a0c4oMWl1%2B7Sa8VHyjU9d7ydoAuAeKr0DCJb%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMMDU5MDAzNTQ2ODY1IgxXbHQwSL3kptojNzsqkQNXP8kB5PasW93doSt66KZl%2BNsm9XUxpoiAOJ3HOBRot54tq%2BhSMpMfzV4G2R%2FbqJOIj876DYDl%2BgxleqZqUpRm6dxJohNwxaq7GLstcaDLDbKk3cX4gpFfhhc4NkjvpSyaOiheCQR1HSTmKoOsCsZ78ZQUheuZQLi%2FvkMDXZPX6LwmbJoK9sgrnBhNmTC0svLF%2F6AWoyQAVJFV7elXVbkS8I%2B1SMuhyUi6XQMHIiKF9NsINEgOlZcB3L9k9qxmDtFnjsTRCHOMLm55n4%2Fk788eZRNuaEWa0qlLqcCgLcMUlo2KIcvWNWoAph5P9hxMcw0qAeEn%2F%2BnEQ1F7uMTXrEwYbw8rQSm%2BOw9O1IWO1hEu7YhnfJk4R%2BkCY3tM%2Fw8hq4CRH20qNUcH1%2FAyffM1QN%2FyE8m9gj305s3NvIs2%2FmWNt3tyhRHxEAUwi%2FoQDviZd4h1wf6mzh6B7RoEfZDQJ4hrbcLkrnKvGcUUAgSyaFFB8ob3tToVMO8ysFPtMlFfCH%2BxqrN601OmZ4cEvlIrwbmZXjCBoJr3BTrqAVvhEMy87pe8Gb6Yjm5NT%2B9usaJw7x70gHu5gLAgVczmCN%2Ba%2Bd3UF%2FflJqPa9uhKay%2B63zG1iyvZ1EiXw1bPFjt6TjDKKkgQLUn9XJ5vUi4d0sh%2B9aaBrEM7CpquGpxFgiGhYzheGCFJdxINwNAozZ336zMoLIYk4KitpAmo1%2BviFL3tPK9pRKARN0caYxHkxUFUnG8lFcK9zgMj2EUIXsl4d9YTEJkoaneUcbUZqxvNhbMMJke%2FdWulRm4Th8UwAFMENZ6uhKdOTopesp2tvSzJNgTV9VrBPaZrGHt2chz8iOp%2BiT0vcI8hUg%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20200614T223103Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTYZCYRI263%2F20200614%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=451e23c11b2f555aadae95ea290e79c6284d6309bd5715dc74a985b8468dd97b&hash=859683c49093f19879efc30acee8fac9d2337cfaec4cdbc1c623fda273b89a42&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S1097276519307294&tid=spdf-0345ba78-9b9f-45e1-b93b-2ebb4b378335&sid=6f3f6ef66f0b994c745bf5e-27281027f093gxrqa&type=client
+File Exists - Not overwriting
+Downloading Document S1. Figures S1–S6 from:
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-mmc1.pdf
+File Exists - Not overwriting
+Downloading Table S1. Mass Spectrometry Analysis of WT and Mutant 53BP1, Related to Figure 1 from:
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-mmc2.xlsx
+File Exists - Not overwriting
+Downloading extended from:
+https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-mmc3.pdf
+File Exists - Not overwriting

@@ -4,11 +4,25 @@ var get_info = new XMLHttpRequest();
 var metadata;
 var queries;
 var references;
+var img_sem = 0;
 
 function after_load() {
-  make_collapsible();
-  add_reflinks();
-  add_figlinks();
+  var cookies = {};
+  document.cookie.split(";").map(function(a) {
+    var kv = a.split("=");
+    cookies[kv[0]] = kv[1];
+  });
+  cookie = cookies.session;
+  var sessions = {};
+  if (cookie != null) {
+    cookie.split(",").map(function(a) {
+      var kv = a.split(":");
+      sessions[kv[0]] = {scroll: kv[1], inactive: kv[2]};
+    });
+  }
+  if (sessions[queries.doi] == null) {
+    sessions[queries.doi] = {scroll: 0, inactive: 0};
+  }
 }
 
 function add_figures() {
@@ -17,11 +31,11 @@ function add_figures() {
     if (i == metadata.figures.length) {
       break;
     }
+    var fname;
     if ("lr" in metadata.figures[i]) {
-      console.log("lr");
-      var fname = metadata.figures[i].lr;
+      fname = metadata.figures[i].lr;
     } else {
-      var fname = metadata.figures[i].name;
+      fname = metadata.figures[i].name;
     }
     var params = "doi=" + queries.doi + "&type=file&name=" + fname;
     var caption = document.createElement("div");
@@ -33,8 +47,15 @@ function add_figures() {
     legend.id = "figleg" + 1;
     legend.className = "fig-leg";
     var img = new Image();
+    img_sem++;
     img.src = "/pyreadapi?" + params;
     img.className = "fig-img";
+    img.onload = function() {
+      img_sem--;
+      if (img_sem == 0) {
+        after_load();
+      }
+    };
     legend.appendChild(img);
     var detail = document.createElement("div");
     detail.id = "figdet" + i;
@@ -43,6 +64,9 @@ function add_figures() {
     legend.appendChild(detail);
     figures[i].appendChild(legend);
   }
+  make_collapsible();
+  add_reflinks();
+  add_figlinks();
 }
 
 function make_collapsible() {
@@ -70,7 +94,7 @@ function elemsAreAdjacent(e1, e2) {
     var p_html = e1.parentElement.innerHTML;
     var c1_html = e1.outerHTML;
     var c2_html = e2.outerHTML;
-    var distance = p_html.indexOf(c2_html) - p_html.indexOf(c1_html)
+    var distance = p_html.indexOf(c2_html) - p_html.indexOf(c1_html);
     if (distance == c1_html.length) {
       return true;
     } else {
@@ -143,14 +167,19 @@ function add_reflinks() {
         var s = document.createElement("span");
         s.className = "ref";
         s.dataset.refnum = spans[j];
-        s.innerHTML = spans[j]
+        s.innerHTML = spans[j];
         var slicers = spans[j].split("-");
-        console.log(slicers);
         if (slicers.length == 2) {
           s.dataset.doi = references.slice(
             slicers[0] - 1, slicers[1]).map(a => a.doi).join(",");
+          s.dataset.pmid = references.slice(
+            slicers[0] - 1, slicers[1]).map(a => a.pmid).join(",");
+          s.dataset.local = references.slice(
+            slicers[0] - 1, slicers[1]).map(a => a.local).join(",");
         } else {
           s.dataset.doi = references[slicers[0] - 1].doi;
+          s.dataset.pmid = references[slicers[0] - 1].pmid;
+          s.dataset.local = references[slicers[0] - 1].local;
         }
         consec_elems[0].insertAdjacentElement("beforebegin", s);
         if (j == 0) {
@@ -177,8 +206,8 @@ function add_figlinks() {
     var consec = false;
     if (consec_elems.length == 0 ||
         elemsAreAdjacent(fig_links[i-1], fig_links[i])) {
-      consec_elems.push(fig_links[i])
-      consec = true
+      consec_elems.push(fig_links[i]);
+      consec = true;
     }
     if (!consec || i + 1 == fig_links.length) {
       for (var j = 0; j < consec_elems.length; j++) {
@@ -194,7 +223,7 @@ function add_figlinks() {
         }
         var fig_str = fignum.substring(0, num_index) +
                       merge_refs(fignum.substring(num_index).split(","));
-        consec_elems[j].innerHTML = fig_str
+        consec_elems[j].innerHTML = fig_str;
         if (j == 0) {
           if (consec_elems.length == 1 && fig_str.indexOf(",") == -1 &&
               fig_str.indexOf("-") == -1) {
@@ -230,9 +259,9 @@ function parse_args(uri) {
    var kw = q_string.substring(0, q_sep);
    var val = q_string.substring(q_sep+1, q_end);
    result[kw] = val;
-   q_string = q_string.substring(q_end+1)
+   q_string = q_string.substring(q_end+1);
   }
-  return result
+  return result;
 }
 
 get_content.onload = function () {
@@ -272,7 +301,10 @@ get_content.onload = function () {
     }
     document.body.appendChild(section);
   }
-}
+  var params = "doi=" + queries.doi + "&type=references";
+  get_refs.open("POST", "pyreadapi");
+  get_refs.send(params);
+};
 
 get_refs.onload = function () {
   response_data = JSON.parse(get_refs.response);
@@ -299,7 +331,7 @@ get_refs.onload = function () {
           response_data[i].authors[j].indexOf("et al.") == -1) {
         ref_string = ref_string + " and ";
       } else if (j > 0) {
-        ref_string = ref_string + ", "
+        ref_string = ref_string + ", ";
       }
       ref_string = ref_string + response_data[i].authors[j];
     }
@@ -313,22 +345,18 @@ get_refs.onload = function () {
     ref_list.appendChild(next_ref);
     references = response_data;
   }
-  document.body.appendChild(refs)
-}
+  document.body.appendChild(refs);
+  var params = "doi=" + queries.doi + "&type=info";
+  get_info.open("POST", "pyreadapi");
+  get_info.send(params);
+};
 
 get_info.onload = function() {
   metadata = JSON.parse(get_info.response);
   add_figures();
-  after_load();
-}
+};
 
 queries = parse_args(location.href);
 get_content.open("POST", "pyreadapi");
 var params = "doi=" + queries.doi + "&type=content";
 get_content.send(params);
-params = "doi=" + queries.doi + "&type=references";
-get_refs.open("POST", "pyreadapi");
-get_refs.send(params);
-params = "doi=" + queries.doi + "&type=info";
-get_info.open("POST", "pyreadapi");
-get_info.send(params);

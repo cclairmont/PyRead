@@ -264,6 +264,24 @@ class PyRead(http.server.BaseHTTPRequestHandler):
             self.send_response(HTTPStatus.BAD_REQUEST)
             self.end_headers()
             return
+        if request_type == 'title':
+            with Path.cwd().joinpath('files',
+                                     'database.json').open(mode="r") as f:
+                database = json.loads(f.read())
+                entry = database['doi'].get(doi)
+                if entry is None:
+                    self.send_response(HTTPStatus.NOT_FOUND)
+                    self.end_headers()
+                    return
+                else:
+                    content = database['doi'][doi]['title']
+                    content = json.dumps({'title': content}).encode('utf-8')
+                    self.send_response(HTTPStatus.OK)
+                    self.send_header('Content-Type', 'application/json')
+                    self.send_header('Content-Length', len(content))
+                    self.end_headers()
+                    self.wfile.write(content)
+                    return
         doi_path = Path.cwd().joinpath('files', doi)
         if not doi_path.exists():
             self.send_response(HTTPStatus.NOT_FOUND)

@@ -386,7 +386,13 @@ class ArticleParser:
                             'status': 'working'})
         self.update_status()
         self.article = Article(self.get_doi())
-        self_ref = self.resolve_refs([{'doi': self.article.doi}])
+        self_ref = self.resolve_refs([
+            {'doi': self.article.doi,
+             'title': self.article.manifest['title'],
+             'authors': self.article.manifest['authors'],
+             'journal': self.article.manifest['journal'],
+             'data': self.article.manifest['date'],
+             'local': True}])
         self.article.set_pmid(self_ref[0]['pmid'])
         self.status[-1]['messages'].append(f'DOI: {self.article.doi}')
         self.status[-1]['messages'].append(self.article.manifest.get('title'))
@@ -458,11 +464,15 @@ class ArticleParser:
     def update_dbentry(self, db, ref):
         for k1, v1 in db.items():
             if k1 in ref:
+                if k1 == 'local':
+                    if not v1 and k1 in ref:
+                        db[k1] = ref[k1]
+                    continue
                 if isinstance(v1, str):
                     if v1 == ref[k1]:
                         continue
                     else:
-                        v1 = [v1].append(ref[k1])
+                        db[k1] = [v1].append(ref[k1])
                 elif isinstance(v1, list):
                     # Either author list of list of variants
                     if isinstance(ref[k1], str):
@@ -470,7 +480,7 @@ class ArticleParser:
                         if ref[k1] in v1:
                             continue
                         else:
-                            v1.append(ref[k1])
+                            db[k1].append(ref[k1])
                     elif isinstance(ref[k1], list):
                         # Must be an author list
                         match = False
@@ -496,19 +506,19 @@ class ArticleParser:
                             match = True
                         if not match:
                             if nested:
-                                v1.append(ref[k1])
+                                db[k1].append(ref[k1])
                             if not nested:
-                                v1 = [v1].append(ref[k1])
+                                db[k1] = [v1].append(ref[k1])
                     else:
                         if ref[k1] in v1:
                             continue
                         else:
-                            v1.append(ref[k1])
+                            db[k1].append(ref[k1])
                 else:
                     if v1 == ref[k1]:
                         continue
                     else:
-                        v1 = [v1].append(ref[k1])
+                        db[k1] = [v1].append(ref[k1])
             else:
                 ref[k1] = v1
         for k2, v2 in ref.items():
@@ -663,6 +673,9 @@ class ArticleParser:
         raise NotImplementedError
 
     def get_content(self):
+        raise NotImplementedError
+
+    def get_figures(self):
         raise NotImplementedError
 
     def get_references(self):
