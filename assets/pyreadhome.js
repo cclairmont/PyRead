@@ -1,27 +1,164 @@
 var get_content = new XMLHttpRequest();
 var get_refs = new XMLHttpRequest();
 var get_info = new XMLHttpRequest();
-var metadata;
-var queries;
+var metadata; //result of info api call
+var queries; //queries.doi holds doi of current article, call load_page to
+             //actually load it.
+var titles; //Ordered list of collapsible titles
+            //(Section, subsection and figures)
+var inactive = [];
 var references;
 var img_sem = 0;
+var first = true; // Are we loading the page for the first time or reloading
+                  // content?
 
-function after_load() {
+//Clears the content of the article and loads article currently in queries.doi
+
+function decode(code, type) {
+  var num = 0;
+  for (var i = 0; i < code.length; i++) {
+    if (code[i] <= "9") {
+      num += (code[i].charCodeAt(0) - 48) << i*6;
+    } else if (code[i] == "-") {
+      num += 62;
+    } else if (code[i] <= "Z") {
+      num += (code[i].charCodeAt(0) - 29) << i*6;
+    } else if (code[i] == "_") {
+      num += 63;
+    } else {
+      num += (code[i].charCodeAt(0) - 87) << i*6;
+    }
+  }
+  if (type == "int") {
+    return num;
+  } else {
+    var result = [];
+    pos = 0;
+    while (num > 0) {
+      bit = num & (1 << pos) >> pos;
+      num = num >> 1;
+      if (bit) {
+        result.push(true);
+      } else {
+        result.push(false);
+      }
+    }
+    return result;
+  }
+}
+
+function encode(num_array) {
+  result = "";
+  if (typeof num_array == "object") {
+    if (num_array.length == 0) {
+      return "0";
+    }
+  } else if(typeof num_array == "number") {
+    if (num_array == 0) {
+      return "0";
+    } else if (num_array > ~(1 << 31)) {
+      return "";
+    } else {
+      var pos = 0;
+      var new_array = [];
+      while (num_array > 0) {
+        var bit = num_array & (1 << pos) >> pos;
+        num_array = num_array >> 1;
+        if (bit) {
+          new_array.push(true);
+        } else {
+          new_array.push(false);
+        }
+      }
+      num_array = new_array;
+    }
+  }
+  while (num_array.length > 0) {
+    var slice = num_array.slice(0,6);
+    num_array = num_array.slice(6);
+    var num = 0;
+    for (var i = 0; i < 6; i++) {
+      if (slice[i]) {
+        num += 1 << i;
+      }
+    }
+    if (num < 36) {
+      result += num.toString(36);
+    } else if (num < 62) {
+      result += String.fromCharCode(29 + num);
+    } else if (num == 62) {
+      result += '-';
+    } else {
+      result += '_';
+    }
+  }
+  return result;
+}
+
+function load_page() {
+  var article = document.getElementsByClassName("article")[0];
+  article.innerHTML = "";
+  if (queries.doi != null) {
+    get_content.open("POST", "pyreadapi");
+    var params = "doi=" + queries.doi + "&type=content";
+    get_content.send(params);
+  }
+}
+
+function first_load() {
   var cookies = {};
   document.cookie.split(";").map(function(a) {
     var kv = a.split("=");
     cookies[kv[0]] = kv[1];
   });
   cookie = cookies.session;
-  var sessions = {};
+  var sessions = [];
   if (cookie != null) {
     cookie.split(",").map(function(a) {
       var kv = a.split(":");
-      sessions[kv[0]] = {scroll: kv[1], inactive: kv[2]};
+      sessions.push = {doi: kv[0], scroll: kv[1], inactive: kv[2]};
     });
   }
-  if (sessions[queries.doi] == null) {
-    sessions[queries.doi] = {scroll: 0, inactive: 0};
+  for (var i = 0; i < sessions.length; i++) {
+    if (sessions[i].doi == queries.doi) {
+      sessions.splice(i, 1);
+    }
+  }
+  sessions.unshift({doi: queries.doi, scroll: 0, inactive: 0});
+  console.log(sessions);
+  var sidenav = document.getElementsByClassName("sidenav")[0];
+  var get_title = {};
+  for (var i = 0; i < sessions.length; i++) {
+    if (sessions[i].title == null) {
+        (function(i) {
+          get_title[i] = new XMLHttpRequest();
+          get_title[i].onload = function() {
+            var title = JSON.parse(get_title[i].response).title;
+            var link = document.getElementById("sn-link" + i);
+            sessions[i].title = title;
+            link.innerHTML = title;
+            link.title = title;
+          };
+          get_title[i].open('POST', 'pyreadapi');
+          params = 'doi=' + sessions[i].doi + "&type=title";
+          get_title[i].send(params);
+        })(i);
+      }
+    var link_container = document.createElement("div");
+    link_container.className = "sidenav-linkcon";
+    link_container.id = "sn-linkcon" + i;
+    var link_x = document.createElement("div");
+    link_x.className = "sidenav-x";
+    link_x.id = "sn-x" + i;
+    link_x.innerHTML = "&times;";
+    link_container.appendChild(link_x);
+    var link = document.createElement("div");
+    link.className = "sidenav-link";
+    link.id = "sn-link" + i;
+    link.innerHTML = sessions[i].title;
+    link.title = sessions[i].title;
+    link_container.appendChild(link);
+    sidenav.appendChild(link_container);
   }
 }
 
@@ -52,8 +189,9 @@ function add_figures() {
     img.className = "fig-img";
     img.onload = function() {
       img_sem--;
-      if (img_sem == 0) {
-        after_load();
+      if (img_sem == 0 && first) {
+        first = false;
+        first_load();
       }
     };
     legend.appendChild(img);
@@ -70,22 +208,28 @@ function add_figures() {
 }
 
 function make_collapsible() {
-  var titles = document.querySelectorAll(".section-title,.subsection-title," +
+  titles = document.querySelectorAll(".section-title,.subsection-title," +
                                          ".fig-cap");
   for (var i = 0; i < titles.length; i++) {
     titles[i].classList.toggle("active");
-    titles[i].addEventListener("click", function() {
-      this.classList.toggle("active");
-      var content = this.nextElementSibling;
-      var parent = this.parentElement.parentElement;
-      if (content.style.maxHeight != "0px"){
-        parent.style.maxHeight = parent.scrollHeight - content.scrollHeight + "px";
-        content.style.maxHeight = "0px";
-      } else {
-        parent.style.maxHeight = parent.scrollHeight + content.scrollHeight + "px";
-        content.style.maxHeight = content.scrollHeight + "px";
-      }
-    });
+    (function(i) {
+      titles[i].addEventListener("click", function() {
+        this.classList.toggle("active");
+        var content = this.nextElementSibling;
+        var parent = this.parentElement.parentElement;
+        if (content.style.maxHeight != "0px"){
+          parent.style.maxHeight = parent.scrollHeight - content.scrollHeight + "px";
+          content.style.maxHeight = "0px";
+        } else {
+          parent.style.maxHeight = parent.scrollHeight + content.scrollHeight + "px";
+          content.style.maxHeight = content.scrollHeight + "px";
+        }
+        inactive[i] = ~inactive[i];
+      });
+    })(i);
+    if (inactive[i]) {
+      titles[i].click();
+    }
   }
 }
 
@@ -267,6 +411,7 @@ function parse_args(uri) {
 get_content.onload = function () {
   /*Section order should be: Intro, Results,
     Discussion, Methods, Acknowledgments*/
+  var article = document.getElementsByClassName("article")[0];
   var response_data = JSON.parse(get_content.response);
   for (var i = 0; i < response_data.length; i++) {
     section = document.createElement("div");
@@ -299,7 +444,7 @@ get_content.onload = function () {
         content.appendChild(subsection);
       }
     }
-    document.body.appendChild(section);
+    article.appendChild(section);
   }
   var params = "doi=" + queries.doi + "&type=references";
   get_refs.open("POST", "pyreadapi");
@@ -308,6 +453,7 @@ get_content.onload = function () {
 
 get_refs.onload = function () {
   response_data = JSON.parse(get_refs.response);
+  var article = document.getElementsByClassName("article")[0];
   var refs = document.createElement("div");
   refs.id = "refs";
   var refs_title = document.createElement("div");
@@ -345,7 +491,7 @@ get_refs.onload = function () {
     ref_list.appendChild(next_ref);
     references = response_data;
   }
-  document.body.appendChild(refs);
+  article.appendChild(refs);
   var params = "doi=" + queries.doi + "&type=info";
   get_info.open("POST", "pyreadapi");
   get_info.send(params);
@@ -356,7 +502,7 @@ get_info.onload = function() {
   add_figures();
 };
 
-queries = parse_args(location.href);
-get_content.open("POST", "pyreadapi");
-var params = "doi=" + queries.doi + "&type=content";
-get_content.send(params);
+window.onload = function() {
+  queries = parse_args(location.href);
+  load_page();
+};
