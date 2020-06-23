@@ -4,10 +4,11 @@ var get_info = new XMLHttpRequest();
 var metadata; //result of info api call
 var queries; //queries.doi holds doi of current article, call load_page to
              //actually load it.
-var titles; //Ordered list of collapsible titles
-            //(Section, subsection and figures)
+var current_article;
 var inactive = [];
+var sessions = [];
 var references;
+var updater;
 var img_sem = 0;
 var first = true; // Are we loading the page for the first time or reloading
                   // content?
@@ -96,6 +97,7 @@ function encode(num_array) {
 }
 
 function load_page() {
+  clearInterval(updater);
   var article = document.getElementsByClassName("article")[0];
   article.innerHTML = "";
   if (queries.doi != null) {
@@ -105,27 +107,68 @@ function load_page() {
   }
 }
 
+function update_session() {
+  sessions[current_article].inactive = inactive;
+  sessions[current_article].scroll = document.documentElement.scrollTop;
+  sessions[current_article].height = document.documentElement.scrollHeight;
+}
+
+function save_session() {
+  update_session();
+  var s_strings = [];
+  for (var i = 0; i < sessions.length; i++) {
+    var s_array = [];
+    s_array.push(sessions[i].doi);
+    s_array.push(encode(sessions[i].inactive));
+    s_array.push(encode(sessions[i].scroll));
+    s_array.push(encode(sessions[i].height));
+    s_strings.push(s_array.join(":"));
+  }
+  document.cookie = "session=" + s_strings.join(",") + "; samesite=strict";
+}
+
+function after_load() {
+  make_collapsible();
+  console.log("here");
+  var ratio = document.documentElement.scrollHeight /
+              sessions[current_article].height;
+  console.log(ratio);
+  document.documentElement.scrollTop = sessions[current_article].scroll *
+                                       ratio;
+  updater = setInterval(save_session, 100);
+}
+
 function first_load() {
   var cookies = {};
   document.cookie.split(";").map(function(a) {
     var kv = a.split("=");
     cookies[kv[0]] = kv[1];
   });
-  cookie = cookies.session;
-  var sessions = [];
+  console.log(cookies);
+  var cookie = cookies[" session"];
+  console.log(cookie);
   if (cookie != null) {
     cookie.split(",").map(function(a) {
       var kv = a.split(":");
-      sessions.push = {doi: kv[0], scroll: kv[1], inactive: kv[2]};
+      sessions.push({doi: kv[0], inactive: decode(kv[1]),
+                     scroll: decode(kv[2], "int"),
+                     height: decode(kv[3], "int")});
+      console.log(kv[1]);
+      console.log(sessions[0].inactive);
     });
   }
+  console.log(sessions);
   for (var i = 0; i < sessions.length; i++) {
     if (sessions[i].doi == queries.doi) {
-      sessions.splice(i, 1);
+      current_article = i;
+      inactive = sessions[i].inactive;
     }
   }
-  sessions.unshift({doi: queries.doi, scroll: 0, inactive: 0});
-  console.log(sessions);
+  if (current_article == null) {
+    sessions.unshift({doi: queries.doi, inactive: [], scroll: 0,
+                      height: document.documentElement.scrollHeight});
+    current_article = 0;
+  }
   var sidenav = document.getElementsByClassName("sidenav")[0];
   var get_title = {};
   for (var i = 0; i < sessions.length; i++) {
@@ -159,6 +202,14 @@ function first_load() {
     link.title = sessions[i].title;
     link_container.appendChild(link);
     sidenav.appendChild(link_container);
+    (function(i) {
+      link.onclick = function() {
+        queries.doi = sessions[i].doi;
+        current_article = i;
+        save_session();
+        load_page();
+      };
+    })(i);
   }
 }
 
@@ -189,9 +240,14 @@ function add_figures() {
     img.className = "fig-img";
     img.onload = function() {
       img_sem--;
-      if (img_sem == 0 && first) {
-        first = false;
-        first_load();
+      if (img_sem == 0) {
+        if (first) {
+          first = false;
+          first_load();
+          after_load();
+        } else {
+          after_load();
+        }
       }
     };
     legend.appendChild(img);
@@ -202,14 +258,17 @@ function add_figures() {
     legend.appendChild(detail);
     figures[i].appendChild(legend);
   }
-  make_collapsible();
   add_reflinks();
   add_figlinks();
 }
 
 function make_collapsible() {
-  titles = document.querySelectorAll(".section-title,.subsection-title," +
+  var titles = document.querySelectorAll(".section-title,.subsection-title," +
                                          ".fig-cap");
+  titles = Array.from(titles);
+  //The Id of the collapsible titles need to be in alphabetical order, with the
+  //innermost titles first.
+  titles.sort(function(a,b) {return a.id > b.id});
   for (var i = 0; i < titles.length; i++) {
     titles[i].classList.toggle("active");
     (function(i) {
@@ -224,10 +283,11 @@ function make_collapsible() {
           parent.style.maxHeight = parent.scrollHeight + content.scrollHeight + "px";
           content.style.maxHeight = content.scrollHeight + "px";
         }
-        inactive[i] = ~inactive[i];
+        inactive[i] = !inactive[i];
       });
     })(i);
     if (inactive[i]) {
+      inactive[i] = !inactive[i];
       titles[i].click();
     }
   }
@@ -457,7 +517,7 @@ get_refs.onload = function () {
   var refs = document.createElement("div");
   refs.id = "refs";
   var refs_title = document.createElement("div");
-  refs_title.id = "refs-title";
+  refs_title.id = "title-r";
   refs_title.innerHTML = "References";
   refs_title.className = "section-title";
   refs.appendChild(refs_title);
