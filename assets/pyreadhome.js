@@ -10,8 +10,10 @@ var sessions = [];
 var references;
 var updater;
 var img_sem = 0;
-var first = true; // Are we loading the page for the first time or reloading
-                  // content?
+
+/*****************************************************************************/
+/*                              Helper Functions                             */
+/*****************************************************************************/
 
 //Clears the content of the article and loads article currently in queries.doi
 
@@ -96,200 +98,29 @@ function encode(num_array) {
   return result;
 }
 
-function load_page() {
-  clearInterval(updater);
-  var article = document.getElementsByClassName("article")[0];
-  article.innerHTML = "";
-  if (queries.doi != null) {
-    get_content.open("POST", "pyreadapi");
-    var params = "doi=" + queries.doi + "&type=content";
-    get_content.send(params);
-  }
-}
-
 function update_session() {
-  sessions[current_article].inactive = inactive;
-  sessions[current_article].scroll = document.documentElement.scrollTop;
-  sessions[current_article].height = document.documentElement.scrollHeight;
+  if (sessions.length > 0) {
+    sessions[current_article].inactive = inactive;
+    sessions[current_article].scroll = document.documentElement.scrollTop;
+    sessions[current_article].height = document.documentElement.scrollHeight;
+  }
 }
 
 function save_session() {
-  update_session();
-  var s_strings = [];
-  for (var i = 0; i < sessions.length; i++) {
-    var s_array = [];
-    s_array.push(sessions[i].doi);
-    s_array.push(encode(sessions[i].inactive));
-    s_array.push(encode(sessions[i].scroll));
-    s_array.push(encode(sessions[i].height));
-    s_strings.push(s_array.join(":"));
-  }
-  document.cookie = "session=" + s_strings.join(",") + "; samesite=strict";
-}
-
-function after_load() {
-  make_collapsible();
-  console.log("here");
-  var ratio = document.documentElement.scrollHeight /
-              sessions[current_article].height;
-  console.log(ratio);
-  document.documentElement.scrollTop = sessions[current_article].scroll *
-                                       ratio;
-  updater = setInterval(save_session, 100);
-}
-
-function first_load() {
-  var cookies = {};
-  document.cookie.split(";").map(function(a) {
-    var kv = a.split("=");
-    cookies[kv[0]] = kv[1];
-  });
-  console.log(cookies);
-  var cookie = cookies[" session"];
-  console.log(cookie);
-  if (cookie != null) {
-    cookie.split(",").map(function(a) {
-      var kv = a.split(":");
-      sessions.push({doi: kv[0], inactive: decode(kv[1]),
-                     scroll: decode(kv[2], "int"),
-                     height: decode(kv[3], "int")});
-      console.log(kv[1]);
-      console.log(sessions[0].inactive);
-    });
-  }
-  console.log(sessions);
-  for (var i = 0; i < sessions.length; i++) {
-    if (sessions[i].doi == queries.doi) {
-      current_article = i;
-      inactive = sessions[i].inactive;
+  if (sessions.length > 0) {
+    update_session();
+    var s_strings = [current_article];
+    for (var i = 0; i < sessions.length; i++) {
+      var s_array = [];
+      s_array.push(sessions[i].doi);
+      s_array.push(encode(sessions[i].inactive));
+      s_array.push(encode(sessions[i].scroll));
+      s_array.push(encode(sessions[i].height));
+      s_strings.push(s_array.join(":"));
     }
-  }
-  if (current_article == null) {
-    sessions.unshift({doi: queries.doi, inactive: [], scroll: 0,
-                      height: document.documentElement.scrollHeight});
-    current_article = 0;
-  }
-  var sidenav = document.getElementsByClassName("sidenav")[0];
-  var get_title = {};
-  for (var i = 0; i < sessions.length; i++) {
-    if (sessions[i].title == null) {
-        (function(i) {
-          get_title[i] = new XMLHttpRequest();
-          get_title[i].onload = function() {
-            var title = JSON.parse(get_title[i].response).title;
-            var link = document.getElementById("sn-link" + i);
-            sessions[i].title = title;
-            link.innerHTML = title;
-            link.title = title;
-          };
-          get_title[i].open('POST', 'pyreadapi');
-          params = 'doi=' + sessions[i].doi + "&type=title";
-          get_title[i].send(params);
-        })(i);
-      }
-    var link_container = document.createElement("div");
-    link_container.className = "sidenav-linkcon";
-    link_container.id = "sn-linkcon" + i;
-    var link_x = document.createElement("div");
-    link_x.className = "sidenav-x";
-    link_x.id = "sn-x" + i;
-    link_x.innerHTML = "&times;";
-    link_container.appendChild(link_x);
-    var link = document.createElement("div");
-    link.className = "sidenav-link";
-    link.id = "sn-link" + i;
-    link.innerHTML = sessions[i].title;
-    link.title = sessions[i].title;
-    link_container.appendChild(link);
-    sidenav.appendChild(link_container);
-    (function(i) {
-      link.onclick = function() {
-        queries.doi = sessions[i].doi;
-        current_article = i;
-        save_session();
-        load_page();
-      };
-    })(i);
-  }
-}
-
-function add_figures() {
-  var figures = document.querySelectorAll("figure");
-  for (var i = 0; i < figures.length; i++) {
-    if (i == metadata.figures.length) {
-      break;
-    }
-    var fname;
-    if ("lr" in metadata.figures[i]) {
-      fname = metadata.figures[i].lr;
-    } else {
-      fname = metadata.figures[i].name;
-    }
-    var params = "doi=" + queries.doi + "&type=file&name=" + fname;
-    var caption = document.createElement("div");
-    caption.id = "figcap" + i;
-    caption.className = "fig-cap";
-    caption.innerHTML = metadata.figures[i].title;
-    figures[i].appendChild(caption);
-    var legend = document.createElement("div");
-    legend.id = "figleg" + 1;
-    legend.className = "fig-leg";
-    var img = new Image();
-    img_sem++;
-    img.src = "/pyreadapi?" + params;
-    img.className = "fig-img";
-    img.onload = function() {
-      img_sem--;
-      if (img_sem == 0) {
-        if (first) {
-          first = false;
-          first_load();
-          after_load();
-        } else {
-          after_load();
-        }
-      }
-    };
-    legend.appendChild(img);
-    var detail = document.createElement("div");
-    detail.id = "figdet" + i;
-    detail.className = "fig-details";
-    detail.innerHTML = metadata.figures[i].caption;
-    legend.appendChild(detail);
-    figures[i].appendChild(legend);
-  }
-  add_reflinks();
-  add_figlinks();
-}
-
-function make_collapsible() {
-  var titles = document.querySelectorAll(".section-title,.subsection-title," +
-                                         ".fig-cap");
-  titles = Array.from(titles);
-  //The Id of the collapsible titles need to be in alphabetical order, with the
-  //innermost titles first.
-  titles.sort(function(a,b) {return a.id > b.id});
-  for (var i = 0; i < titles.length; i++) {
-    titles[i].classList.toggle("active");
-    (function(i) {
-      titles[i].addEventListener("click", function() {
-        this.classList.toggle("active");
-        var content = this.nextElementSibling;
-        var parent = this.parentElement.parentElement;
-        if (content.style.maxHeight != "0px"){
-          parent.style.maxHeight = parent.scrollHeight - content.scrollHeight + "px";
-          content.style.maxHeight = "0px";
-        } else {
-          parent.style.maxHeight = parent.scrollHeight + content.scrollHeight + "px";
-          content.style.maxHeight = content.scrollHeight + "px";
-        }
-        inactive[i] = !inactive[i];
-      });
-    })(i);
-    if (inactive[i]) {
-      inactive[i] = !inactive[i];
-      titles[i].click();
-    }
+    document.cookie = "session=" + s_strings.join(",") + "; samesite=strict";
+  } else {
+    document.cookie = "session=; samesite=strict";
   }
 }
 
@@ -350,107 +181,10 @@ function merge_refs(ref_list) {
   return ref_str;
 }
 
-function add_reflinks() {
-  var ref_links = document.querySelectorAll("span.ref");
-  var consec_elems = [];
-  for (var i = 0; i < ref_links.length; i++) {
-    var consec = false;
-    if (consec_elems.length == 0 ||
-        elemsAreAdjacent(ref_links[i-1], ref_links[i])) {
-      consec_elems.push(ref_links[i]);
-      consec = true;
-    }
-    if (!consec || i + 1 == ref_links.length) {
-      var ref_nums = [];
-      for (var j = 0; j < consec_elems.length; j++) {
-        ref_nums.push(consec_elems[j].dataset.refnum);
-      }
-      var ref_str = merge_refs(ref_nums);
-      var spans = ref_str.split(",");
-      for (var j = 0; j < spans.length; j++) {
-        var s = document.createElement("span");
-        s.className = "ref";
-        s.dataset.refnum = spans[j];
-        s.innerHTML = spans[j];
-        var slicers = spans[j].split("-");
-        if (slicers.length == 2) {
-          s.dataset.doi = references.slice(
-            slicers[0] - 1, slicers[1]).map(a => a.doi).join(",");
-          s.dataset.pmid = references.slice(
-            slicers[0] - 1, slicers[1]).map(a => a.pmid).join(",");
-          s.dataset.local = references.slice(
-            slicers[0] - 1, slicers[1]).map(a => a.local).join(",");
-        } else {
-          s.dataset.doi = references[slicers[0] - 1].doi;
-          s.dataset.pmid = references[slicers[0] - 1].pmid;
-          s.dataset.local = references[slicers[0] - 1].local;
-        }
-        consec_elems[0].insertAdjacentElement("beforebegin", s);
-        if (j == 0) {
-          s.insertAdjacentText("beforebegin", " (");
-        }
-        if (j + 1 < spans.length) {
-          s.insertAdjacentText("afterend", ",");
-        } else {
-          s.insertAdjacentText("afterend", ")");
-        }
-      }
-      for (var j = 0; j < consec_elems.length; j++) {
-        consec_elems[j].remove();
-      }
-    consec_elems = [ref_links[i]];
-    }
-  }
-}
-
-function add_figlinks() {
-  var fig_links = document.querySelectorAll("span.figure_ref");
-  var consec_elems = [];
-  for (var i = 0; i < fig_links.length; i++) {
-    var consec = false;
-    if (consec_elems.length == 0 ||
-        elemsAreAdjacent(fig_links[i-1], fig_links[i])) {
-      consec_elems.push(fig_links[i]);
-      consec = true;
-    }
-    if (!consec || i + 1 == fig_links.length) {
-      for (var j = 0; j < consec_elems.length; j++) {
-        var fignum = consec_elems[j].dataset.fignum;
-        var file = fignum.indexOf("-");
-        if (file > -1) {
-          fignum = fignum.substring(0, file);
-        }
-        if (fignum[0] == "S") {
-          num_index = 2;
-        } else {
-          num_index = 1;
-        }
-        var fig_str = fignum.substring(0, num_index) +
-                      merge_refs(fignum.substring(num_index).split(","));
-        consec_elems[j].innerHTML = fig_str;
-        if (j == 0) {
-          if (consec_elems.length == 1 && fig_str.indexOf(",") == -1 &&
-              fig_str.indexOf("-") == -1) {
-            consec_elems[j].insertAdjacentText("beforebegin", " (Figure ");
-          } else {
-            consec_elems[j].insertAdjacentText("beforebegin", " (Figures ");
-          }
-        }
-        if (j + 1 < consec_elems.length) {
-          consec_elems[j].insertAdjacentText("afterend", ",");
-        } else {
-          consec_elems[j].insertAdjacentText("afterend", ")");
-        }
-      }
-      consec_elems = [fig_links[i]];
-    }
-  }
-}
-
 function parse_args(uri) {
   var arg_start = uri.indexOf("\?");
   var q_string = uri.substring(arg_start+1);
-  var result = Object();
+  var result = {};
   while (true) {
    var q_sep = q_string.indexOf("=");
    var q_end = q_string.substring(q_sep).indexOf("&") + q_sep;
@@ -466,6 +200,139 @@ function parse_args(uri) {
    q_string = q_string.substring(q_end+1);
   }
   return result;
+}
+
+/*****************************************************************************/
+/*                           Sequential Functions                            */
+/*****************************************************************************/
+
+window.onload = function() {
+  queries = parse_args(location.href);
+  var reload = false;
+  if(Object.keys(queries).length > 0) {
+    reload = true;
+  }
+  load_cookies();
+  setup_sidenav();
+  load_page();
+  if (reload) {
+    save_session();
+    window.location.replace("/pyreadhome");
+  }
+};
+
+function load_cookies() {
+  var cookies = {};
+  document.cookie.split(";").map(function(a) {
+    var kv = a.split("=");
+    cookies[kv[0]] = kv[1];
+  });
+  var cookie = cookies[" session"];
+  if (cookie != null) {
+    cookie.split(",").map(function(a) {
+      if (a.indexOf(":") == -1) {
+        current_article = parseInt(a, 10);
+      } else {
+        var kv = a.split(":");
+        sessions.push({doi: kv[0], inactive: decode(kv[1]),
+                       scroll: decode(kv[2], "int"),
+                       height: decode(kv[3], "int")});
+      }
+    });
+  }
+  if (queries.doi == null && current_article != null) {
+    queries.doi = sessions[current_article].doi;
+  }
+  var found_session = false;
+  for (var i = 0; i < sessions.length; i++) {
+    if (sessions[i].doi == queries.doi) {
+      current_article = i;
+      inactive = sessions[i].inactive;
+      found_session = true;
+    }
+  }
+  if (!found_session) {
+    current_article = 0;
+    sessions.unshift({doi: queries.doi, inactive: [], scroll: 0,
+                      height: document.documentElement.scrollHeight});
+  }
+}
+
+function setup_sidenav() {
+  var sidenav = document.getElementsByClassName("sidenav")[0];
+  var get_title = {};
+  for (var i = 0; i < sessions.length; i++) {
+    if (sessions[i].title == null) {
+        (function(i) {
+          get_title[i] = new XMLHttpRequest();
+          get_title[i].onload = function() {
+            var title = JSON.parse(get_title[i].response).title;
+            var link = document.getElementById("sn-link" + i);
+            sessions[i].title = title;
+            link.innerHTML = title;
+            link.title = title;
+          };
+          get_title[i].open('POST', 'pyreadapi');
+          params = 'doi=' + sessions[i].doi + "&type=title";
+          get_title[i].send(params);
+        })(i);
+      }
+    var link_container = document.createElement("div");
+    link_container.className = "sidenav-linkcon";
+    link_container.id = "sn-linkcon" + i;
+    var link_x = document.createElement("div");
+    link_x.className = "sidenav-x";
+    link_x.id = "sn-x" + i;
+    link_x.innerHTML = "&times;";
+    link_container.appendChild(link_x);
+    var link = document.createElement("div");
+    link.className = "sidenav-link";
+    link.id = "sn-link" + i;
+    link.innerHTML = sessions[i].title;
+    link.title = sessions[i].title;
+    link_container.appendChild(link);
+    sidenav.appendChild(link_container);
+    (function(i) {
+      link.onclick = function() {
+        var sidebar = document.getElementsByClassName("sidenav-linkcon");
+        sidebar[current_article].classList.toggle("active");
+        queries.doi = sessions[i].doi;
+        current_article = i;
+        save_session();
+        load_page();
+      };
+      link_x.onclick = function() {
+        console.log("click")
+        sessions.splice(i, 1);
+        this.parentElement.remove();
+        load_page();
+      };
+    })(i);
+  }
+}
+
+function load_page() {
+  clearInterval(updater);
+  var article = document.getElementsByClassName("article")[0];
+  article.innerHTML = "";
+  var sidebar = document.getElementsByClassName("sidenav-linkcon");
+  if (sidebar.length > 0) {
+    if (current_article >= sidebar.length) {
+      current_article = sidebar.length - 1;
+    }
+    sidebar[current_article].classList.toggle("active");
+    if (queries.doi == null) {
+      queries.doi = sessions[0].doi;
+    }
+    if (queries.doi != null) {
+      get_content.open("POST", "pyreadapi");
+      var params = "doi=" + queries.doi + "&type=content";
+      get_content.send(params);
+    }
+  }
+  else {
+    save_session();
+  }
 }
 
 get_content.onload = function () {
@@ -562,7 +429,213 @@ get_info.onload = function() {
   add_figures();
 };
 
-window.onload = function() {
-  queries = parse_args(location.href);
-  load_page();
-};
+function add_figures() {
+  var figures = document.querySelectorAll("figure");
+  for (var i = 0; i < figures.length; i++) {
+    if (i == metadata.figures.length) {
+      break;
+    }
+    var fname;
+    if ("lr" in metadata.figures[i]) {
+      fname = metadata.figures[i].lr;
+    } else {
+      fname = metadata.figures[i].name;
+    }
+    var params = "doi=" + queries.doi + "&type=file&name=" + fname;
+    var caption = document.createElement("div");
+    caption.id = "figcap" + i;
+    caption.className = "fig-cap";
+    caption.innerHTML = metadata.figures[i].title;
+    figures[i].appendChild(caption);
+    var legend = document.createElement("div");
+    legend.id = "figleg" + 1;
+    legend.className = "fig-leg";
+    var img = new Image();
+    img_sem++;
+    img.src = "/pyreadapi?" + params;
+    img.className = "fig-img";
+    img.onload = function() {
+      img_sem--;
+      if (img_sem == 0) {
+        after_load();
+      }
+    };
+    legend.appendChild(img);
+    var detail = document.createElement("div");
+    detail.id = "figdet" + i;
+    detail.className = "fig-details";
+    detail.innerHTML = metadata.figures[i].caption;
+    legend.appendChild(detail);
+    figures[i].appendChild(legend);
+  }
+  add_reflinks();
+  add_figlinks();
+}
+
+function add_reflinks() {
+  var ref_links = document.querySelectorAll("span.ref");
+  var consec_elems = [];
+  for (var i = 0; i < ref_links.length; i++) {
+    var consec = false;
+    if (consec_elems.length == 0 ||
+        elemsAreAdjacent(ref_links[i-1], ref_links[i])) {
+      consec_elems.push(ref_links[i]);
+      consec = true;
+    }
+    if (!consec || i + 1 == ref_links.length) {
+      var ref_nums = [];
+      for (var j = 0; j < consec_elems.length; j++) {
+        ref_nums.push(consec_elems[j].dataset.refnum);
+      }
+      var ref_str = merge_refs(ref_nums);
+      var spans = ref_str.split(",");
+      for (var j = 0; j < spans.length; j++) {
+        var s = document.createElement("span");
+        s.className = "ref";
+        s.dataset.refnum = spans[j];
+        s.innerHTML = spans[j];
+        var slicers = spans[j].split("-");
+        if (slicers.length == 2) {
+          s.dataset.doi = references.slice(
+            slicers[0] - 1, slicers[1]).map(a => a.doi).join(",");
+          s.dataset.pmid = references.slice(
+            slicers[0] - 1, slicers[1]).map(a => a.pmid).join(",");
+          s.dataset.local = references.slice(
+            slicers[0] - 1, slicers[1]).map(a => a.local).join(",");
+        } else {
+          s.dataset.doi = references[slicers[0] - 1].doi;
+          s.dataset.pmid = references[slicers[0] - 1].pmid;
+          s.dataset.local = references[slicers[0] - 1].local;
+        }
+        consec_elems[0].insertAdjacentElement("beforebegin", s);
+        if (j == 0) {
+          s.insertAdjacentText("beforebegin", " (");
+        }
+        if (j + 1 < spans.length) {
+          s.insertAdjacentText("afterend", ",");
+        } else {
+          s.insertAdjacentText("afterend", ")");
+        }
+        var reftip = document.createElement("span");
+        reftip.className = "ref-tip";
+        var num_refs = 1;
+        if (slicers.length == 2) {
+          num_refs = slicers[1] - slicers[0] + 1;
+        }
+        for (var k = 0; k < num_refs; k++) {
+          var reftipcontainer = document.createElement("span");
+          reftipcontainer.className = "ref-tip-con";
+          (function(slicers, k) {
+            reftipcontainer.onclick = function() {
+              save_session();
+              window.location.href = "/pyreadhome?doi=" +
+                                     references[slicers[0] - 1 + k].doi;
+            };
+          })(slicers, k);
+          var reftiplabel = document.createElement("span");
+          reftiplabel.className = "ref-tip-label";
+          reftiplabel.innerHTML = references[slicers[0] - 1 + k].label;
+          var reftiptitle = document.createElement("span");
+          reftiptitle.className = "ref-tip-title";
+          reftiptitle.innerHTML = references[slicers[0] - 1 + k].title;
+          reftipcontainer.appendChild(reftiplabel);
+          reftipcontainer.appendChild(reftiptitle);
+          reftip.appendChild(reftipcontainer);
+        }
+        s.appendChild(reftip);
+      }
+      for (var j = 0; j < consec_elems.length; j++) {
+        consec_elems[j].remove();
+      }
+    consec_elems = [ref_links[i]];
+    }
+  }
+}
+
+function add_figlinks() {
+  var fig_links = document.querySelectorAll("span.figure_ref");
+  var consec_elems = [];
+  for (var i = 0; i < fig_links.length; i++) {
+    var consec = false;
+    if (consec_elems.length == 0 ||
+        elemsAreAdjacent(fig_links[i-1], fig_links[i])) {
+      consec_elems.push(fig_links[i]);
+      consec = true;
+    }
+    if (!consec || i + 1 == fig_links.length) {
+      for (var j = 0; j < consec_elems.length; j++) {
+        var fignum = consec_elems[j].dataset.fignum;
+        var file = fignum.indexOf("-");
+        if (file > -1) {
+          fignum = fignum.substring(0, file);
+        }
+        if (fignum[0] == "S") {
+          num_index = 2;
+        } else {
+          num_index = 1;
+        }
+        var fig_str = fignum.substring(0, num_index) +
+                      merge_refs(fignum.substring(num_index).split(","));
+        consec_elems[j].innerHTML = fig_str;
+        if (j == 0) {
+          if (consec_elems.length == 1 && fig_str.indexOf(",") == -1 &&
+              fig_str.indexOf("-") == -1) {
+            consec_elems[j].insertAdjacentText("beforebegin", " (Figure ");
+          } else {
+            consec_elems[j].insertAdjacentText("beforebegin", " (Figures ");
+          }
+        }
+        if (j + 1 < consec_elems.length) {
+          consec_elems[j].insertAdjacentText("afterend", ",");
+        } else {
+          consec_elems[j].insertAdjacentText("afterend", ")");
+        }
+      }
+      consec_elems = [fig_links[i]];
+    }
+  }
+}
+
+function after_load() {
+  make_collapsible();
+  setTimeout(function() {
+    var ratio = document.documentElement.scrollHeight /
+                sessions[current_article].height;
+    document.documentElement.scrollTop = sessions[current_article].scroll *
+                                         ratio;
+    updater = setInterval(save_session, 100);
+  }, 500);
+}
+
+function make_collapsible() {
+  var titles = document.querySelectorAll(".section-title,.subsection-title," +
+                                         ".fig-cap");
+  titles = Array.from(titles);
+  //The Id of the collapsible titles need to be in alphabetical order, with the
+  //innermost titles first.
+  titles.sort(function(a,b) {return a.id > b.id});
+  for (var i = 0; i < titles.length; i++) {
+    titles[i].classList.toggle("active");
+    titles[i].nextElementSibling.classList.toggle("active");
+    (function(i) {
+      titles[i].addEventListener("click", function() {
+        this.classList.toggle("active");
+        var content = this.nextElementSibling;
+        var parent = this.parentElement.parentElement;
+        content.classList.toggle("active");
+        if (content.style.maxHeight != "0px"){
+          parent.style.maxHeight = parent.scrollHeight - content.scrollHeight + "px";
+          content.style.maxHeight = "0px";
+        } else {
+          parent.style.maxHeight = parent.scrollHeight + content.scrollHeight + "px";
+          content.style.maxHeight = content.scrollHeight + "px";
+        }
+        inactive[i] = !inactive[i];
+      });
+    })(i);
+    if (inactive[i]) {
+      inactive[i] = !inactive[i];
+      titles[i].click();
+    }
+  }
+}

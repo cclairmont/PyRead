@@ -18236,3 +18236,664 @@ File Exists - Not overwriting
 Downloading extended from:
 https://ars-els-cdn-com.ezp-prod1.hul.harvard.edu/content/image/1-s2.0-S1097276519307294-mmc3.pdf
 File Exists - Not overwriting
+Checking metadata for 10.1016/j.cell.2013.05.023
+Local metadata not found, fetching...
+Fetching metadata from: http://dx.doi.org/10.1016/j.cell.2013.05.023
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T01:24:33.883000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T01:24:33.883000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T01:24:33.883000
+Downloading Graphical Abstract (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-fx1.jpg
+Downloading Graphical Abstract (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-fx1_lrg.jpg
+Downloading Figure 1 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr1.jpg
+Downloading Figure 1 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr1_lrg.jpg
+Downloading Figure S1 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs1.jpg
+Downloading Figure S1 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs1_lrg.jpg
+Downloading Figure 2 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr2.jpg
+Downloading Figure 2 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr2_lrg.jpg
+Downloading Figure S2 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs2.jpg
+Downloading Figure S2 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs2_lrg.jpg
+Downloading Figure 3 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr3.jpg
+Downloading Figure 3 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr3_lrg.jpg
+Downloading Figure 4 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr4.jpg
+Downloading Figure 4 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr4_lrg.jpg
+Downloading Figure 5 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr5.jpg
+Downloading Figure 5 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr5_lrg.jpg
+Downloading Figure S3 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs3.jpg
+Downloading Figure S3 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs3_lrg.jpg
+Downloading Figure S4 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs4.jpg
+Downloading Figure S4 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs4_lrg.jpg
+Downloading Figure 6 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr6.jpg
+Downloading Figure 6 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr6_lrg.jpg
+Downloading Figure S5 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs5.jpg
+Downloading Figure S5 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs5_lrg.jpg
+Downloading Figure 7 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr7.jpg
+Downloading Figure 7 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr7_lrg.jpg
+Downloading Figure S6 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs6.jpg
+Downloading Figure S6 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs6_lrg.jpg
+Downloading Figure S7 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs7.jpg
+Downloading Figure S7 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs7_lrg.jpg
+Downloading pdf from:
+https://pdf.sciencedirectassets.com/272196/1-s2.0-S0092867413X00121/1-s2.0-S0092867413005904/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEB4aCXVzLWVhc3QtMSJIMEYCIQDXckGfQfEMKtotJdp5WUFNJBey%2FmH%2BqcMuPTJcujHp9AIhAIB1WSXyy2LEcixGQg9GamAIJFyyO9c4R6RpZUA3Bq3xKr0DCJb%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMMDU5MDAzNTQ2ODY1Igzja0k9aymlZ9ss7FsqkQPk4mewPKwYd02TzpplTuPKzT1l3xvgvs3Y76BToTKe4pvb0WgmAzeqdTs4W3Yz59E5R8zy2lNBfzdkjD5SuKTgiwxW%2BCfaXtdBRzpWE3G0R%2FW%2F%2Bnjx%2BxxEryRfAHw6qCxBusQ5V6l535tBNYLae5K9lsdZk7CVT9hIiaqc0eaE6%2F9dvFrrxj0ULXHbL3vAxScGCilmnB7xTAMQSNHiA6Zt9fh6l%2BsRbx%2BNEAwnBan4W820oUaqzw8O%2FvOubXNoHxH%2BpT2UyjpHPOdfKnpuhUa6kf3ohpbgfX3bxOgr2iEAhcGQ1N9hYb4%2Bbjs7PxS%2FTmRs48uHohvegErjR4iJlSuImKStayjoiKGacwRM40CTWfTPOmvvnRPBo8ArpuwrgAKDOp%2FAe%2B4ZA5rO1AUB67DrsMnwfSLmhPYgfZmI27QadGgzl4OChtij6%2BPe7m1fJSgnhtG4t6eNUrUuptv3vaBQElRTaYt0LKVFEpU6NDc%2FrmdLGdR1T3df3UBic2Zya5QMDJljPh3%2BAIXG1qZ12wG3iDD5o5r3BTrqAQ%2B%2F4L3WkXhUN19cRyI5sryKWC%2BeF7eTOAU4iNDnEAb5VOBbWETU6FWbNHKUghYXePGfc7VB8p%2B4G%2BiGurLhO5CcSkcyux%2FWTzPYix6zNN6v08lkweuI3e6v1KX35jZbyi5Dx8Lp8g%2FL8SCbI09meEdFOGkqJ8TBlS84K7yayqXbG8XkcJkTKS2cwrjeib52iOPHfwubVz1rdGvQMnjJwhf0BGcG%2FKzwx%2Bc1WoHqQcpqJB2f3XPnf2q6hg5mKbm5ckwxyfkyUrfW2%2FTrmbtvdJ6IcHmAgXmpX5qfgH9gJ9EDdK72xW%2BaORpVVw%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20200614T220056Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTYUHK42VI3%2F20200614%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=a047b7ddb22504bf791cf63ac775e174940848c54d5d908af03c78817c3ec0bb&hash=0a9ab81d67b61d2547d7cf33a68a15c9e69712695a77a5ad8818405a19a66769&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S0092867413005904&tid=spdf-4467e449-2b90-4a0e-97bf-a18f7effbfe0&sid=19a0d8c64acff04cac281a61886cc49a78d3gxrqa&type=client
+Downloading extended from:
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-mmc1.pdf
+Checking metadata for 10.1016/j.cell.2013.05.023
+Local metadata not found, fetching...
+Fetching metadata from: http://dx.doi.org/10.1016/j.cell.2013.05.023
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T14:33:18.290000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T14:33:18.290000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T14:33:18.290000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T14:33:18.290000
+Downloading Graphical Abstract (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-fx1.jpg
+Downloading Graphical Abstract (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-fx1_lrg.jpg
+Downloading Figure 1 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr1.jpg
+Downloading Figure 1 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr1_lrg.jpg
+Downloading Figure S1 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs1.jpg
+Downloading Figure S1 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs1_lrg.jpg
+Downloading Figure 2 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr2.jpg
+Downloading Figure 2 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr2_lrg.jpg
+Downloading Figure S2 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs2.jpg
+Downloading Figure S2 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs2_lrg.jpg
+Downloading Figure 3 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr3.jpg
+Downloading Figure 3 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr3_lrg.jpg
+Downloading Figure 4 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr4.jpg
+Downloading Figure 4 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr4_lrg.jpg
+Downloading Figure 5 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr5.jpg
+Downloading Figure 5 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr5_lrg.jpg
+Downloading Figure S3 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs3.jpg
+Downloading Figure S3 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs3_lrg.jpg
+Downloading Figure S4 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs4.jpg
+Downloading Figure S4 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs4_lrg.jpg
+Downloading Figure 6 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr6.jpg
+Downloading Figure 6 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr6_lrg.jpg
+Downloading Figure S5 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs5.jpg
+Downloading Figure S5 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs5_lrg.jpg
+Downloading Figure 7 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr7.jpg
+Downloading Figure 7 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr7_lrg.jpg
+Downloading Figure S6 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs6.jpg
+Downloading Figure S6 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs6_lrg.jpg
+Downloading Figure S7 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs7.jpg
+Downloading Figure S7 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs7_lrg.jpg
+Downloading pdf from:
+https://pdf.sciencedirectassets.com/272196/1-s2.0-S0092867413X00121/1-s2.0-S0092867413005904/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEB4aCXVzLWVhc3QtMSJIMEYCIQDXckGfQfEMKtotJdp5WUFNJBey%2FmH%2BqcMuPTJcujHp9AIhAIB1WSXyy2LEcixGQg9GamAIJFyyO9c4R6RpZUA3Bq3xKr0DCJb%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMMDU5MDAzNTQ2ODY1Igzja0k9aymlZ9ss7FsqkQPk4mewPKwYd02TzpplTuPKzT1l3xvgvs3Y76BToTKe4pvb0WgmAzeqdTs4W3Yz59E5R8zy2lNBfzdkjD5SuKTgiwxW%2BCfaXtdBRzpWE3G0R%2FW%2F%2Bnjx%2BxxEryRfAHw6qCxBusQ5V6l535tBNYLae5K9lsdZk7CVT9hIiaqc0eaE6%2F9dvFrrxj0ULXHbL3vAxScGCilmnB7xTAMQSNHiA6Zt9fh6l%2BsRbx%2BNEAwnBan4W820oUaqzw8O%2FvOubXNoHxH%2BpT2UyjpHPOdfKnpuhUa6kf3ohpbgfX3bxOgr2iEAhcGQ1N9hYb4%2Bbjs7PxS%2FTmRs48uHohvegErjR4iJlSuImKStayjoiKGacwRM40CTWfTPOmvvnRPBo8ArpuwrgAKDOp%2FAe%2B4ZA5rO1AUB67DrsMnwfSLmhPYgfZmI27QadGgzl4OChtij6%2BPe7m1fJSgnhtG4t6eNUrUuptv3vaBQElRTaYt0LKVFEpU6NDc%2FrmdLGdR1T3df3UBic2Zya5QMDJljPh3%2BAIXG1qZ12wG3iDD5o5r3BTrqAQ%2B%2F4L3WkXhUN19cRyI5sryKWC%2BeF7eTOAU4iNDnEAb5VOBbWETU6FWbNHKUghYXePGfc7VB8p%2B4G%2BiGurLhO5CcSkcyux%2FWTzPYix6zNN6v08lkweuI3e6v1KX35jZbyi5Dx8Lp8g%2FL8SCbI09meEdFOGkqJ8TBlS84K7yayqXbG8XkcJkTKS2cwrjeib52iOPHfwubVz1rdGvQMnjJwhf0BGcG%2FKzwx%2Bc1WoHqQcpqJB2f3XPnf2q6hg5mKbm5ckwxyfkyUrfW2%2FTrmbtvdJ6IcHmAgXmpX5qfgH9gJ9EDdK72xW%2BaORpVVw%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20200614T220056Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTYUHK42VI3%2F20200614%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=a047b7ddb22504bf791cf63ac775e174940848c54d5d908af03c78817c3ec0bb&hash=0a9ab81d67b61d2547d7cf33a68a15c9e69712695a77a5ad8818405a19a66769&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S0092867413005904&tid=spdf-4467e449-2b90-4a0e-97bf-a18f7effbfe0&sid=19a0d8c64acff04cac281a61886cc49a78d3gxrqa&type=client
+Downloading extended from:
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-mmc1.pdf
+Checking metadata for 10.1016/j.cell.2013.05.023
+Local metadata not found, fetching...
+Fetching metadata from: http://dx.doi.org/10.1016/j.cell.2013.05.023
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T14:35:40.699000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T14:35:40.699000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T14:35:40.699000
+Downloading Graphical Abstract (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-fx1.jpg
+Downloading Graphical Abstract (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-fx1_lrg.jpg
+Downloading Figure 1 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr1.jpg
+Downloading Figure 1 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr1_lrg.jpg
+Downloading Figure S1 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs1.jpg
+Downloading Figure S1 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs1_lrg.jpg
+Downloading Figure 2 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr2.jpg
+Downloading Figure 2 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr2_lrg.jpg
+Downloading Figure S2 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs2.jpg
+Downloading Figure S2 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs2_lrg.jpg
+Downloading Figure 3 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr3.jpg
+Downloading Figure 3 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr3_lrg.jpg
+Downloading Figure 4 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr4.jpg
+Downloading Figure 4 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr4_lrg.jpg
+Downloading Figure 5 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr5.jpg
+Downloading Figure 5 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr5_lrg.jpg
+Downloading Figure S3 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs3.jpg
+Downloading Figure S3 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs3_lrg.jpg
+Downloading Figure S4 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs4.jpg
+Downloading Figure S4 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs4_lrg.jpg
+Downloading Figure 6 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr6.jpg
+Downloading Figure 6 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr6_lrg.jpg
+Downloading Figure S5 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs5.jpg
+Downloading Figure S5 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs5_lrg.jpg
+Downloading Figure 7 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr7.jpg
+Downloading Figure 7 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr7_lrg.jpg
+Downloading Figure S6 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs6.jpg
+Downloading Figure S6 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs6_lrg.jpg
+Downloading Figure S7 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs7.jpg
+Downloading Figure S7 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs7_lrg.jpg
+Downloading pdf from:
+https://pdf.sciencedirectassets.com/272196/1-s2.0-S0092867413X00121/1-s2.0-S0092867413005904/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEB4aCXVzLWVhc3QtMSJIMEYCIQDXckGfQfEMKtotJdp5WUFNJBey%2FmH%2BqcMuPTJcujHp9AIhAIB1WSXyy2LEcixGQg9GamAIJFyyO9c4R6RpZUA3Bq3xKr0DCJb%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMMDU5MDAzNTQ2ODY1Igzja0k9aymlZ9ss7FsqkQPk4mewPKwYd02TzpplTuPKzT1l3xvgvs3Y76BToTKe4pvb0WgmAzeqdTs4W3Yz59E5R8zy2lNBfzdkjD5SuKTgiwxW%2BCfaXtdBRzpWE3G0R%2FW%2F%2Bnjx%2BxxEryRfAHw6qCxBusQ5V6l535tBNYLae5K9lsdZk7CVT9hIiaqc0eaE6%2F9dvFrrxj0ULXHbL3vAxScGCilmnB7xTAMQSNHiA6Zt9fh6l%2BsRbx%2BNEAwnBan4W820oUaqzw8O%2FvOubXNoHxH%2BpT2UyjpHPOdfKnpuhUa6kf3ohpbgfX3bxOgr2iEAhcGQ1N9hYb4%2Bbjs7PxS%2FTmRs48uHohvegErjR4iJlSuImKStayjoiKGacwRM40CTWfTPOmvvnRPBo8ArpuwrgAKDOp%2FAe%2B4ZA5rO1AUB67DrsMnwfSLmhPYgfZmI27QadGgzl4OChtij6%2BPe7m1fJSgnhtG4t6eNUrUuptv3vaBQElRTaYt0LKVFEpU6NDc%2FrmdLGdR1T3df3UBic2Zya5QMDJljPh3%2BAIXG1qZ12wG3iDD5o5r3BTrqAQ%2B%2F4L3WkXhUN19cRyI5sryKWC%2BeF7eTOAU4iNDnEAb5VOBbWETU6FWbNHKUghYXePGfc7VB8p%2B4G%2BiGurLhO5CcSkcyux%2FWTzPYix6zNN6v08lkweuI3e6v1KX35jZbyi5Dx8Lp8g%2FL8SCbI09meEdFOGkqJ8TBlS84K7yayqXbG8XkcJkTKS2cwrjeib52iOPHfwubVz1rdGvQMnjJwhf0BGcG%2FKzwx%2Bc1WoHqQcpqJB2f3XPnf2q6hg5mKbm5ckwxyfkyUrfW2%2FTrmbtvdJ6IcHmAgXmpX5qfgH9gJ9EDdK72xW%2BaORpVVw%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20200614T220056Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTYUHK42VI3%2F20200614%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=a047b7ddb22504bf791cf63ac775e174940848c54d5d908af03c78817c3ec0bb&hash=0a9ab81d67b61d2547d7cf33a68a15c9e69712695a77a5ad8818405a19a66769&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S0092867413005904&tid=spdf-4467e449-2b90-4a0e-97bf-a18f7effbfe0&sid=19a0d8c64acff04cac281a61886cc49a78d3gxrqa&type=client
+Downloading extended from:
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-mmc1.pdf
+Checking metadata for 10.1016/j.cell.2013.05.023
+Local metadata not found, fetching...
+Fetching metadata from: http://dx.doi.org/10.1016/j.cell.2013.05.023
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T14:39:32.931000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T14:39:32.931000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Local metadata not found, fetching...
+Fetching metadata from: http://dx.doi.org/10.1016/j.cell.2013.05.023
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Downloading Graphical Abstract (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-fx1.jpg
+Downloading Graphical Abstract (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-fx1_lrg.jpg
+Downloading Figure 1 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr1.jpg
+Downloading Figure 1 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr1_lrg.jpg
+Downloading Figure S1 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs1.jpg
+Downloading Figure S1 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs1_lrg.jpg
+Downloading Figure 2 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr2.jpg
+Downloading Figure 2 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr2_lrg.jpg
+Downloading Figure S2 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs2.jpg
+Downloading Figure S2 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs2_lrg.jpg
+Downloading Figure 3 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr3.jpg
+Downloading Figure 3 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr3_lrg.jpg
+Downloading Figure 4 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr4.jpg
+Downloading Figure 4 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr4_lrg.jpg
+Downloading Figure 5 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr5.jpg
+Downloading Figure 5 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr5_lrg.jpg
+Downloading Figure S3 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs3.jpg
+Downloading Figure S3 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs3_lrg.jpg
+Downloading Figure S4 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs4.jpg
+Downloading Figure S4 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs4_lrg.jpg
+Downloading Figure 6 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr6.jpg
+Downloading Figure 6 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr6_lrg.jpg
+Downloading Figure S5 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs5.jpg
+Downloading Figure S5 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs5_lrg.jpg
+Downloading Figure 7 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr7.jpg
+Downloading Figure 7 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr7_lrg.jpg
+Downloading Figure S6 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs6.jpg
+Downloading Figure S6 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs6_lrg.jpg
+Downloading Figure S7 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs7.jpg
+Downloading Figure S7 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs7_lrg.jpg
+Downloading pdf from:
+https://pdf.sciencedirectassets.com/272196/1-s2.0-S0092867413X00121/1-s2.0-S0092867413005904/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEB4aCXVzLWVhc3QtMSJIMEYCIQDXckGfQfEMKtotJdp5WUFNJBey%2FmH%2BqcMuPTJcujHp9AIhAIB1WSXyy2LEcixGQg9GamAIJFyyO9c4R6RpZUA3Bq3xKr0DCJb%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMMDU5MDAzNTQ2ODY1Igzja0k9aymlZ9ss7FsqkQPk4mewPKwYd02TzpplTuPKzT1l3xvgvs3Y76BToTKe4pvb0WgmAzeqdTs4W3Yz59E5R8zy2lNBfzdkjD5SuKTgiwxW%2BCfaXtdBRzpWE3G0R%2FW%2F%2Bnjx%2BxxEryRfAHw6qCxBusQ5V6l535tBNYLae5K9lsdZk7CVT9hIiaqc0eaE6%2F9dvFrrxj0ULXHbL3vAxScGCilmnB7xTAMQSNHiA6Zt9fh6l%2BsRbx%2BNEAwnBan4W820oUaqzw8O%2FvOubXNoHxH%2BpT2UyjpHPOdfKnpuhUa6kf3ohpbgfX3bxOgr2iEAhcGQ1N9hYb4%2Bbjs7PxS%2FTmRs48uHohvegErjR4iJlSuImKStayjoiKGacwRM40CTWfTPOmvvnRPBo8ArpuwrgAKDOp%2FAe%2B4ZA5rO1AUB67DrsMnwfSLmhPYgfZmI27QadGgzl4OChtij6%2BPe7m1fJSgnhtG4t6eNUrUuptv3vaBQElRTaYt0LKVFEpU6NDc%2FrmdLGdR1T3df3UBic2Zya5QMDJljPh3%2BAIXG1qZ12wG3iDD5o5r3BTrqAQ%2B%2F4L3WkXhUN19cRyI5sryKWC%2BeF7eTOAU4iNDnEAb5VOBbWETU6FWbNHKUghYXePGfc7VB8p%2B4G%2BiGurLhO5CcSkcyux%2FWTzPYix6zNN6v08lkweuI3e6v1KX35jZbyi5Dx8Lp8g%2FL8SCbI09meEdFOGkqJ8TBlS84K7yayqXbG8XkcJkTKS2cwrjeib52iOPHfwubVz1rdGvQMnjJwhf0BGcG%2FKzwx%2Bc1WoHqQcpqJB2f3XPnf2q6hg5mKbm5ckwxyfkyUrfW2%2FTrmbtvdJ6IcHmAgXmpX5qfgH9gJ9EDdK72xW%2BaORpVVw%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20200614T220056Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTYUHK42VI3%2F20200614%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=a047b7ddb22504bf791cf63ac775e174940848c54d5d908af03c78817c3ec0bb&hash=0a9ab81d67b61d2547d7cf33a68a15c9e69712695a77a5ad8818405a19a66769&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S0092867413005904&tid=spdf-4467e449-2b90-4a0e-97bf-a18f7effbfe0&sid=19a0d8c64acff04cac281a61886cc49a78d3gxrqa&type=client
+Downloading extended from:
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-mmc1.pdf
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Downloading Graphical Abstract (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-fx1.jpg
+File Exists - Not Overwriting
+Downloading Graphical Abstract (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-fx1_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 1 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr1.jpg
+File Exists - Not Overwriting
+Downloading Figure 1 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr1_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S1 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs1.jpg
+File Exists - Not Overwriting
+Downloading Figure S1 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs1_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 2 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr2.jpg
+File Exists - Not Overwriting
+Downloading Figure 2 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr2_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S2 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs2.jpg
+File Exists - Not Overwriting
+Downloading Figure S2 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs2_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 3 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr3.jpg
+File Exists - Not Overwriting
+Downloading Figure 3 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr3_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 4 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr4.jpg
+File Exists - Not Overwriting
+Downloading Figure 4 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr4_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 5 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr5.jpg
+File Exists - Not Overwriting
+Downloading Figure 5 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr5_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S3 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs3.jpg
+File Exists - Not Overwriting
+Downloading Figure S3 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs3_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S4 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs4.jpg
+File Exists - Not Overwriting
+Downloading Figure S4 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs4_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 6 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr6.jpg
+File Exists - Not Overwriting
+Downloading Figure 6 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr6_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S5 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs5.jpg
+File Exists - Not Overwriting
+Downloading Figure S5 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs5_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 7 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr7.jpg
+File Exists - Not Overwriting
+Downloading Figure 7 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr7_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S6 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs6.jpg
+File Exists - Not Overwriting
+Downloading Figure S6 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs6_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S7 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs7.jpg
+File Exists - Not Overwriting
+Downloading Figure S7 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs7_lrg.jpg
+File Exists - Not Overwriting
+Downloading pdf from:
+https://pdf.sciencedirectassets.com/272196/1-s2.0-S0092867413X00121/1-s2.0-S0092867413005904/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEB4aCXVzLWVhc3QtMSJIMEYCIQDXckGfQfEMKtotJdp5WUFNJBey%2FmH%2BqcMuPTJcujHp9AIhAIB1WSXyy2LEcixGQg9GamAIJFyyO9c4R6RpZUA3Bq3xKr0DCJb%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMMDU5MDAzNTQ2ODY1Igzja0k9aymlZ9ss7FsqkQPk4mewPKwYd02TzpplTuPKzT1l3xvgvs3Y76BToTKe4pvb0WgmAzeqdTs4W3Yz59E5R8zy2lNBfzdkjD5SuKTgiwxW%2BCfaXtdBRzpWE3G0R%2FW%2F%2Bnjx%2BxxEryRfAHw6qCxBusQ5V6l535tBNYLae5K9lsdZk7CVT9hIiaqc0eaE6%2F9dvFrrxj0ULXHbL3vAxScGCilmnB7xTAMQSNHiA6Zt9fh6l%2BsRbx%2BNEAwnBan4W820oUaqzw8O%2FvOubXNoHxH%2BpT2UyjpHPOdfKnpuhUa6kf3ohpbgfX3bxOgr2iEAhcGQ1N9hYb4%2Bbjs7PxS%2FTmRs48uHohvegErjR4iJlSuImKStayjoiKGacwRM40CTWfTPOmvvnRPBo8ArpuwrgAKDOp%2FAe%2B4ZA5rO1AUB67DrsMnwfSLmhPYgfZmI27QadGgzl4OChtij6%2BPe7m1fJSgnhtG4t6eNUrUuptv3vaBQElRTaYt0LKVFEpU6NDc%2FrmdLGdR1T3df3UBic2Zya5QMDJljPh3%2BAIXG1qZ12wG3iDD5o5r3BTrqAQ%2B%2F4L3WkXhUN19cRyI5sryKWC%2BeF7eTOAU4iNDnEAb5VOBbWETU6FWbNHKUghYXePGfc7VB8p%2B4G%2BiGurLhO5CcSkcyux%2FWTzPYix6zNN6v08lkweuI3e6v1KX35jZbyi5Dx8Lp8g%2FL8SCbI09meEdFOGkqJ8TBlS84K7yayqXbG8XkcJkTKS2cwrjeib52iOPHfwubVz1rdGvQMnjJwhf0BGcG%2FKzwx%2Bc1WoHqQcpqJB2f3XPnf2q6hg5mKbm5ckwxyfkyUrfW2%2FTrmbtvdJ6IcHmAgXmpX5qfgH9gJ9EDdK72xW%2BaORpVVw%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20200614T220056Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTYUHK42VI3%2F20200614%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=a047b7ddb22504bf791cf63ac775e174940848c54d5d908af03c78817c3ec0bb&hash=0a9ab81d67b61d2547d7cf33a68a15c9e69712695a77a5ad8818405a19a66769&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S0092867413005904&tid=spdf-4467e449-2b90-4a0e-97bf-a18f7effbfe0&sid=19a0d8c64acff04cac281a61886cc49a78d3gxrqa&type=client
+File Exists - Not overwriting
+Downloading extended from:
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-mmc1.pdf
+File Exists - Not overwriting
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Downloading Graphical Abstract (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-fx1.jpg
+File Exists - Not Overwriting
+Downloading Graphical Abstract (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-fx1_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 1 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr1.jpg
+File Exists - Not Overwriting
+Downloading Figure 1 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr1_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S1 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs1.jpg
+File Exists - Not Overwriting
+Downloading Figure S1 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs1_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 2 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr2.jpg
+File Exists - Not Overwriting
+Downloading Figure 2 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr2_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S2 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs2.jpg
+File Exists - Not Overwriting
+Downloading Figure S2 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs2_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 3 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr3.jpg
+File Exists - Not Overwriting
+Downloading Figure 3 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr3_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 4 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr4.jpg
+File Exists - Not Overwriting
+Downloading Figure 4 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr4_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 5 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr5.jpg
+File Exists - Not Overwriting
+Downloading Figure 5 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr5_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S3 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs3.jpg
+File Exists - Not Overwriting
+Downloading Figure S3 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs3_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S4 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs4.jpg
+File Exists - Not Overwriting
+Downloading Figure S4 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs4_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 6 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr6.jpg
+File Exists - Not Overwriting
+Downloading Figure 6 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr6_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S5 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs5.jpg
+File Exists - Not Overwriting
+Downloading Figure S5 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs5_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 7 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr7.jpg
+File Exists - Not Overwriting
+Downloading Figure 7 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr7_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S6 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs6.jpg
+File Exists - Not Overwriting
+Downloading Figure S6 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs6_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S7 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs7.jpg
+File Exists - Not Overwriting
+Downloading Figure S7 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs7_lrg.jpg
+File Exists - Not Overwriting
+Downloading pdf from:
+https://pdf.sciencedirectassets.com/272196/1-s2.0-S0092867413X00121/1-s2.0-S0092867413005904/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEB4aCXVzLWVhc3QtMSJIMEYCIQDXckGfQfEMKtotJdp5WUFNJBey%2FmH%2BqcMuPTJcujHp9AIhAIB1WSXyy2LEcixGQg9GamAIJFyyO9c4R6RpZUA3Bq3xKr0DCJb%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMMDU5MDAzNTQ2ODY1Igzja0k9aymlZ9ss7FsqkQPk4mewPKwYd02TzpplTuPKzT1l3xvgvs3Y76BToTKe4pvb0WgmAzeqdTs4W3Yz59E5R8zy2lNBfzdkjD5SuKTgiwxW%2BCfaXtdBRzpWE3G0R%2FW%2F%2Bnjx%2BxxEryRfAHw6qCxBusQ5V6l535tBNYLae5K9lsdZk7CVT9hIiaqc0eaE6%2F9dvFrrxj0ULXHbL3vAxScGCilmnB7xTAMQSNHiA6Zt9fh6l%2BsRbx%2BNEAwnBan4W820oUaqzw8O%2FvOubXNoHxH%2BpT2UyjpHPOdfKnpuhUa6kf3ohpbgfX3bxOgr2iEAhcGQ1N9hYb4%2Bbjs7PxS%2FTmRs48uHohvegErjR4iJlSuImKStayjoiKGacwRM40CTWfTPOmvvnRPBo8ArpuwrgAKDOp%2FAe%2B4ZA5rO1AUB67DrsMnwfSLmhPYgfZmI27QadGgzl4OChtij6%2BPe7m1fJSgnhtG4t6eNUrUuptv3vaBQElRTaYt0LKVFEpU6NDc%2FrmdLGdR1T3df3UBic2Zya5QMDJljPh3%2BAIXG1qZ12wG3iDD5o5r3BTrqAQ%2B%2F4L3WkXhUN19cRyI5sryKWC%2BeF7eTOAU4iNDnEAb5VOBbWETU6FWbNHKUghYXePGfc7VB8p%2B4G%2BiGurLhO5CcSkcyux%2FWTzPYix6zNN6v08lkweuI3e6v1KX35jZbyi5Dx8Lp8g%2FL8SCbI09meEdFOGkqJ8TBlS84K7yayqXbG8XkcJkTKS2cwrjeib52iOPHfwubVz1rdGvQMnjJwhf0BGcG%2FKzwx%2Bc1WoHqQcpqJB2f3XPnf2q6hg5mKbm5ckwxyfkyUrfW2%2FTrmbtvdJ6IcHmAgXmpX5qfgH9gJ9EDdK72xW%2BaORpVVw%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20200614T220056Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTYUHK42VI3%2F20200614%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=a047b7ddb22504bf791cf63ac775e174940848c54d5d908af03c78817c3ec0bb&hash=0a9ab81d67b61d2547d7cf33a68a15c9e69712695a77a5ad8818405a19a66769&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S0092867413005904&tid=spdf-4467e449-2b90-4a0e-97bf-a18f7effbfe0&sid=19a0d8c64acff04cac281a61886cc49a78d3gxrqa&type=client
+File Exists - Not overwriting
+Downloading extended from:
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-mmc1.pdf
+File Exists - Not overwriting
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Checking metadata for 10.1016/j.cell.2013.05.023
+Found local metadata from 2020-06-23T15:41:27.727000
+Downloading Graphical Abstract (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-fx1.jpg
+File Exists - Not Overwriting
+Downloading Graphical Abstract (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-fx1_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 1 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr1.jpg
+File Exists - Not Overwriting
+Downloading Figure 1 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr1_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S1 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs1.jpg
+File Exists - Not Overwriting
+Downloading Figure S1 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs1_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 2 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr2.jpg
+File Exists - Not Overwriting
+Downloading Figure 2 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr2_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S2 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs2.jpg
+File Exists - Not Overwriting
+Downloading Figure S2 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs2_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 3 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr3.jpg
+File Exists - Not Overwriting
+Downloading Figure 3 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr3_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 4 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr4.jpg
+File Exists - Not Overwriting
+Downloading Figure 4 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr4_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 5 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr5.jpg
+File Exists - Not Overwriting
+Downloading Figure 5 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr5_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S3 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs3.jpg
+File Exists - Not Overwriting
+Downloading Figure S3 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs3_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S4 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs4.jpg
+File Exists - Not Overwriting
+Downloading Figure S4 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs4_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 6 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr6.jpg
+File Exists - Not Overwriting
+Downloading Figure 6 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr6_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S5 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs5.jpg
+File Exists - Not Overwriting
+Downloading Figure S5 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs5_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure 7 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr7.jpg
+File Exists - Not Overwriting
+Downloading Figure 7 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-gr7_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S6 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs6.jpg
+File Exists - Not Overwriting
+Downloading Figure S6 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs6_lrg.jpg
+File Exists - Not Overwriting
+Downloading Figure S7 (lr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs7.jpg
+File Exists - Not Overwriting
+Downloading Figure S7 (hr) from
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-figs7_lrg.jpg
+File Exists - Not Overwriting
+Downloading pdf from:
+https://pdf.sciencedirectassets.com/272196/1-s2.0-S0092867413X00121/1-s2.0-S0092867413005904/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEB4aCXVzLWVhc3QtMSJIMEYCIQDXckGfQfEMKtotJdp5WUFNJBey%2FmH%2BqcMuPTJcujHp9AIhAIB1WSXyy2LEcixGQg9GamAIJFyyO9c4R6RpZUA3Bq3xKr0DCJb%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMMDU5MDAzNTQ2ODY1Igzja0k9aymlZ9ss7FsqkQPk4mewPKwYd02TzpplTuPKzT1l3xvgvs3Y76BToTKe4pvb0WgmAzeqdTs4W3Yz59E5R8zy2lNBfzdkjD5SuKTgiwxW%2BCfaXtdBRzpWE3G0R%2FW%2F%2Bnjx%2BxxEryRfAHw6qCxBusQ5V6l535tBNYLae5K9lsdZk7CVT9hIiaqc0eaE6%2F9dvFrrxj0ULXHbL3vAxScGCilmnB7xTAMQSNHiA6Zt9fh6l%2BsRbx%2BNEAwnBan4W820oUaqzw8O%2FvOubXNoHxH%2BpT2UyjpHPOdfKnpuhUa6kf3ohpbgfX3bxOgr2iEAhcGQ1N9hYb4%2Bbjs7PxS%2FTmRs48uHohvegErjR4iJlSuImKStayjoiKGacwRM40CTWfTPOmvvnRPBo8ArpuwrgAKDOp%2FAe%2B4ZA5rO1AUB67DrsMnwfSLmhPYgfZmI27QadGgzl4OChtij6%2BPe7m1fJSgnhtG4t6eNUrUuptv3vaBQElRTaYt0LKVFEpU6NDc%2FrmdLGdR1T3df3UBic2Zya5QMDJljPh3%2BAIXG1qZ12wG3iDD5o5r3BTrqAQ%2B%2F4L3WkXhUN19cRyI5sryKWC%2BeF7eTOAU4iNDnEAb5VOBbWETU6FWbNHKUghYXePGfc7VB8p%2B4G%2BiGurLhO5CcSkcyux%2FWTzPYix6zNN6v08lkweuI3e6v1KX35jZbyi5Dx8Lp8g%2FL8SCbI09meEdFOGkqJ8TBlS84K7yayqXbG8XkcJkTKS2cwrjeib52iOPHfwubVz1rdGvQMnjJwhf0BGcG%2FKzwx%2Bc1WoHqQcpqJB2f3XPnf2q6hg5mKbm5ckwxyfkyUrfW2%2FTrmbtvdJ6IcHmAgXmpX5qfgH9gJ9EDdK72xW%2BaORpVVw%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20200614T220056Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTYUHK42VI3%2F20200614%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=a047b7ddb22504bf791cf63ac775e174940848c54d5d908af03c78817c3ec0bb&hash=0a9ab81d67b61d2547d7cf33a68a15c9e69712695a77a5ad8818405a19a66769&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S0092867413005904&tid=spdf-4467e449-2b90-4a0e-97bf-a18f7effbfe0&sid=19a0d8c64acff04cac281a61886cc49a78d3gxrqa&type=client
+File Exists - Not overwriting
+Downloading extended from:
+https://ars.els-cdn.com/content/image/1-s2.0-S0092867413005904-mmc1.pdf
+File Exists - Not overwriting

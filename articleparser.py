@@ -386,14 +386,6 @@ class ArticleParser:
                             'status': 'working'})
         self.update_status()
         self.article = Article(self.get_doi())
-        self_ref = self.resolve_refs([
-            {'doi': self.article.doi,
-             'title': self.article.manifest['title'],
-             'authors': self.article.manifest['authors'],
-             'journal': self.article.manifest['journal'],
-             'data': self.article.manifest['date'],
-             'local': True}])
-        self.article.set_pmid(self_ref[0]['pmid'])
         self.status[-1]['messages'].append(f'DOI: {self.article.doi}')
         self.status[-1]['messages'].append(self.article.manifest.get('title'))
         self.status[-1]['status'] = 'success'
@@ -410,6 +402,14 @@ class ArticleParser:
                 self.log(f'Found local metadata from {meta_date}')
         if debug:
             self.article.print_info()
+        self_ref = self.resolve_refs([
+            {'doi': self.article.doi,
+             'title': self.article.manifest['title'],
+             'authors': self.article.manifest['authors'],
+             'journal': self.article.manifest['journal'],
+             'data': self.article.manifest['date'],
+             'local': True}])
+        self.article.set_pmid(self_ref[0]['pmid'])
         self.article.abstract = self.get_abstract()
         self.article.content = self.get_content()
         self.article.references = self.resolve_refs(self.get_references())
@@ -463,10 +463,13 @@ class ArticleParser:
 
     def update_dbentry(self, db, ref):
         for k1, v1 in db.items():
-            if k1 in ref:
+            if k1 in ref and ref[k1] is not None:
                 if k1 == 'local':
                     if not v1 and k1 in ref:
                         db[k1] = ref[k1]
+                    continue
+                if v1 is None:
+                    db[k1] = ref[k1]
                     continue
                 if isinstance(v1, str):
                     if v1 == ref[k1]:
@@ -541,7 +544,6 @@ class ArticleParser:
             doi_entry = None
             title_entry = None
             pmid_entry = None
-            print(f'Resolving Ref {count}:')
             if 'doi' in r:
                 doi_entry = db['doi'].get(r['doi'])
                 if doi_entry is not None:
@@ -581,12 +583,9 @@ class ArticleParser:
                                                {'class': 'labs-docsum-title'})
                         max_score = 0
                         max_link = ''
-                        print(r['title'])
                         for d in d_soup:
                             score = SequenceMatcher(None, r['title'],
                                                     d.text.strip()).ratio()
-                            print(d.text.strip())
-                            print(score)
                             if score > max_score:
                                 max_score = score
                                 max_link = d['href']
@@ -658,8 +657,6 @@ class ArticleParser:
         status, content, name = self.get_retry(url, headers=headers,
                                                cache=False)
         if status != 200:
-            print(status)
-            print(content)
             raise RequestError
         return content
 

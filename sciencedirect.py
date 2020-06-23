@@ -170,6 +170,7 @@ class ScienceDirectParser(ArticleParser):
             labels.append(a.text)
             a_soup = a.find('a')
             refnum.append(int(a_soup['href'][5:]))
+        print(refnum)
         missing = []
         for i, j in enumerate(refnum):
             if i + 1 < j - len(missing):
@@ -198,6 +199,31 @@ class ScienceDirectParser(ArticleParser):
                     doi = a['href'].find('doi.org/')
                     if doi != -1:
                         ref['doi'] = a['href'][doi + 8:]
+                ref_list.append(ref)
+                count += 1
+            elif r['id'].find('oref') != -1:
+                info = r.find('span').text
+                year_start = info.find('(')
+                a_list = info[:year_start - 1]
+                info = info[len(a_list):]
+                a_list = a_list.split(',')
+                authors = []
+                print(len(a_list))
+                for i in range(int(len(a_list)/2)):
+                    authors.append(','.join([a_list[i*2], a_list[(i*2)+1]]))
+                year_end = info.find(')')
+                year = info[year_start + 1: year_end]
+                info = info[year_end:]
+                title_start = info.find('. ') + 2
+                info = info[title_start:]
+                title_end = info.find('. ')
+                title = info[:title_end]
+                journal = info[title_end + 2:-1]
+                ref = {'label': labels[count],
+                       'title': title,
+                       'authors': authors,
+                       'journal': journal,
+                       'year': year}
                 ref_list.append(ref)
                 count += 1
         return ref_list
