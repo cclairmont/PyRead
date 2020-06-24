@@ -522,6 +522,20 @@ function add_reflinks() {
         if (slicers.length == 2) {
           num_refs = slicers[1] - slicers[0] + 1;
         }
+        s.onmouseover = function() {
+          this.childNodes[1].style.transform = "";
+          var box = this.childNodes[1].getClientRects()[0];
+          var body = document.body.getClientRects()[0];
+          if (box.right > body.right) {
+            this.childNodes[1].style.transform = "translateX(" +
+                                                 (body.right - box.right) +
+                                                 "px)";
+          } else if (box.left < body.left) {
+            this.childNodes[1].style.transform = "translateX(" +
+                                                 (body.left - box.left) +
+                                                 "px)";
+          }
+        };
         for (var k = 0; k < num_refs; k++) {
           var reftipcontainer = document.createElement("span");
           reftipcontainer.className = "ref-tip-con";

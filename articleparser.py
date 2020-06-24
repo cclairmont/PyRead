@@ -539,6 +539,7 @@ class ArticleParser:
         else:
             db = {'doi': {}, 'pmid': {}, 'title': {}}
         for r in refs:
+            print(f'Resolving reference #{count}')
             if r == {}:
                 continue
             doi_entry = None
