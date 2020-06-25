@@ -162,6 +162,7 @@ class PyRead(http.server.BaseHTTPRequestHandler):
             parsed_url = urllib.parse.urlparse(url)
             base_url = parsed_url.scheme + '://' + parsed_url.netloc
             cookies = urllib.parse.unquote(self.path[cookies+15:]).split('; ')
+            print(cookies)
             domain = '.' + '.'.join(parsed_url.netloc.split('.')[-2:])
             for c in cookies:
                 name, val = c.split('=', 1)

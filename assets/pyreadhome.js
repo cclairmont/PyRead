@@ -165,7 +165,8 @@ function merge_refs(ref_list) {
         } else if (num_consec == 1) {
           ref_str = ref_str + ref_list[i - 2] + "," + ref_list[i - 1] + ",";
         } else {
-          ref_str = ref_str + ref_list[i - num_consec - 1] + "-" + ref_list[i - 1] + ",";
+          ref_str = ref_str + ref_list[i - num_consec - 1] + "-" +
+                    ref_list[i - 1] + ",";
         }
       num_consec = 0;
       }
