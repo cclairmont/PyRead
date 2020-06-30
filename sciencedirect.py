@@ -170,7 +170,6 @@ class ScienceDirectParser(ArticleParser):
             labels.append(a.text)
             a_soup = a.find('a')
             refnum.append(int(a_soup['href'][5:]))
-        print(refnum)
         missing = []
         for i, j in enumerate(refnum):
             if i + 1 < j - len(missing):

@@ -472,15 +472,18 @@ class Article:
                 db[k2] = v2
         return db
 
-    def save(self):
-        with self.path.joinpath('content.json').open(mode='w') as f:
-            f.write(json.dumps(self.content))
-        with self.path.joinpath('references.json').open(mode='w') as f:
-            f.write(json.dumps(self.references))
+    async def save(self):
+        async with aiofiles.open(str(self.path.joinpath('content.json')),
+                                 'w') as f:
+            await f.write(json.dumps(self.content))
+        async with aiofiles.open(str(self.path.joinpath('references.json')),
+                                 'w') as f:
+            await f.write(json.dumps(self.references))
 
-    def add_file(self, name, source, data, identity=None, overwrite=False,
-                 date=None, content_type=None, content_length=None, number=0,
-                 title=None, caption='', low_res=False):
+    async def add_file(self, name, source, data, identity=None,
+                       overwrite=False, date=None, content_type=None,
+                       content_length=None, number=0, title=None, caption='',
+                       low_res=False):
         if self.files is None:
             self.files = {}
         if date is None:
@@ -559,8 +562,8 @@ class Article:
 
         identity_lookup[identity]()
         self.files[name] = new_file
-        new_file.write()
-        self.update_manifest()
+        await new_file.write()
+        await self.update_manifest()
 
     def add_url(self, url):
         if self.url is None:
