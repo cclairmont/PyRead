@@ -35,6 +35,11 @@ if (script != null) {
 }
 
 var id_xhr = new XMLHttpRequest();
+var abs_xhr = new XMLHttpRequest();
+var fig_xhr = new XMLHttpRequest();
+var main_xhr = new XMLHttpRequest();
+var ref_xhr = new XMLHttpRequest();
+var file_xhr = new XMLHttpRequest();
 var abstract, figures, main_text, references, files;
 
 function scrape() {
@@ -62,6 +67,8 @@ function pyr_abstract() {
     if (abstract) {
       clearInterval(interval);
       abstract = clean_elem(abstract);
+      abs_xhr.open("POST", "/pyreadscrapi");
+      abs_xhr.send(JSON.stringify({"abstract": abstract}));
       pyr_figures();
     }
   }, 500);
@@ -78,6 +85,8 @@ function pyr_figures() {
           figures[i].legend = clean_elem(figures[i].legend);
         }
       }
+      fig_xhr.open("POST", "/pyreadscrapi");
+      fig_xhr.send(JSON.stringify({"figures": figures}));
       pyr_content();
     }
   }, 500);
@@ -98,6 +107,8 @@ function pyr_content() {
           main_text[i].content = clean_elem(main_text[i].content);
         }
       }
+      main_xhr.open("POST", "/pyreadscrapi");
+      main_xhr.send(JSON.stringify({"main": main_text}));
       pyr_references();
     }
   }, 500);
@@ -108,6 +119,8 @@ function pyr_references() {
     references = get_references();
     if (references.length > 0 ) {
       clearInterval(interval);
+      ref_xhr.open("POST", "/pyreadscrapi");
+      ref_xhr.send(JSON.stringify({"references": references}));
       pyr_files();
     }
   }, 500);
@@ -118,6 +131,8 @@ function pyr_files() {
     files = get_files();
     if (Object.keys(files).length > 0 ) {
       clearInterval(interval);
+      file_xhr.open("POST", "/pyreadscrapi");
+      file_xhr.send(JSON.stringify({"files": files}));
       show_results();
     }
   }, 500);

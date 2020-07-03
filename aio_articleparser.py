@@ -4,9 +4,14 @@ import json
 import hashlib
 import enum
 from bs4 import BeautifulSoup
+import ssl
+import certifi
 import aiofiles
 import aiohttp
 from difflib import SequenceMatcher
+from yarl import URL
+
+sslcontext = ssl.create_default_context(cafile=certifi.where())
 
 
 class FileType(enum.Enum):
@@ -45,7 +50,7 @@ KNOWN_EXTENSIONS = {'html': FileType.HTML,
                     'xlsx': FileType.SPREADSHEET,
                     'vnd.openxmlformats-officedocument.spreadsheetml.sheet':
                         FileType.SPREADSHEET,
-                    'pdf': FileType.SPREADSHEET,
+                    'pdf': FileType.PDF,
                     'vnd.ms-powerpoint': FileType.POWERPOINT,
                     'mp4': FileType.VIDEO,
                     'mkv': FileType.VIDEO,
@@ -152,9 +157,9 @@ class ArticleFile:
         self.data = data
 
     def from_manifest(self, entry):
-        self.name = entry['name']
-        self.source = entry['source']
-        self.date = datetime.fromisoformat(entry['date'])
+        self.name = entry.get('name')
+        self.source = entry.get('source')
+        self.date = datetime.fromisoformat(entry.get('date'))
         ftype = entry.get('ftype')
         if ftype is None:
             ftype = FileType.UNKNOWN.value
@@ -191,6 +196,32 @@ class ArticleFile:
                 raise FileChangedError
         self.source = list(set([*self.source, *other.source]))
 
+    async def fetch(self, source=0):
+        self.reset()
+        async with aiohttp.ClientSession() as s:
+            async with s.get(self.source[source], ssl=sslcontext) as response:
+                self.data = await response.read()
+                content_disp = response.headers.get('Content-Disposition')
+                content_type = response.headers.get('Content-Type')
+        if content_disp is not None:
+            fname = content_disp.find('filename=')
+            if fname != -1:
+                self.name = content_disp[fname + 9:]
+        else:
+            self.name = URL(self.source[source]).name
+        self.path = self.dir.joinpath(self.name)
+        ext = self.path.suffix
+        inferred_type = KNOWN_EXTENSIONS.get(ext)
+        if inferred_type is not None:
+            self.ftype = inferred_type
+        else:
+            if content_type is not None:
+                content_type = content_type[content_type.find("/") + 1:
+                                            content_type.find(";")]
+                self.ftype = KNOWN_EXTENSIONS.get(content_type)
+            else:
+                self.ftype = FileType.UNKNOWN
+
 
 class Article:
 
@@ -198,12 +229,34 @@ class Article:
                'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:77.0) '
                'Gecko/20100101 Firefox/77.0'}
 
+    async def a_init(self, doi=None, pmid=None, title=None):
+        entry = await self.fetch_metadata(doi, pmid, title)
+        print(self.path)
+        if not self.path.exists():
+            self.path.mkdir(parents=True)
+        manifest_path = self.path.joinpath('manifest.json')
+        if manifest_path.exists():
+            async with aiofiles.open(str(manifest_path),
+                                     'r', encoding='utf-8') as m:
+                manifest = json.loads(await m.read())
+        else:
+            manifest = {}
+        if hasattr(self, 'manifest'):
+            self.manifest = {**self.manifest, **manifest}
+        else:
+            self.manifest = manifest
+        self.files = {}
+        if 'files' in manifest:
+            for f in manifest['files']:
+                self.files[f] = ArticleFile(self.path,
+                                            manifest=manifest['files'][f])
+        await self.update_manifest()
+        return entry
+
     async def fetch_metadata(self, doi=None, pmid=None, title=None):
         if not Path('files/database.json').exists():
-            async with aiofiles.open('files/database.json', 'w') as f:
-                await f.write(json.dumps({'doi': {},
-                                          'pmid': {},
-                                          'title': {}}))
+            with open('files/database.json', 'w') as f:
+                f.write(json.dumps({'doi': {}, 'pmid': {}, 'title': {}}))
         async with aiohttp.ClientSession() as session:
             if doi is None:
                 if pmid is None:
@@ -220,7 +273,8 @@ class Article:
                     async with session.get('https://pubmed.ncbi.nlm.nih.gov/'
                                            '?term="' +
                                            title.replace(' ', '+') + '"',
-                                           headers=self.headers) as response:
+                                           headers=self.headers,
+                                           ssl=sslcontext) as response:
                         soup = BeautifulSoup(await response.read(), 'lxml')
                     d_soup = soup.find('span', {'class': 'doi'})
                     if d_soup is None:
@@ -242,7 +296,8 @@ class Article:
                         if max_score > 0.9:
                             async with session.get('https://pubmed.ncbi.nlm.'
                                                    'nih.gov' + max_link,
-                                                   headers=self.headers)\
+                                                   headers=self.headers,
+                                                   ssl=sslcontext)\
                                     as response:
                                 soup = BeautifulSoup(await response.read(),
                                                      'lxml')
@@ -268,7 +323,8 @@ class Article:
                         # Use the PMID to fetch the DOI from Pubmed
                         async with session.get('https://pubmed.ncbi.nlm.nih.'
                                                'gov/' + pmid,
-                                               headers=self.headers)\
+                                               headers=self.headers,
+                                               ssl=sslcontext)\
                                 as response:
                             soup = BeautifulSoup(await response.read(),
                                                  'lxml')
@@ -286,7 +342,8 @@ class Article:
                         # Fetch the PMID from pubmed by searching for the DOI
                         async with session.get('https://pubmed.ncbi.nlm.nih.'
                                                'gov/?term=' + doi,
-                                               headers=self.headers) as\
+                                               headers=self.headers,
+                                               ssl=sslcontext) as\
                                 response:
                             soup = BeautifulSoup(await response.read(),
                                                  'lxml')
@@ -307,56 +364,61 @@ class Article:
                 self.path = Path('files', 'pmid', self.pmid)
             else:
                 raise ArticleError("Could not find article on Pubmed")
-            if not self.path.exists():
-                self.path.mkdir(parents=True)
-                entry['local'] = False
-            manifest_path = self.path.joinpath('manifest.json')
-            if manifest_path.exists():
-                async with aiofiles.open(str(manifest_path),
-                                         'r', encoding='utf-8') as m:
-                    manifest = json.loads(await m.read())
-            else:
-                manifest = {}
-            self.manifest = manifest
-            self.files = {}
-            if 'files' in manifest:
-                for f in manifest['files']:
-                    self.files[f] = ArticleFile(self.path,
-                                                manifest=manifest['files'][f])
+            if not hasattr(self, 'manifest'):
+                self.manifest = {}
+            doi_success = False
             if self.doi is not None:
                 headers = {**self.headers,
                            'Accept': 'application/vnd.crossref.unixsd+xml'}
                 url = 'http://dx.doi.org/' + entry['doi']
-                async with session.get(url, headers=headers) as response:
-                    self.update_metadata(await response.read())
-            elif self.pmid is not None:
+                async with session.get(url, headers=headers,
+                                       ssl=sslcontext) as response:
+                    try:
+                        self.update_metadata(await response.read())
+                        doi_success = True
+                    except AttributeError:  # Issue with crossref entry
+                        pass
+            if not doi_success and self.pmid is not None:
                 async with session.get('https://pubmed.ncbi.nlm.nih.gov/'
-                                       + pmid,
-                                       headers=self.headers) as response:
+                                       + self.pmid, headers=self.headers,
+                                       ssl=sslcontext) as response:
                     soup = BeautifulSoup(await response.read(), 'lxml')
-                    cite = soup.find('span', {'class': 'cit'}).text
-                    date = cite[:cite.find(';')]
+                cite = soup.find('span', {'class': 'cit'}).text
+                date = cite[:cite.find(';')]
+                try:
                     date = datetime.strptime(date, '%Y %b %d')
-                    a_list = soup.find('div', {'class': 'authors-list'})
-                    authors = a_list.find_all('a', {'class': 'full-name'})
-                    a_list = []
-                    for a in authors:
-                        a_list.append(a.text)
-                    self.manifest['title'] = soup.find('h1',
-                                                       {'class':
-                                                        'heading-title'}).text
-                    self.manifest['journal'] = \
-                        soup.find('button',
-                                  {'id': 'full-view-journal-trigger'}).title
-                    self.manifest['date'] = date.isoformat()
-                    self.manifest['authors'] = a_list
-                    self.manifest['metadate'] = datetime.now().isoformat()
+                except ValueError:
+                    date = datetime.strptime(date, '%Y')
+                a_list = soup.find('div', {'class': 'authors-list'})
+                authors = a_list.find_all('a', {'class': 'full-name'})
+                a_list = []
+                for a in authors:
+                    a_list.append(a.text)
+                self.manifest['title'] = soup.find('h1',
+                                                   {'class':
+                                                    'heading-title'}).text
+                self.manifest['journal'] = \
+                    soup.find('button',
+                              {'id': 'full-view-journal-trigger'}).title
+                self.manifest['date'] = date.isoformat()
+                self.manifest['authors'] = a_list
+                self.manifest['metadate'] = datetime.now().isoformat()
             entry['title'] = self.manifest['title']
             entry['authors'] = self.manifest['authors']
             entry['date'] = self.manifest['date']
-            await self.update_manifest()
-            await self.update_meta_db(entry)
-            return entry
+        await self.update_meta_db(entry)
+        return entry
+
+    async def add_reference(self, ref):
+        if ref is None:
+            entry = None
+        else:
+            entry = await Article().fetch_metadata(doi=ref.get('doi'),
+                                                   pmid=ref.get('pmid'),
+                                                   title=ref.get('title'))
+        if not hasattr(self, 'references'):
+            self.references = []
+        self.references.append(entry)
 
     def update_metadata(self, xml):
         s = BeautifulSoup(xml, 'xml')
@@ -397,8 +459,8 @@ class Article:
             db_entry = db['title'].get(entry['title'])
             db_entry = self.update_dbentry(db_entry, entry)
             db['title'][entry['title']] = db_entry
-        async with aiofiles.open('files/database.json', 'w') as f:
-            await f.write(json.dumps(db))
+        with open('files/database.json', 'w') as f:
+            f.write(json.dumps(db))
 
     def update_dbentry(self, db, ref):
         if db is None:
@@ -476,11 +538,12 @@ class Article:
         async with aiofiles.open(str(self.path.joinpath('content.json')),
                                  'w') as f:
             await f.write(json.dumps(self.content))
-        async with aiofiles.open(str(self.path.joinpath('references.json')),
-                                 'w') as f:
-            await f.write(json.dumps(self.references))
+        if hasattr(self, 'references'):
+            async with aiofiles.open(str(self.path.joinpath(
+                                             'references.json')), 'w') as f:
+                await f.write(json.dumps(self.references))
 
-    async def add_file(self, name, source, data, identity=None,
+    async def add_file(self, source, name=None, data=None, identity=None,
                        overwrite=False, date=None, content_type=None,
                        content_length=None, number=0, title=None, caption='',
                        low_res=False):
@@ -488,14 +551,17 @@ class Article:
             self.files = {}
         if date is None:
             date = datetime.now().isoformat()
-        if content_length is None:
-            content_length = len(data)
         new_file = ArticleFile(data=data, path=self.path,
                                manifest={'name': name,
-                                         'source': source,
+                                         'source': [source],
                                          'date': date,
                                          'content_type': content_type,
                                          'content_length': content_length})
+        if data is None:
+            await new_file.fetch()
+            data = new_file.data
+        if content_length is None:
+            content_length = len(data)
         if name in self.files and not overwrite:
             if new_file != self.files[name]:
                 raise FileExistsError

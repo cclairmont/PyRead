@@ -8,7 +8,7 @@ from yarl import URL
 import ssl
 import certifi
 import http
-from aio_articleparser import Article
+from aio_articleparser import Article, ArticleItem
 import json
 from pathlib import Path
 
@@ -53,9 +53,9 @@ class AIOProxy:
         data = await request.json()
         if 'doi' in data or 'pmid' in data or 'title' in data:
             self.article = Article()
-            result = await self.article.fetch_metadata(doi=data.get('doi'),
-                                                       pmid=data.get('pmid'),
-                                                       title=data.get('title'))
+            result = await self.article.a_init(doi=data.get('doi'),
+                                               pmid=data.get('pmid'),
+                                               title=data.get('title'))
             self.metadata = result
             return web.Response(text=json.dumps(result))
         elif 'abstract' in data:
@@ -65,17 +65,62 @@ class AIOProxy:
                 self.article.content = {'abstract': data['abstract']}
             return web.Response(text=json.dumps({'item': 'abstract',
                                                  'status': 'success'}))
+        elif 'figures' in data:
+            for f in data['figures']:
+                for res in ['lr', 'hr']:
+                    if res not in f:
+                        continue
+                    if (f['title'].startswith('Figure S') or
+                        f['title'].encode('utf-8').startswith(
+                            b'Figure\xc2\xa0S')):
+                        identity = ArticleItem.SUPPLEMENTARY_FIGURE
+                        number = int(f['title'][8:f['title'].find('.')])
+                    elif f['title'].startswith('Figure'):
+                        identity = ArticleItem.FIGURE
+                        number = int(f['title'][7:f['title'].find('.')])
+                    else:
+                        identity = ArticleItem.OTHER
+                        number = 0
+                    try:
+                        await self.article.add_file(f[res], identity=identity,
+                                                    number=number,
+                                                    title=f['title'],
+                                                    caption=f.get('legend'),
+                                                    low_res=(res == 'lr'))
+                    except FileExistsError:
+                        pass
+            return web.Response(text=json.dumps({'item': 'figures',
+                                                 'status': 'success'}))
+
         elif 'main' in data:
-            if hasattr(self.article, 'content'):
-                self.article.content = {**self.article.content, **data['main']}
-            else:
-                self.article.content = data['main']
+            self.article.content = data['main']
+            await self.article.save()
             return web.Response(text=json.dumps({'item': 'main',
                                                  'status': 'success'}))
         elif 'references' in data:
-            self.article.references = data['references']
+            await asyncio.gather(*[self.article.add_reference(ref)
+                                   for ref in data['references']])
+            await self.article.save()
             return web.Response(text=json.dumps({'item': 'references',
                                                  'status': 'success'}))
+
+        elif 'files' in data:
+            for file, link in data['files'].items():
+                if file == 'pdf':
+                    identity = ArticleItem.PDF
+                elif file == 'extended':
+                    identity = ArticleItem.EXTENDED_PDF
+                else:
+                    identity = ArticleItem.OTHER
+                try:
+                    await self.article.add_file(link, identity=identity,
+                                                title=file)
+                except FileExistsError:
+                    pass
+            return web.Response(text=json.dumps({'item': 'files',
+                                                 'status': 'success'}))
+        else:
+            raise web.HTTPBadRequest
 
     async def proxy(self, request):
         headers = {'User-Agent': request.headers['User-Agent']}
