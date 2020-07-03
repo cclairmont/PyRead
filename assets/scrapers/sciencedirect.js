@@ -64,7 +64,9 @@ function handle_figs_refs(elem) {
 function get_identifiers() {
   var doi_elem = document.querySelector("a.doi");
   var link = doi_elem.href;
-  var doi_start = link.indexOf("doi.org/") + 8;
+  console.log(link);
+  var slashes = [...link.matchAll(/\//g)]
+  var doi_start = slashes[slashes.length - 2].index + 1;
   var doi = link.slice(doi_start);
   var title = document.querySelector("span.title-text").textContent;
   return {"doi": doi, "title": title};
@@ -117,6 +119,10 @@ function get_content() {
     }
     var section = {};
     var title = elems[i].querySelector("h2");
+    if (title == null) {
+      title = elems[i].querySelector("h3");
+    }
+    console.log(elems[i]);
     section.title = title.innerHTML;
     elems[i].removeChild(title);
     var subsects = elems[i].querySelectorAll("section");
@@ -125,8 +131,12 @@ function get_content() {
     } else {
       section.content = [];
       for (var j = 0; j < subsects.length; j++) {
+        if ([...subsects[j].id.matchAll(/\./g)].length > 1) {
+          continue;
+        }
         var subsection = {};
         var subtitle = subsects[j].querySelector("h3");
+        console.log(subsects[j]);
         subsection.title = subtitle.innerHTML;
         subsects[j].removeChild(subtitle);
         subsection.content = handle_figs_refs(subsects[j]);
@@ -194,10 +204,12 @@ function get_files() {
       var end = response.slice(start).indexOf('">') + start;
       result.pdf = response.slice(start, end);
     }
-    console.log(result.pdf);
     var appendix = document.querySelector("div.Appendices");
     var links = appendix.querySelectorAll("span.article-attachment");
     for (var i = 0; i < links.length; i++) {
+      if (links[i].nextSibling == null) {
+        continue;
+      }
       var title = links[i].nextSibling.textContent;
       if (title.indexOf("Supplemental Information") != -1 &&
           !result.hasOwnProperty("extended")) {

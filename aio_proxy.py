@@ -11,11 +11,62 @@ import http
 from aio_articleparser import Article, ArticleItem
 import json
 from pathlib import Path
+from collections.abc import MutableMapping
 
 # Workaround to use cookies with illegal keys with aiohttp
 http.cookies._is_legal_key = lambda _: True
 
 sslcontext = ssl.create_default_context(cafile=certifi.where())
+
+
+class PyrCache(MutableMapping):
+
+    def __init__(self, max_size, *args, **kwargs):
+        content = {}.update(*args, **kwargs)
+        self._max_size = max_size
+        self._counter = 0
+        if content is None:
+            self.content = {}
+        else:
+            for k, v in content.items():
+                self.content[k] = {'counter': self._counter, 'value': v}
+                self.counter += 1
+
+    def __getitem__(self, key):
+        self._counter += 1
+        self.content[key]['counter'] = self._counter
+        return self.content[key].value
+
+    def __setitem__(self, key, value):
+        self._counter += 1
+        if key not in self.content:
+            self.content[key] = {}
+        self.content[key]['counter'] = self._counter
+        self.content[key]['value'] = value
+        if len(self.content) > self._max_size:
+            min_counter = -1
+            to_delete = ''
+            for k, v in self.content.items():
+                if min_counter == -1 or v['counter'] < min_counter:
+                    min_counter = v['counter']
+                    to_delete = k
+            del(self.content[to_delete])
+
+    def __delitem__(self, key):
+        del(self.content[key])
+
+    def __iter__(self):
+        return iter({k: v['value'] for k, v in self.content.items()})
+
+    def __len__(self):
+        return len(self.content)
+
+    def __str__(self):
+        return (f'<CACHE MAX_SIZE={self._max_size} ' +
+                str({k: v['value'] for k, v in self.content.items()}) + '>')
+
+    def __repr__(self):
+        return str(self)
 
 
 class AIOProxy:
@@ -26,9 +77,12 @@ class AIOProxy:
                        '.png': 'image/png',
                        '.jpg': 'image/jpeg'}
 
+    ARTICLE_CACHE_SIZE = 50
+
     def __init__(self):
         self.netloc = ''
         self.cookies = ''
+        self.cache = PyrCache(self.ARTICLE_CACHE_SIZE)
 
     async def create_session(self):
         self.session = aiohttp.ClientSession()
@@ -49,14 +103,23 @@ class AIOProxy:
                 self.cookies[k] = v
         raise web.HTTPFound(location.path)
 
+    async def pyreadapi(self, request):
+        data = await request.json()
+        doi = data.get('doi')
+        type = data.get('type')
+        if doi is None or type is None:
+            raise web.HTTPBadRequest
+
     async def pyreadscrapi(self, request):
         data = await request.json()
         if 'doi' in data or 'pmid' in data or 'title' in data:
-            self.article = Article()
+            self.article = Article(self.session, self.cookies)
             result = await self.article.a_init(doi=data.get('doi'),
                                                pmid=data.get('pmid'),
                                                title=data.get('title'))
             self.metadata = result
+            self.cache[result['doi']] = self.article
+            print(self.cache)
             return web.Response(text=json.dumps(result))
         elif 'abstract' in data:
             if hasattr(self.article, 'content'):
