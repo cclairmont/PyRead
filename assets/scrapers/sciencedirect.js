@@ -179,26 +179,33 @@ function get_references() {
 function get_files() {
   result = {};
   var pdf_button = document.querySelector("div.PdfDownloadButton");
-  var link;
-  var interval = setInterval(function() {
-    link = pdf_button.querySelector("a");
-    if(!link) {
-      document.getElementById("pdfLink").click();
-    } else {
-      clearInterval(interval);
-      result.pdf = link.href;
+  var link = pdf_button.querySelector("a");
+  if(!link) {
+    document.getElementById("pdfLink").click();
+    return {};
+  } else {
+    result.pdf = link.href;
+    if (result.pdf != null) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", result.pdf, false);
+      xhr.send();
+      var response = xhr.responseText;
+      var start = response.indexOf('<a href="') + 9;
+      var end = response.slice(start).indexOf('">') + start;
+      result.pdf = response.slice(start, end);
     }
-  }, 500);
-  var appendix = document.querySelector("div.Appendices");
-  var links = appendix.querySelectorAll("span.article-attachment");
-  for (var i = 0; i < links.length; i++) {
-    var title = links[i].nextSibling.textContent;
-    if (title.indexOf("Supplemental Information") != -1 &&
-        !result.hasOwnProperty("extended")) {
-      title = "extended";
+    console.log(result.pdf);
+    var appendix = document.querySelector("div.Appendices");
+    var links = appendix.querySelectorAll("span.article-attachment");
+    for (var i = 0; i < links.length; i++) {
+      var title = links[i].nextSibling.textContent;
+      if (title.indexOf("Supplemental Information") != -1 &&
+          !result.hasOwnProperty("extended")) {
+        title = "extended";
+      }
+      link = links[i].querySelector("a");
+      result[title] = link.href;
     }
-    link = links[i].querySelector("a");
-    result[title] = link.href;
   }
   return result;
 }

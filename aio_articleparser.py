@@ -231,7 +231,8 @@ class Article:
 
     async def a_init(self, doi=None, pmid=None, title=None):
         entry = await self.fetch_metadata(doi, pmid, title)
-        print(self.path)
+        if self.path is None:
+            raise ArticleError("Could not find article on Pubmed")
         if not self.path.exists():
             self.path.mkdir(parents=True)
         manifest_path = self.path.joinpath('manifest.json')
@@ -263,8 +264,8 @@ class Article:
                     if title is None:
                         raise ArticleError("Must provide doi, pmid or title"
                                            " to set article metadata")
-                    async with aiofiles.open('files/database.json', 'r') as f:
-                        db = json.loads(await f.read())
+                    with open('files/database.json', 'r') as f:
+                        db = json.loads(f.read())
                         entry = db['title'].get(title)
                         if entry is not None:
                             return entry
@@ -314,56 +315,58 @@ class Article:
                                                   {'class':
                                                    'current-id'}).text.strip()
                 else:
-                    async with aiofiles.open('files/database.json', 'r') as f:
-                        db = json.loads(await f.read())
-                        entry = db['pmid'].get(pmid)
-                        if entry is not None:
-                            return entry
-                        entry = {'pmid': pmid}
-                        # Use the PMID to fetch the DOI from Pubmed
-                        async with session.get('https://pubmed.ncbi.nlm.nih.'
-                                               'gov/' + pmid,
-                                               headers=self.headers,
-                                               ssl=sslcontext)\
-                                as response:
-                            soup = BeautifulSoup(await response.read(),
-                                                 'lxml')
-                        d_soup = soup.find('span', {'class': 'doi'})
-                        entry['doi'] = d_soup.find('a').text.strip()
-            else:
-                self.path = Path('files', doi)
-                async with aiofiles.open('files/database.json', 'r') as f:
-                    db = json.loads(await f.read())
-                    entry = db['doi'].get(doi)
+                    with open('files/database.json', 'r') as f:
+                        db = json.loads(f.read())
+                    entry = db['pmid'].get(pmid)
                     if entry is not None:
                         return entry
-                    entry = {'doi': doi}
-                    if pmid is None:
-                        # Fetch the PMID from pubmed by searching for the DOI
-                        async with session.get('https://pubmed.ncbi.nlm.nih.'
-                                               'gov/?term=' + doi,
-                                               headers=self.headers,
-                                               ssl=sslcontext) as\
-                                response:
-                            soup = BeautifulSoup(await response.read(),
-                                                 'lxml')
-                        entry['pmid'] = soup.find('strong',
-                                                  {'class': 'current-id'}).text
-                    else:
-                        entry['pmid'] = pmid
-            if 'doi' in entry:
+                    entry = {'pmid': pmid}
+                    # Use the PMID to fetch the DOI from Pubmed
+                    async with session.get('https://pubmed.ncbi.nlm.nih.'
+                                           'gov/' + pmid,
+                                           headers=self.headers,
+                                           ssl=sslcontext)\
+                            as response:
+                        soup = BeautifulSoup(await response.read(),
+                                             'lxml')
+                    d_soup = soup.find('span', {'class': 'doi'})
+                    entry['doi'] = d_soup.find('a').text.strip()
+            else:
+                self.path = Path('files', doi)
+                with open('files/database.json', 'r') as f:
+                    db = json.loads(f.read())
+                entry = db['doi'].get(doi)
+                if entry is not None:
+                    return entry
+                entry = {'doi': doi}
+                if pmid is None:
+                    # Fetch the PMID from pubmed by searching for the DOI
+                    async with session.get('https://pubmed.ncbi.nlm.nih.'
+                                           'gov/?term=' + doi,
+                                           headers=self.headers,
+                                           ssl=sslcontext) as\
+                            response:
+                        soup = BeautifulSoup(await response.read(),
+                                             'lxml')
+                    entry['pmid'] = soup.find('strong',
+                                              {'class': 'current-id'}).text
+                else:
+                    entry['pmid'] = pmid
+            if entry.get('doi') is not None:
                 self.doi = entry['doi']
                 if 'pmid' in entry:
                     self.pmid = entry['pmid']
                 else:
                     self.pmid = None
                 self.path = Path('files', self.doi)
-            elif 'pmid' in entry:
+            elif entry.get('pmid') is not None:
                 self.doi = None
                 self.pmid = entry['pmid']
                 self.path = Path('files', 'pmid', self.pmid)
             else:
-                raise ArticleError("Could not find article on Pubmed")
+                self.doi = None
+                self.pmid = None
+                self.path = None
             if not hasattr(self, 'manifest'):
                 self.manifest = {}
             doi_success = False
@@ -445,8 +448,8 @@ class Article:
             await m.write(json.dumps(self.manifest))
 
     async def update_meta_db(self, entry):
-        async with aiofiles.open('files/database.json', 'r') as f:
-            db = json.loads(await f.read())
+        with open('files/database.json', 'r') as f:
+            db = json.loads(f.read())
         if 'doi' in entry:
             db_entry = db['doi'].get(entry['doi'])
             db_entry = self.update_dbentry(db_entry, entry)
@@ -560,6 +563,7 @@ class Article:
         if data is None:
             await new_file.fetch()
             data = new_file.data
+            name = new_file.name
         if content_length is None:
             content_length = len(data)
         if name in self.files and not overwrite:
