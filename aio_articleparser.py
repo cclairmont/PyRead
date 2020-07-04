@@ -9,6 +9,7 @@ import certifi
 import aiofiles
 from difflib import SequenceMatcher
 from yarl import URL
+import asyncio
 
 sslcontext = ssl.create_default_context(cafile=certifi.where())
 
@@ -209,7 +210,7 @@ class ArticleFile:
         else:
             self.name = URL(self.source[source]).name
         self.path = self.dir.joinpath(self.name)
-        ext = self.path.suffix
+        ext = self.path.suffix[1:]
         inferred_type = KNOWN_EXTENSIONS.get(ext)
         if inferred_type is not None:
             self.ftype = inferred_type
@@ -218,7 +219,7 @@ class ArticleFile:
                 content_type = content_type[content_type.find("/") + 1:
                                             content_type.find(";")]
                 self.ftype = KNOWN_EXTENSIONS.get(content_type)
-            else:
+            if self.ftype is None:
                 self.ftype = FileType.UNKNOWN
 
 
@@ -236,7 +237,6 @@ class Article:
         entry = await self.fetch_metadata(doi, pmid, title)
         if self.path is None:
             raise ArticleError("Could not find article on Pubmed")
-        print(self.path)
         if not self.path.exists():
             self.path.mkdir(parents=True)
         manifest_path = self.path.joinpath('manifest.json')
@@ -252,10 +252,11 @@ class Article:
             self.manifest = manifest
         self.files = {}
         if 'files' in manifest:
-            for f in manifest['files']:
-                self.files[f] = ArticleFile(self.path,
-                                            manifest=manifest['files'][f])
-        await self.update_manifest()
+            for k, v in manifest['files'].items():
+                self.files[k] = ArticleFile(self.path, manifest=v)
+        else:
+            self.manifest['files'] = {}
+        await asyncio.gather(self.check_local(), self.update_manifest())
         return entry
 
     async def fetch_metadata(self, doi=None, pmid=None, title=None):
@@ -418,6 +419,9 @@ class Article:
         entry['title'] = self.manifest['title']
         entry['authors'] = self.manifest.get('authors')
         entry['date'] = self.manifest.get('date')
+        self.manifest['local'] = bool(entry.get('local'))
+        self.manifest['doi'] = self.doi
+        self.manifest['pmid'] = self.pmid
         await self.update_meta_db(entry)
         return entry
 
@@ -556,6 +560,17 @@ class Article:
             async with aiofiles.open(str(self.path.joinpath(
                                              'references.json')), 'w') as f:
                 await f.write(json.dumps(self.references))
+        await self.check_local()
+
+    async def load(self):
+        if self.path.joinpath('content.json').exists():
+            async with aiofiles.open(str(self.path.joinpath('content.json')),
+                                     'r') as f:
+                self.content = json.loads(await f.read())
+        if self.path.joinpath('references.json').exists():
+            async with aiofiles.open(str(self.path.joinpath(
+                                              'references.json')), 'r') as f:
+                self.references = json.loads(await f.read())
 
     async def add_file(self, source, name=None, data=None, identity=None,
                        overwrite=False, date=None, content_type=None,
@@ -563,6 +578,11 @@ class Article:
                        low_res=False):
         if self.files is None:
             self.files = {}
+        if Path(self.path, 'figures.json').exists():
+            with Path(self.path, 'figures.json').open(mode='r') as f:
+                fig_leg = json.loads(f.read())
+        else:
+            fig_leg = {}
         if date is None:
             date = datetime.now().isoformat()
         new_file = ArticleFile(data=data, path=self.path,
@@ -587,14 +607,14 @@ class Article:
             entry['lr'] = entry.pop('name')
 
         def do_pdf(what):
-            if self.manifest.get(what) is not None:
+            if fig_leg.get(what) is not None:
                 raise FileExistsError
-            self.manifest[what] = entry
+            fig_leg[what] = entry
 
         def do_files(what):
-            if self.manifest.get(what) is None:
-                self.manifest[what] = []
-            for f in self.manifest[what]:
+            if fig_leg.get(what) is None:
+                fig_leg[what] = []
+            for f in fig_leg[what]:
                 if f['title'] == entry['title']:
                     if low_res and 'lr' not in f:
                         f['lr'] = entry['lr']
@@ -604,24 +624,23 @@ class Article:
                         return
                     else:
                         raise FileExistsError
-            self.manifest[what].append(entry)
+            fig_leg[what].append(entry)
 
         def do_order(what):
-            if self.manifest.get(what) is None:
-                self.manifest[what] = []
+            if fig_leg.get(what) is None:
+                fig_leg[what] = []
             if number == 0:
                 raise FileTypeError
-            if number > len(self.manifest[what]):
-                for i in range(number - len(self.manifest[what])):
-                    self.manifest[what].append(None)
-            if self.manifest[what][number - 1] is None or overwrite:
-                self.manifest[what][number - 1] = entry
-            elif (low_res and
-                  self.manifest[what][number - 1].get('lr') is None):
-                self.manifest[what][number - 1]['lr'] = entry['lr']
-            elif (not low_res and
-                  self.manifest[what][number - 1].get('name') is None):
-                self.manifest[what][number - 1]['name'] = entry['name']
+            if number > len(fig_leg[what]):
+                for i in range(number - len(fig_leg[what])):
+                    fig_leg[what].append(None)
+            if fig_leg[what][number - 1] is None or overwrite:
+                fig_leg[what][number - 1] = entry
+            elif (low_res and fig_leg[what][number - 1].get('lr') is None):
+                fig_leg[what][number - 1]['lr'] = entry['lr']
+            elif (not low_res and fig_leg[what][number - 1].
+                    get('name') is None):
+                fig_leg[what][number - 1]['name'] = entry['name']
             else:
                 raise FileExistsError
 
@@ -643,8 +662,11 @@ class Article:
 
         identity_lookup[identity]()
         self.files[name] = new_file
-        await new_file.write()
-        await self.update_manifest()
+        self.manifest['files'][name] = new_file.to_manifest()
+        with Path(self.path, 'figures.json').open(mode='w') as f:
+            f.write(json.dumps(fig_leg))
+        await asyncio.gather(self.check_local(), new_file.write(),
+                             self.update_manifest())
 
     def add_url(self, url):
         if self.url is None:
@@ -654,6 +676,58 @@ class Article:
 
     def meta_date(self):
         return self.manifest.get('metadate')
+
+    async def check_local(self):
+        result = await self.verify_integrity()
+        is_local = True
+        for v in result.values():
+            is_local = is_local and v
+        self.manifest['local'] = is_local
+        await asyncio.gather(self.update_meta_db(
+                                 {'title': self.manifest.get('title'),
+                                  'doi': self.manifest.get('doi'),
+                                  'pmid': self.manifest.get('pmid'),
+                                  'local': is_local}),
+                             self.update_manifest())
+
+    async def verify_integrity(self):
+        result = {'abstract': False,
+                  'content': False,
+                  'figures': False,
+                  'references': False}
+        await self.load()
+        if hasattr(self, 'content'):
+            for item in self.content:
+                if item['title'] == 'Abstract':
+                    identity = 'abstract'
+                else:
+                    identity = 'content'
+                if (item['content'] is not None and len(item['content']) > 0):
+                    result[identity] = True
+        if Path(self.path, 'figures.json').exists():
+            result['figures'] = True
+            async with aiofiles.open(str(Path(self.path, 'figures.json')),
+                                     'r') as f:
+                figures = json.loads(await f.read())
+                for k, v in figures.items():
+                    if isinstance(v, list):
+                        for f in v:
+                            for res in ['name', 'lr']:
+                                if res in f:
+                                    result['figures'] = (result['figures'] and
+                                                         Path(self.path,
+                                                              f[res]).exists())
+                    else:
+                        result['figures'] = (result['figures'] and
+                                             Path(self.path,
+                                                  v['name']).exists())
+        if Path(self.path, 'references.json').exists():
+            async with aiofiles.open(str(Path(self.path, 'references.json')),
+                                     'r') as f:
+                refs = json.loads(await f.read())
+                if len(refs) > 0:
+                    result['references'] = True
+        return result
 
     def print_info(self, verbosity=0):
         print(f"Title: {self.manifest['title']}")

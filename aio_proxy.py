@@ -109,6 +109,11 @@ class AIOProxy:
         type = data.get('type')
         if doi is None or type is None:
             raise web.HTTPBadRequest
+        article = self.cache.get('doi')
+        if article is None:
+            article = Article(self.session, self.cookies)
+            article.a_init(doi=doi)
+            self.cache[doi] = article
 
     async def pyreadscrapi(self, request):
         data = await request.json()
@@ -123,9 +128,11 @@ class AIOProxy:
             return web.Response(text=json.dumps(result))
         elif 'abstract' in data:
             if hasattr(self.article, 'content'):
-                self.article.content['abstract'] = data['abstract']
+                self.article.content.append({'title': 'Abstract',
+                                             'content': data['abstract']})
             else:
-                self.article.content = {'abstract': data['abstract']}
+                self.article.content = [{'title': 'Abstract',
+                                         'content': data['abstract']}]
             return web.Response(text=json.dumps({'item': 'abstract',
                                                  'status': 'success'}))
         elif 'figures' in data:
@@ -156,7 +163,10 @@ class AIOProxy:
                                                  'status': 'success'}))
 
         elif 'main' in data:
-            self.article.content = data['main']
+            if hasattr(self.article, 'content'):
+                self.article.content = [*self.article.content, *data['main']]
+            else:
+                self.article.content = data['main']
             await self.article.save()
             return web.Response(text=json.dumps({'item': 'main',
                                                  'status': 'success'}))
