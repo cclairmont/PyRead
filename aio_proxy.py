@@ -35,7 +35,7 @@ class PyrCache(MutableMapping):
     def __getitem__(self, key):
         self._counter += 1
         self.content[key]['counter'] = self._counter
-        return self.content[key].value
+        return self.content[key]['value']
 
     def __setitem__(self, key, value):
         self._counter += 1
@@ -87,6 +87,11 @@ class AIOProxy:
     async def create_session(self):
         self.session = aiohttp.ClientSession()
 
+    async def pyreadhome(self, request):
+        async with aiofiles.open('assets/index.html', 'r') as f:
+            return web.Response(text=await f.read(),
+                                content_type='text/html')
+
     async def pyreadproxy(self, request):
         query = request.rel_url.query
         if 'location' not in query:
@@ -104,16 +109,57 @@ class AIOProxy:
         raise web.HTTPFound(location.path)
 
     async def pyreadapi(self, request):
-        data = await request.json()
+        if request.method == 'POST':
+            data = await request.json()
+        elif request.method == 'GET':
+            data = request.query
+        else:
+            raise web.HTTPBadRequest
         doi = data.get('doi')
         type = data.get('type')
         if doi is None or type is None:
             raise web.HTTPBadRequest
-        article = self.cache.get('doi')
+        article = self.cache.get(doi)
         if article is None:
             article = Article(self.session, self.cookies)
-            article.a_init(doi=doi)
             self.cache[doi] = article
+        await article.a_init(doi=doi)
+        if type == 'info':
+            result = {**article.manifest}
+            del result['files']
+            return web.Response(text=json.dumps(result),
+                                content_type='application/json')
+        if type == 'fileinfo':
+            try:
+                return web.Response(text=json.dumps(await article.file_info()),
+                                    content_type='application/json')
+            except FileNotFoundError:
+                raise web.HTTPNotFound
+        if type == 'file':
+            name = data.get('name')
+            if name is None:
+                raise web.HTTPBadRequest
+            ext = Path(name).suffix
+            content_type = self.FILE_EXTENSIONS[ext]
+            try:
+                body = await article.get_file(name)
+            except FileNotFoundError:
+                raise web.HTTPNotFound
+            return web.Response(body=body,
+                                content_type=content_type)
+        if type == 'content':
+            await article.load()
+            if not hasattr(article, 'content'):
+                raise web.HTTPNotFound
+            return web.Response(text=json.dumps(article.content),
+                                content_type='application/json')
+
+        if type == 'references':
+            await article.load()
+            if not hasattr(article, 'references'):
+                raise web.HTTPNotFound
+            return web.Response(text=json.dumps(article.references),
+                                content_type='application/json')
 
     async def pyreadscrapi(self, request):
         data = await request.json()
@@ -124,15 +170,11 @@ class AIOProxy:
                                                title=data.get('title'))
             self.metadata = result
             self.cache[result['doi']] = self.article
-            print(self.cache)
             return web.Response(text=json.dumps(result))
         elif 'abstract' in data:
-            if hasattr(self.article, 'content'):
-                self.article.content.append({'title': 'Abstract',
-                                             'content': data['abstract']})
-            else:
-                self.article.content = [{'title': 'Abstract',
-                                         'content': data['abstract']}]
+            self.article.add_content([{'title': 'Abstract',
+                                       'content': data['abstract']}])
+            await self.article.save()
             return web.Response(text=json.dumps({'item': 'abstract',
                                                  'status': 'success'}))
         elif 'figures' in data:
@@ -163,16 +205,14 @@ class AIOProxy:
                                                  'status': 'success'}))
 
         elif 'main' in data:
-            if hasattr(self.article, 'content'):
-                self.article.content = [*self.article.content, *data['main']]
-            else:
-                self.article.content = data['main']
+            self.article.add_content(data['main'])
             await self.article.save()
             return web.Response(text=json.dumps({'item': 'main',
                                                  'status': 'success'}))
         elif 'references' in data:
-            await asyncio.gather(*[self.article.add_reference(ref)
-                                   for ref in data['references']])
+            await asyncio.gather(*[self.article.add_reference(ref, num)
+                                   for num, ref in
+                                   enumerate(data['references'])])
             await self.article.save()
             return web.Response(text=json.dumps({'item': 'references',
                                                  'status': 'success'}))
@@ -268,6 +308,10 @@ class AIOProxy:
             return await self.pyreadasset(request)
         elif path.startswith('/pyreadredirect'):
             return await self.pyreadredirect(request)
+        elif path.startswith('/pyreadapi'):
+            return await self.pyreadapi(request)
+        elif path.startswith('/pyreadhome'):
+            return await self.pyreadhome(request)
         else:
             return await self.proxy(request)
 

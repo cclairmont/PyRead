@@ -230,10 +230,18 @@ class Article:
                'Gecko/20100101 Firefox/77.0'}
 
     def __init__(self, session, cookies):
+        self._ainit_done = False
+        self._ainit_start = False
         self.session = session
         self.cookies = cookies
 
     async def a_init(self, doi=None, pmid=None, title=None):
+        if self._ainit_done:
+            return self.entry
+        if self._ainit_start:
+            await asyncio.sleep(1)
+            return await self.a_init(doi, pmid, title)
+        self._ainit_start = True
         entry = await self.fetch_metadata(doi, pmid, title)
         if self.path is None:
             raise ArticleError("Could not find article on Pubmed")
@@ -257,6 +265,8 @@ class Article:
         else:
             self.manifest['files'] = {}
         await asyncio.gather(self.check_local(), self.update_manifest())
+        self.entry = entry
+        self._ainit_done = True
         return entry
 
     async def fetch_metadata(self, doi=None, pmid=None, title=None):
@@ -425,7 +435,21 @@ class Article:
         await self.update_meta_db(entry)
         return entry
 
-    async def add_reference(self, ref):
+    def add_content(self, content, overwrite=True):
+        if not hasattr(self, 'content'):
+            self.content = []
+        for c in content:
+            exists = False
+            for i, cc in enumerate(self.content):
+                if cc['title'] == c['title']:
+                    if overwrite:
+                        self.content[i] = c
+                    exists = True
+                    break
+            if not exists:
+                self.content.append(c)
+
+    async def add_reference(self, ref, num):
         if ref is None:
             entry = None
         else:
@@ -434,9 +458,14 @@ class Article:
                                                    doi=ref.get('doi'),
                                                    pmid=ref.get('pmid'),
                                                    title=ref.get('title'))
+            entry = self.update_dbentry(entry, ref)
+            await self.update_meta_db(entry)
         if not hasattr(self, 'references'):
             self.references = []
-        self.references.append(entry)
+        if num >= len(self.references):
+            for i in range(num - len(self.references) + 1):
+                self.references.append(None)
+        self.references[num] = entry
 
     def update_metadata(self, xml):
         s = BeautifulSoup(xml, 'xml')
@@ -465,15 +494,15 @@ class Article:
     async def update_meta_db(self, entry):
         with open('files/database.json', 'r') as f:
             db = json.loads(f.read())
-        if 'doi' in entry:
+        if entry.get('doi') is not None:
             db_entry = db['doi'].get(entry['doi'])
             db_entry = self.update_dbentry(db_entry, entry)
             db['doi'][entry['doi']] = db_entry
-        if 'pmid' in entry:
+        if entry.get('pmid') is not None:
             db_entry = db['pmid'].get(entry['pmid'])
             db_entry = self.update_dbentry(db_entry, entry)
             db['pmid'][entry['pmid']] = db_entry
-        if 'title' in entry:
+        if entry.get('title') is not None:
             db_entry = db['title'].get(entry['title'])
             db_entry = self.update_dbentry(db_entry, entry)
             db['title'][entry['title']] = db_entry
@@ -578,11 +607,6 @@ class Article:
                        low_res=False):
         if self.files is None:
             self.files = {}
-        if Path(self.path, 'figures.json').exists():
-            with Path(self.path, 'figures.json').open(mode='r') as f:
-                fig_leg = json.loads(f.read())
-        else:
-            fig_leg = {}
         if date is None:
             date = datetime.now().isoformat()
         new_file = ArticleFile(data=data, path=self.path,
@@ -659,7 +683,11 @@ class Article:
                            ArticleItem.SUPPLEMENTARY_VIDEO:
                                do_what(do_order, 'supp_vids'),
                            ArticleItem.OTHER: do_what(do_files, 'other')}
-
+        if Path(self.path, 'figures.json').exists():
+            with Path(self.path, 'figures.json').open(mode='r') as f:
+                fig_leg = json.loads(f.read())
+        else:
+            fig_leg = {}
         identity_lookup[identity]()
         self.files[name] = new_file
         self.manifest['files'][name] = new_file.to_manifest()
@@ -728,6 +756,16 @@ class Article:
                 if len(refs) > 0:
                     result['references'] = True
         return result
+
+    async def file_info(self):
+        async with aiofiles.open(Path(self.path, 'figures.json'), 'r') as f:
+            return json.loads(await f.read())
+
+    async def get_file(self, name):
+        file = self.files[name]
+        if file.data is None:
+            return await file.get_data()
+        return file.data
 
     def print_info(self, verbosity=0):
         print(f"Title: {self.manifest['title']}")

@@ -1,7 +1,7 @@
 var get_content = new XMLHttpRequest();
 var get_refs = new XMLHttpRequest();
-var get_info = new XMLHttpRequest();
-var metadata; //result of info api call
+var get_fileinfo = new XMLHttpRequest();
+var fileinfo; //result of info api call
 var queries; //queries.doi holds doi of current article, call load_page to
              //actually load it.
 var current_article;
@@ -129,8 +129,11 @@ function elemsAreAdjacent(e1, e2) {
     var p_html = e1.parentElement.innerHTML;
     var c1_html = e1.outerHTML;
     var c2_html = e2.outerHTML;
-    var distance = p_html.indexOf(c2_html) - p_html.indexOf(c1_html);
-    if (distance == c1_html.length) {
+    var in_between = p_html.slice(p_html.indexOf(c1_html) + c1_html.length,
+                                  p_html.indexOf(c2_html));
+    if (in_between == "") {
+      console.log(c1_html);
+      console.log(c2_html);
       return true;
     } else {
       return false;
@@ -269,12 +272,15 @@ function setup_sidenav() {
           get_title[i].onload = function() {
             var title = JSON.parse(get_title[i].response).title;
             var link = document.getElementById("sn-link" + i);
+            console.log(get_title[i].response)
+            console.log(title);
+            console.log(link);
             sessions[i].title = title;
             link.innerHTML = title;
             link.title = title;
           };
           get_title[i].open('POST', 'pyreadapi');
-          params = 'doi=' + sessions[i].doi + "&type=title";
+          params = JSON.stringify({"doi": sessions[i].doi, "type": "info"})
           get_title[i].send(params);
         })(i);
       }
@@ -327,7 +333,7 @@ function load_page() {
     }
     if (queries.doi != null) {
       get_content.open("POST", "pyreadapi");
-      var params = "doi=" + queries.doi + "&type=content";
+      var params = JSON.stringify({"doi": queries.doi, "type": "content"});
       get_content.send(params);
     }
   }
@@ -374,7 +380,7 @@ get_content.onload = function () {
     }
     article.appendChild(section);
   }
-  var params = "doi=" + queries.doi + "&type=references";
+  var params = JSON.stringify({"doi": queries.doi, "type": "references"});
   get_refs.open("POST", "pyreadapi");
   get_refs.send(params);
 };
@@ -394,23 +400,26 @@ get_refs.onload = function () {
   ref_list.className = "section-content";
   refs.appendChild(ref_list);
   for (var i = 0; i < response_data.length; i++) {
-    if (Object.keys(response_data[i]).length == 0) {
+    if (response_data[i] == null ||
+        Object.keys(response_data[i]).length == 0) {
       continue;
     }
     var next_ref = document.createElement("li");
     next_ref.id = "ref" + i;
     var ref_string = "";
-    for (var j = 0; j < response_data[i].authors.length; j++) {
-      if (j > 0 && j == response_data[i].authors.length - 1 &&
-          response_data[i].authors[j].indexOf("et al.") == -1) {
-        ref_string = ref_string + " and ";
-      } else if (j > 0) {
-        ref_string = ref_string + ", ";
+    if (response_data[i].authors != null) {
+      for (var j = 0; j < response_data[i].authors.length; j++) {
+        if (j > 0 && j == response_data[i].authors.length - 1 &&
+            response_data[i].authors[j].indexOf("et al.") == -1) {
+          ref_string = ref_string + " and ";
+        } else if (j > 0) {
+          ref_string = ref_string + ", ";
+        }
+        ref_string = ref_string + response_data[i].authors[j];
       }
-      ref_string = ref_string + response_data[i].authors[j];
-    }
-    if (ref_string[-1] != "." && ref_string[-1] != ' ') {
-      ref_string = ref_string + ".";
+      if (ref_string[-1] != "." && ref_string[-1] != ' ') {
+        ref_string = ref_string + ".";
+      }
     }
     ref_string = ref_string + " " + response_data[i].title;
     ref_string = ref_string + ". " + response_data[i].journal;
@@ -420,33 +429,36 @@ get_refs.onload = function () {
     references = response_data;
   }
   article.appendChild(refs);
-  var params = "doi=" + queries.doi + "&type=info";
-  get_info.open("POST", "pyreadapi");
-  get_info.send(params);
+  var params = JSON.stringify({"doi": queries.doi, "type": "fileinfo"});
+  get_fileinfo.open("POST", "pyreadapi");
+  get_fileinfo.send(params);
 };
 
-get_info.onload = function() {
-  metadata = JSON.parse(get_info.response);
+get_fileinfo.onload = function() {
+  fileinfo = JSON.parse(get_fileinfo.response);
   add_figures();
 };
 
 function add_figures() {
   var figures = document.querySelectorAll("figure");
+  if (figures.length == 0) {
+    after_load();
+  }
   for (var i = 0; i < figures.length; i++) {
-    if (i == metadata.figures.length) {
+    if (i == fileinfo.figures.length) {
       break;
     }
     var fname;
-    if ("lr" in metadata.figures[i]) {
-      fname = metadata.figures[i].lr;
+    if ("lr" in fileinfo.figures[i]) {
+      fname = fileinfo.figures[i].lr;
     } else {
-      fname = metadata.figures[i].name;
+      fname = fileinfo.figures[i].name;
     }
-    var params = "doi=" + queries.doi + "&type=file&name=" + fname;
+    var params = "doi=" + queries.doi + "&type=file" +  "&name=" + fname;
     var caption = document.createElement("div");
     caption.id = "figcap" + i;
     caption.className = "fig-cap";
-    caption.innerHTML = metadata.figures[i].title;
+    caption.innerHTML = fileinfo.figures[i].title;
     figures[i].appendChild(caption);
     var legend = document.createElement("div");
     legend.id = "figleg" + 1;
@@ -465,7 +477,7 @@ function add_figures() {
     var detail = document.createElement("div");
     detail.id = "figdet" + i;
     detail.className = "fig-details";
-    detail.innerHTML = metadata.figures[i].caption;
+    detail.innerHTML = fileinfo.figures[i].caption;
     legend.appendChild(detail);
     figures[i].appendChild(legend);
   }
@@ -479,7 +491,10 @@ function add_reflinks() {
   for (var i = 0; i < ref_links.length; i++) {
     var consec = false;
     if (consec_elems.length == 0 ||
-        elemsAreAdjacent(ref_links[i-1], ref_links[i])) {
+        (ref_links[i-1].nextElementSibling != null &&
+         (ref_links[i-1].nextSibling.isSameNode(ref_links[i]) ||
+          (ref_links[i-1].nextElementSibling.isSameNode(ref_links[i]) &&
+           ref_links[i-1].nextSibling.textContent.trim() == "")))) {
       consec_elems.push(ref_links[i]);
       consec = true;
     }

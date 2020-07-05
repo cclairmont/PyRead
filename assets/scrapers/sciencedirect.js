@@ -159,10 +159,12 @@ function get_references() {
     ref_entry.label = refs[i].textContent;
     var ref_info = refs[i].nextSibling;
     var auth_list = ref_info.querySelector("div.contribution");
+    var journal_year;
     if (auth_list) {
       ref_entry.title = ref_info.querySelector("strong").textContent;
       auth_list = auth_list.textContent.slice(
         0, auth_list.textContent.indexOf(ref_entry.title));
+      journal_year = ref_info.querySelector("div.host").textContent;
     } else {
       var text = ref_info.textContent;
       var auth_list_end = text.indexOf(" (");
@@ -172,6 +174,12 @@ function get_references() {
       title_end = text.indexOf(". ");
       ref_entry.title = text.slice(0, title_end);
     }
+    var journal_end = journal_year.indexOf(",");
+    var year_start = journal_year.slice(journal_end).indexOf('(') +
+                     journal_end + 1;
+    var year_end = journal_year.slice(year_start).indexOf(')') + year_start;
+    ref_entry.journal = journal_year.slice(0, journal_end);
+    ref_entry.year = journal_year.slice(year_start, year_end);
     ref_entry.authors = auth_list.split(", ");
     var links = ref_info.querySelectorAll("a");
     for (var j = 0; j < links.length; j++) {
@@ -184,6 +192,7 @@ function get_references() {
     ref_list[refnum - 1] = ref_entry;
   }
   return ref_list;
+  console.log(ref_list);
 }
 
 function get_files() {

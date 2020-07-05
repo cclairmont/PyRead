@@ -3,18 +3,22 @@ function clean_elem(elem) {
     return elem.textContent;
   }
   var nodes = Array.from(elem.childNodes);
-  if (elem.tagName == "SPAN" || elem.tagName == "A" || elem.tagName == "DIV" ||
-      elem.tagName == "SECTION" &&
-      elem.className != "ref" && elem.className != "figure-ref") {
+  if (elem.tagName == "A" || elem.tagName == "DIV" ||
+      elem.tagName == "SECTION" ||
+      (elem.tagName == "SPAN" && elem.className != "ref" &&
+       elem.className != "figure-ref")) {
       return nodes.map(clean_elem).join("");
   } else if (elem.tagName == "FIGURE") {
-    return "";
+    return "<figure></figure>";
   } else {
-    while(elem.attributes.length > 0) {
+    num_attributes = 0;
+    while(elem.attributes.length > num_attributes) {
       if (elem.attributes[0].name != "class" ||
           (elem.attributes[0].value != "ref" &&
            elem.attributes[0].value != "figure-ref")) {
         elem.removeAttribute(elem.attributes[0].name);
+      } else {
+        num_attributes++;
       }
     }
     elem.innerHTML =  nodes.map(clean_elem).join("");
