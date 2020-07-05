@@ -178,11 +178,11 @@ figure {
   transition: 0.2s;
 }
 
-.sidenav:hover {
+.sidenav:hover, .sidenav.active {
   width: calc(max(200px, 20vw));
 }
 
-.sidenav-linkcon:hover {
+.sidenav-linkcon:hover, .sidenav-linkcon.highlight {
   background-color: aliceblue;
 }
 

@@ -132,8 +132,6 @@ function elemsAreAdjacent(e1, e2) {
     var in_between = p_html.slice(p_html.indexOf(c1_html) + c1_html.length,
                                   p_html.indexOf(c2_html));
     if (in_between == "") {
-      console.log(c1_html);
-      console.log(c2_html);
       return true;
     } else {
       return false;
@@ -206,6 +204,79 @@ function parse_args(uri) {
   return result;
 }
 
+function new_sidenav() {
+  var sidenav = document.getElementsByClassName("sidenav")[0];
+  var link_container = document.createElement("div");
+  var i = sidenav.childElementCount;
+  link_container.className = "sidenav-linkcon";
+  link_container.id = "sn-linkcon" + i;
+  var link_x = document.createElement("div");
+  link_x.className = "sidenav-x";
+  link_x.id = "sn-x" + i;
+  link_x.innerHTML = "&times;";
+  link_container.appendChild(link_x);
+  var link = document.createElement("div");
+  link.className = "sidenav-link";
+  link.id = "sn-link" + i;
+  link_container.appendChild(link);
+  sidenav.appendChild(link_container);
+  function get_pos(elem) {
+    var s_elems = sidenav.childNodes;
+    for (var i = 0; i < s_elems.length; i++) {
+      if (s_elems[i].isSameNode(elem.parentElement)) {
+        return i;
+      }
+    }
+  }
+  link.onclick = function() {
+    i = get_pos(this);
+    if (i != current_article) {
+      var sidebar = document.getElementsByClassName("sidenav-linkcon");
+      if (sidebar[current_article] != null) {
+        sidebar[current_article].classList.toggle("active");
+      }
+      queries.doi = sessions[i].doi;
+      current_article = i;
+      save_session();
+      load_page();
+    }
+  };
+  link_x.onclick = function() {
+    i = get_pos(this);
+    sessions.splice(i, 1);
+    this.parentElement.remove();
+    if (i == current_article) {
+      load_page();
+    }
+  };
+  return link;
+}
+
+function new_session(doi) {
+  var current_sess = sessions.length;
+  sessions.push({doi: doi, inactive: [], scroll: 0,
+                 height: 1});
+  var link = new_sidenav();
+  var xhr = new XMLHttpRequest();
+  xhr.onload = function() {
+    var title = JSON.parse(xhr.response).title;
+    sessions[current_sess].title = title;
+    link.innerHTML = title;
+    link.title = title;
+    var sidenav = document.getElementsByClassName("sidenav")[0];
+    var sidebar = link.parentElement;
+    sidebar.classList.toggle('highlight');
+    sidenav.classList.toggle('active');
+    setTimeout(function() {
+      sidebar.classList.toggle('highlight');
+      sidenav.classList.toggle('active');
+    }, 500);
+  };
+  xhr.open('POST', 'pyreadapi');
+  params = JSON.stringify({"doi": doi, "type": "info"});
+  xhr.send(params);
+}
+
 /*****************************************************************************/
 /*                           Sequential Functions                            */
 /*****************************************************************************/
@@ -272,49 +343,16 @@ function setup_sidenav() {
           get_title[i].onload = function() {
             var title = JSON.parse(get_title[i].response).title;
             var link = document.getElementById("sn-link" + i);
-            console.log(get_title[i].response)
-            console.log(title);
-            console.log(link);
             sessions[i].title = title;
             link.innerHTML = title;
             link.title = title;
           };
           get_title[i].open('POST', 'pyreadapi');
-          params = JSON.stringify({"doi": sessions[i].doi, "type": "info"})
+          params = JSON.stringify({"doi": sessions[i].doi, "type": "info"});
           get_title[i].send(params);
         })(i);
       }
-    var link_container = document.createElement("div");
-    link_container.className = "sidenav-linkcon";
-    link_container.id = "sn-linkcon" + i;
-    var link_x = document.createElement("div");
-    link_x.className = "sidenav-x";
-    link_x.id = "sn-x" + i;
-    link_x.innerHTML = "&times;";
-    link_container.appendChild(link_x);
-    var link = document.createElement("div");
-    link.className = "sidenav-link";
-    link.id = "sn-link" + i;
-    link.innerHTML = sessions[i].title;
-    link.title = sessions[i].title;
-    link_container.appendChild(link);
-    sidenav.appendChild(link_container);
-    (function(i) {
-      link.onclick = function() {
-        var sidebar = document.getElementsByClassName("sidenav-linkcon");
-        sidebar[current_article].classList.toggle("active");
-        queries.doi = sessions[i].doi;
-        current_article = i;
-        save_session();
-        load_page();
-      };
-      link_x.onclick = function() {
-        console.log("click")
-        sessions.splice(i, 1);
-        this.parentElement.remove();
-        load_page();
-      };
-    })(i);
+    new_sidenav();
   }
 }
 
@@ -327,10 +365,8 @@ function load_page() {
     if (current_article >= sidebar.length) {
       current_article = sidebar.length - 1;
     }
-    sidebar[current_article].classList.toggle("active");
-    if (queries.doi == null) {
-      queries.doi = sessions[0].doi;
-    }
+    queries.doi = sessions[current_article].doi;
+    sidebar[current_article].classList.add("active");
     if (queries.doi != null) {
       get_content.open("POST", "pyreadapi");
       var params = JSON.stringify({"doi": queries.doi, "type": "content"});
@@ -338,6 +374,7 @@ function load_page() {
     }
   }
   else {
+    current_article = -1
     save_session();
   }
 }
@@ -557,9 +594,7 @@ function add_reflinks() {
           reftipcontainer.className = "ref-tip-con";
           (function(slicers, k) {
             reftipcontainer.onclick = function() {
-              save_session();
-              window.location.href = "/pyreadhome?doi=" +
-                                     references[slicers[0] - 1 + k].doi;
+              new_session(references[slicers[0] - 1 + k].doi);
             };
           })(slicers, k);
           var reftiplabel = document.createElement("span");
