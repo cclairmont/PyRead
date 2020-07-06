@@ -1,9 +1,10 @@
+/*jshint esversion: 6 */
+
 var get_content = new XMLHttpRequest();
 var get_refs = new XMLHttpRequest();
 var get_fileinfo = new XMLHttpRequest();
 var fileinfo; //result of info api call
-var queries; //queries.doi holds doi of current article, call load_page to
-             //actually load it.
+var queries;
 var current_article;
 var inactive = [];
 var sessions = [];
@@ -14,8 +15,6 @@ var img_sem = 0;
 /*****************************************************************************/
 /*                              Helper Functions                             */
 /*****************************************************************************/
-
-//Clears the content of the article and loads article currently in queries.doi
 
 function decode(code, type) {
   var num = 0;
@@ -204,6 +203,30 @@ function parse_args(uri) {
   return result;
 }
 
+function switch_session(idx) {
+  save_session();
+  if (idx != current_article) {
+    var sidebar = document.getElementsByClassName("sidenav-linkcon");
+    if (sidebar[current_article] != null) {
+      sidebar[current_article].classList.toggle("active");
+    }
+    load_page(idx);
+  }
+}
+
+function close_session(idx) {
+  save_session();
+  sessions.splice(idx, 1);
+  if (idx < current_article) {
+    current_article--;
+  }
+  var sidebar = document.getElementsByClassName("sidenav-linkcon");
+  sidebar[idx].remove();
+  if (idx == current_article) {
+    load_page();
+  }
+}
+
 function new_sidenav() {
   var sidenav = document.getElementsByClassName("sidenav")[0];
   var link_container = document.createElement("div");
@@ -230,32 +253,19 @@ function new_sidenav() {
   }
   link.onclick = function() {
     i = get_pos(this);
-    if (i != current_article) {
-      var sidebar = document.getElementsByClassName("sidenav-linkcon");
-      if (sidebar[current_article] != null) {
-        sidebar[current_article].classList.toggle("active");
-      }
-      queries.doi = sessions[i].doi;
-      current_article = i;
-      save_session();
-      load_page();
-    }
+    switch_session(i);
   };
   link_x.onclick = function() {
     i = get_pos(this);
-    sessions.splice(i, 1);
-    this.parentElement.remove();
-    if (i == current_article) {
-      load_page();
-    }
+    close_session(i);
   };
   return link;
 }
 
-function new_session(doi) {
+function new_session(doi, inactive = [], scroll = 0, height = 1) {
   var current_sess = sessions.length;
-  sessions.push({doi: doi, inactive: [], scroll: 0,
-                 height: 1});
+  sessions.push({doi: doi, inactive: inactive, scroll: scroll,
+                 height: height});
   var link = new_sidenav();
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
@@ -265,11 +275,11 @@ function new_session(doi) {
     link.title = title;
     var sidenav = document.getElementsByClassName("sidenav")[0];
     var sidebar = link.parentElement;
-    sidebar.classList.toggle('highlight');
-    sidenav.classList.toggle('active');
+    sidebar.classList.add('highlight');
+    sidenav.classList.add('active');
     setTimeout(function() {
-      sidebar.classList.toggle('highlight');
-      sidenav.classList.toggle('active');
+      sidebar.classList.remove('highlight');
+      sidenav.classList.remove('active');
     }, 500);
   };
   xhr.open('POST', 'pyreadapi');
@@ -287,8 +297,7 @@ window.onload = function() {
   if(Object.keys(queries).length > 0) {
     reload = true;
   }
-  load_cookies();
-  setup_sidenav();
+  init_page();
   load_page();
   if (reload) {
     save_session();
@@ -296,7 +305,7 @@ window.onload = function() {
   }
 };
 
-function load_cookies() {
+function init_page() {
   var cookies = {};
   document.cookie.split(";").map(function(a) {
     var kv = a.split("=");
@@ -309,9 +318,8 @@ function load_cookies() {
         current_article = parseInt(a, 10);
       } else {
         var kv = a.split(":");
-        sessions.push({doi: kv[0], inactive: decode(kv[1]),
-                       scroll: decode(kv[2], "int"),
-                       height: decode(kv[3], "int")});
+        new_session(kv[0], decode(kv[1]), decode(kv[2], "int"),
+                    decode(kv[3], "int"));
       }
     });
   }
@@ -327,54 +335,29 @@ function load_cookies() {
     }
   }
   if (!found_session) {
-    current_article = 0;
-    sessions.unshift({doi: queries.doi, inactive: [], scroll: 0,
-                      height: document.documentElement.scrollHeight});
+    current_article = sessions.length;
+    new_session(queries.doi);
   }
 }
 
-function setup_sidenav() {
-  var sidenav = document.getElementsByClassName("sidenav")[0];
-  var get_title = {};
-  for (var i = 0; i < sessions.length; i++) {
-    if (sessions[i].title == null) {
-        (function(i) {
-          get_title[i] = new XMLHttpRequest();
-          get_title[i].onload = function() {
-            var title = JSON.parse(get_title[i].response).title;
-            var link = document.getElementById("sn-link" + i);
-            sessions[i].title = title;
-            link.innerHTML = title;
-            link.title = title;
-          };
-          get_title[i].open('POST', 'pyreadapi');
-          params = JSON.stringify({"doi": sessions[i].doi, "type": "info"});
-          get_title[i].send(params);
-        })(i);
-      }
-    new_sidenav();
-  }
-}
-
-function load_page() {
+function load_page(idx = -1) {
   clearInterval(updater);
+  if (idx != -1) {
+    current_article = idx;
+  }
+  if (current_article >= sessions.length) {
+    current_article = sessions.length - 1;
+  }
   var article = document.getElementsByClassName("article")[0];
   article.innerHTML = "";
   var sidebar = document.getElementsByClassName("sidenav-linkcon");
-  if (sidebar.length > 0) {
-    if (current_article >= sidebar.length) {
-      current_article = sidebar.length - 1;
-    }
-    queries.doi = sessions[current_article].doi;
+  if (current_article != -1 && sessions[current_article].doi != null) {
     sidebar[current_article].classList.add("active");
-    if (queries.doi != null) {
-      get_content.open("POST", "pyreadapi");
-      var params = JSON.stringify({"doi": queries.doi, "type": "content"});
-      get_content.send(params);
-    }
-  }
-  else {
-    current_article = -1
+    get_content.open("POST", "pyreadapi");
+    var params = JSON.stringify({"doi": sessions[current_article].doi,
+                                 "type": "content"});
+    get_content.send(params);
+  } else {
     save_session();
   }
 }
@@ -417,7 +400,7 @@ get_content.onload = function () {
     }
     article.appendChild(section);
   }
-  var params = JSON.stringify({"doi": queries.doi, "type": "references"});
+  var params = JSON.stringify({"doi": sessions[current_article].doi, "type": "references"});
   get_refs.open("POST", "pyreadapi");
   get_refs.send(params);
 };
@@ -466,7 +449,7 @@ get_refs.onload = function () {
     references = response_data;
   }
   article.appendChild(refs);
-  var params = JSON.stringify({"doi": queries.doi, "type": "fileinfo"});
+  var params = JSON.stringify({"doi": sessions[current_article].doi, "type": "fileinfo"});
   get_fileinfo.open("POST", "pyreadapi");
   get_fileinfo.send(params);
 };
@@ -491,7 +474,7 @@ function add_figures() {
     } else {
       fname = fileinfo.figures[i].name;
     }
-    var params = "doi=" + queries.doi + "&type=file" +  "&name=" + fname;
+    var params = "doi=" + sessions[current_article].doi + "&type=file" +  "&name=" + fname;
     var caption = document.createElement("div");
     caption.id = "figcap" + i;
     caption.className = "fig-cap";
