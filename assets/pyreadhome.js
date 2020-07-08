@@ -5,7 +5,7 @@ var get_refs = new XMLHttpRequest();
 var get_fileinfo = new XMLHttpRequest();
 var fileinfo; //result of info api call
 var queries;
-var current_article;
+var current_article = -1;
 var inactive = [];
 var sessions = [];
 var references;
@@ -98,7 +98,7 @@ function encode(num_array) {
 }
 
 function update_session() {
-  if (sessions.length > 0) {
+  if (sessions.length > 0 && current_article != -1) {
     sessions[current_article].inactive = inactive;
     sessions[current_article].scroll = document.documentElement.scrollTop;
     sessions[current_article].height = document.documentElement.scrollHeight;
@@ -106,7 +106,7 @@ function update_session() {
 }
 
 function save_session() {
-  if (sessions.length > 0) {
+  if (sessions.length > 0 && current_article != -1) {
     update_session();
     var s_strings = [current_article];
     for (var i = 0; i < sessions.length; i++) {
@@ -262,29 +262,45 @@ function new_sidenav() {
   return link;
 }
 
-function new_session(doi, inactive = [], scroll = 0, height = 1) {
-  var current_sess = sessions.length;
-  sessions.push({doi: doi, inactive: inactive, scroll: scroll,
-                 height: height});
-  var link = new_sidenav();
-  var xhr = new XMLHttpRequest();
-  xhr.onload = function() {
-    var title = JSON.parse(xhr.response).title;
-    sessions[current_sess].title = title;
-    link.innerHTML = title;
+function new_session(doi, title = null, inactive = [], scroll = 0,
+                     height = 1) {
+  var newest_session = sessions.length;
+  for (var i = 0; i < sessions.length; i++) {
+    if (doi == sessions[i].doi) {
+      newest_session = i;
+      break;
+    }
+  }
+  if (title == null) {
+    title = doi;
+  }
+  if (newest_session == sessions.length) {
+    sessions.push({doi: doi, inactive: inactive, scroll: scroll,
+                   height: height, title: title});
+    var link = new_sidenav();
     link.title = title;
-    var sidenav = document.getElementsByClassName("sidenav")[0];
-    var sidebar = link.parentElement;
-    sidebar.classList.add('highlight');
-    sidenav.classList.add('active');
-    setTimeout(function() {
-      sidebar.classList.remove('highlight');
-      sidenav.classList.remove('active');
-    }, 500);
-  };
-  xhr.open('POST', 'pyreadapi');
-  params = JSON.stringify({"doi": doi, "type": "info"});
-  xhr.send(params);
+    link.innerHTML = title;
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function() {
+      var title = JSON.parse(xhr.response).title;
+      if (title != null) {
+        sessions[newest_session].title = title;
+        link.innerHTML = title;
+        link.title = title;
+      }
+    };
+    xhr.open('POST', 'pyreadapi');
+    params = JSON.stringify({"doi": doi, "type": "info"});
+    xhr.send(params);
+  }
+  var sidenav = document.getElementsByClassName("sidenav")[0];
+  var sidebar = sidenav.childNodes[newest_session];
+  sidebar.classList.add('highlight');
+  sidenav.classList.add('active');
+  setTimeout(function() {
+    sidebar.classList.remove('highlight');
+    sidenav.classList.remove('active');
+  }, 500);
 }
 
 /*****************************************************************************/
@@ -312,18 +328,18 @@ function init_page() {
     cookies[kv[0]] = kv[1];
   });
   var cookie = cookies[" session"];
-  if (cookie != null) {
+  if (cookie != null && cookie != "") {
     cookie.split(",").map(function(a) {
       if (a.indexOf(":") == -1) {
         current_article = parseInt(a, 10);
       } else {
         var kv = a.split(":");
-        new_session(kv[0], decode(kv[1]), decode(kv[2], "int"),
+        new_session(kv[0], null, decode(kv[1]), decode(kv[2], "int"),
                     decode(kv[3], "int"));
       }
     });
   }
-  if (queries.doi == null && current_article != null) {
+  if (queries.doi == null && current_article != -1) {
     queries.doi = sessions[current_article].doi;
   }
   var found_session = false;
@@ -334,7 +350,7 @@ function init_page() {
       found_session = true;
     }
   }
-  if (!found_session) {
+  if (!found_session && queries.doi != null && queries.doi != "") {
     current_article = sessions.length;
     new_session(queries.doi);
   }
@@ -577,7 +593,8 @@ function add_reflinks() {
           reftipcontainer.className = "ref-tip-con";
           (function(slicers, k) {
             reftipcontainer.onclick = function() {
-              new_session(references[slicers[0] - 1 + k].doi);
+              var ref = references[slicers[0] - 1 + k];
+              new_session(ref.doi, ref.title);
             };
           })(slicers, k);
           var reftiplabel = document.createElement("span");
@@ -661,7 +678,7 @@ function make_collapsible() {
   titles = Array.from(titles);
   //The Id of the collapsible titles need to be in alphabetical order, with the
   //innermost titles first.
-  titles.sort(function(a,b) {return a.id > b.id});
+  titles.sort(function(a,b) {return a.id > b.id;});
   for (var i = 0; i < titles.length; i++) {
     titles[i].classList.toggle("active");
     titles[i].nextElementSibling.classList.toggle("active");

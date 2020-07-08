@@ -12,6 +12,7 @@ from aio_articleparser import Article, ArticleItem
 import json
 from pathlib import Path
 from collections.abc import MutableMapping
+import arsenic
 
 # Workaround to use cookies with illegal keys with aiohttp
 http.cookies._is_legal_key = lambda _: True
@@ -123,11 +124,9 @@ class AIOProxy:
         if article is None:
             article = Article(self.session, self.cookies)
             self.cache[doi] = article
-        await article.a_init(doi=doi)
+        entry = await article.a_init(doi=doi)
         if type == 'info':
-            result = {**article.manifest}
-            del result['files']
-            return web.Response(text=json.dumps(result),
+            return web.Response(text=json.dumps(entry),
                                 content_type='application/json')
         if type == 'fileinfo':
             try:
@@ -269,6 +268,20 @@ class AIOProxy:
             except FileNotFoundError:
                 raise web.HTTPNotFound
 
+    async def pyreadresolve(self, request):
+        doi = request.query.get('doi')
+        if doi is None:
+            raise web.HTTPBadRequest
+        service = arsenic.services.Geckodriver(binary='C:\\webdrivers\\'
+                                                      'geckodriver.exe')
+        browser = arsenic.browsers.Firefox(**{'moz:firefoxOptions':
+                                              {'args': ['-headless']}})
+        # browser = arsenic.browsers.Firefox()
+        async with arsenic.get_session(service, browser) as session:
+            await session.get('https://dx.doi.org/' + doi)
+            await asyncio.sleep(1000)
+            return web.Response(text="OK")
+
     async def pyreadredirect(self, request):
         page = (b'<!DOCTYPE html>'
                 b'<html>'
@@ -312,6 +325,8 @@ class AIOProxy:
             return await self.pyreadapi(request)
         elif path.startswith('/pyreadhome'):
             return await self.pyreadhome(request)
+        elif path.startswith('/pyreadresolve'):
+            return await self.pyreadresolve(request)
         else:
             return await self.proxy(request)
 

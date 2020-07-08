@@ -206,15 +206,16 @@ figure {
   padding-left: 10px;
   padding-right: 10px;
   padding-top: 8px;
-  width: 60px;
+  width: 20px;
   height: 52px;
   user-select: none;
+  flex-shrink: 0;
 }
 
 .sidenav-link {
   padding-top: 5px;
   padding-bottom: 5px;
   padding-left: 5px;
-  overflow-y: hidden;
+  overflow: hidden;
   user-select: none;
 }

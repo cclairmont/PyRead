@@ -265,6 +265,7 @@ class Article:
         else:
             self.manifest['files'] = {}
         await asyncio.gather(self.check_local(), self.update_manifest())
+        entry['local'] = self.manifest['local']
         self.entry = entry
         self._ainit_done = True
         return entry
