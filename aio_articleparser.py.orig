@@ -456,6 +456,7 @@ class Article:
         return ' '.join(s.split())
 
     async def fetch_metadata(self, doi=None, pmid=None, title=None):
+<<<<<<< HEAD
         if not Path('files/database.json').exists():
             with open('files/database.json', 'w') as f:
                 f.write(json.dumps({'doi': {}, 'pmid': {}, 'title': {}}))
@@ -470,6 +471,85 @@ class Article:
                     if entry is not None:
                         return entry
                 entry = await self._fetch_from_pubmed(title=title)
+=======
+        async with aiosqlite.connect(self.DATABASE) as db:
+            
+            if doi is None:
+                if pmid is None:
+                    if title is None:
+                        raise ArticleError("Must provide doi, pmid or title"
+                                           " to set article metadata")
+                    with open('files/database.json', 'r') as f:
+                        db = json.loads(f.read())
+                        entry = db['title'].get(title)
+                        if entry is not None:
+                            return entry
+                    entry = {'title': title}
+                    # Search pubmed by title to get DOI and PMID
+                    retry = True
+                    while retry:
+                        async with self.session.get(
+                                'https://pubmed.ncbi.nlm.nih.gov/?term="' +
+                                title.replace(' ', '+') + '"',
+                                cookies=self.cookies, ssl=sslcontext) as response:
+                            if response.status == 200:
+                                retry = False
+                                soup = BeautifulSoup(await response.read(), 'lxml')
+                    d_soup = soup.find('span', {'class': 'doi'})
+                    if d_soup is None:
+                        # This means there was more than one search result,
+                        # so we compare the titles of all of the search results
+                        # to our title and pick the closest one that is more
+                        # than 90% similar
+                        d_soup = soup.find_all('a',
+                                               {'class':
+                                                'labs-docsum-title'})
+                        max_score = 0
+                        max_link = ''
+                        for d in d_soup:
+                            score = SequenceMatcher(None, title,
+                                                    d.text.strip()).ratio()
+                            if score > max_score:
+                                max_score = score
+                                max_link = d['href']
+                        if max_score > 0.9:
+                            async with self.session.get('https://pubmed.ncbi.nlm.'
+                                                        'nih.gov' + max_link,
+                                                        cookies=self.cookies,
+                                                        ssl=sslcontext)\
+                                    as response:
+                                soup = BeautifulSoup(await response.read(),
+                                                     'lxml')
+                            d_soup = soup.find('span', {'class': 'doi'})
+                        else:
+                            d_soup = None
+                            soup = None
+                    if d_soup is None:
+                        entry['doi'] = None
+                        entry['pmid'] = None
+                    else:
+                        entry['doi'] = d_soup.find('a').text.strip()
+                        entry['pmid'] = soup.find('strong',
+                                                  {'class':
+                                                   'current-id'}).text.strip()
+                else:
+                    with open('files/database.json', 'r') as f:
+                        db = json.loads(f.read())
+                    entry = db['pmid'].get(pmid)
+                    if entry is not None:
+                        return entry
+                    entry = {'pmid': pmid}
+                    # Use the PMID to fetch the DOI from Pubmed
+                    async with self.session.get('https://pubmed.ncbi.nlm.nih.'
+                                                'gov/' + pmid,
+                                                cookies=self.cookies,
+                                                ssl=sslcontext)\
+                            as response:
+                        soup = BeautifulSoup(await response.read(),
+                                             'lxml')
+                    d_soup = soup.find('span', {'class': 'doi'})
+                    entry['doi'] = d_soup.find('a').text.strip()
+>>>>>>> Started transition to aiosqlite
             else:
                 self.path = Path('files', doi)
                 with open('files/database.json', 'r') as f:
@@ -477,6 +557,7 @@ class Article:
                 entry = db['doi'].get(doi)
                 if entry is not None:
                     return entry
+<<<<<<< HEAD
                 entry = await self._fetch_from_pubmed(doi=doi)
                 entry['doi'] = doi
         else:
@@ -500,6 +581,162 @@ class Article:
                     entry[k] = result.get(k)
         await self.update_meta_db(entry)
         return entry
+=======
+                entry = {'doi': doi}
+                if pmid is None:
+                    url = URL('https://pubmed.ncbi.nlm.nih.gov/')
+                    encoded_query = 'term=' + urllib.parse.quote(f'"{doi}"')
+                    url._val = urllib.parse.SplitResult(url._val.scheme,
+                                                        url._val.netloc,
+                                                        url._val.path,
+                                                        encoded_query,
+                                                        url._val.fragment)
+                    # Fetch the PMID from pubmed by searching for the DOI
+                    retry = True
+                    while retry:
+                        async with self.session.get(url, cookies=self.cookies,
+                                                    ssl=sslcontext) as\
+                                response:
+                            if response.status == 200:
+                                soup = BeautifulSoup(await response.read(),
+                                                     'lxml')
+                                retry = False
+                    try:
+                        entry['pmid'] = soup.find('strong',
+                                                  {'class': 'current-id'}).text
+                    except AttributeError:
+                        entry['pmid'] = None
+                else:
+                    entry['pmid'] = pmid
+            if entry.get('doi') is not None:
+                self.doi = entry['doi']
+                if 'pmid' in entry:
+                    self.pmid = entry['pmid']
+                else:
+                    self.pmid = None
+                self.path = Path('files', self.doi)
+            elif entry.get('pmid') is not None:
+                self.doi = None
+                self.pmid = entry['pmid']
+                self.path = Path('files', 'pmid', self.pmid)
+            else:
+                self.doi = None
+                self.pmid = None
+                self.path = None
+            if not hasattr(self, 'manifest'):
+                self.manifest = {}
+            doi_success = False
+            if self.doi is not None:
+                headers = {**self.headers,
+                           'Accept': 'application/vnd.crossref.unixsd+xml'}
+                url = 'http://dx.doi.org/' + entry['doi']
+                async with self.session.get(url, headers=headers,
+                                            cookies=self.cookies,
+                                            ssl=sslcontext) as response:
+                    try:
+                        self.update_metadata(await response.read())
+                        if (self.manifest.get('title') is not None and
+                                self.manifest.get('authors') is not None and
+                                self.manifest.get('journal') is not None and
+                                self.manifest.get('date') is not None):
+                            doi_success = True
+                    except AttributeError:  # Issue with crossref entry
+                        pass
+            entry['doi_success'] = doi_success
+            if not doi_success:
+                if self.pmid is not None:
+                    retry = True
+                    while retry:
+                        async with self.session.get(
+                                'https://pubmed.ncbi.nlm.nih.gov/'
+                                + self.pmid, cookies=self.cookies,
+                                ssl=sslcontext) as response:
+                            if response.status == 200:
+                                retry = False
+                                soup = BeautifulSoup(await response.read(), 'lxml')
+                else:
+                    url = URL('https://pubmed.ncbi.nlm.nih.gov/')
+                    encoded_query = 'term=' + urllib.parse.quote(f'"{doi}"')
+                    url._val = urllib.parse.SplitResult(url._val.scheme,
+                                                        url._val.netloc,
+                                                        url._val.path,
+                                                        encoded_query,
+                                                        url._val.fragment)
+                    retry = True
+                    while retry:
+                        async with self.session.get(url, cookies=self.cookies,
+                                                    ssl=sslcontext) as response:
+                            if response.status == 200:
+                                retry = False
+                                soup = BeautifulSoup(await response.read(), 'lxml')
+                    d_soup = soup.find('span', {'class': 'doi'})
+                    if d_soup is None:
+                        d_soup = soup.find_all('a',
+                                               {'class':
+                                                'labs-docsum-title'})
+                        max_score = 0
+                        max_link = ''
+                        for d in d_soup:
+                            score = SequenceMatcher(None, title,
+                                                    d.text.strip()).ratio()
+                            if score > max_score:
+                                max_score = score
+                                max_link = d['href']
+                        if max_score > 0.9:
+                            async with self.session.get('https://pubmed.ncbi.nlm.'
+                                                        'nih.gov' + max_link,
+                                                        cookies=self.cookies,
+                                                        ssl=sslcontext)\
+                                    as response:
+                                soup = BeautifulSoup(await response.read(),
+                                                     'lxml')
+                    try:
+                        self.pmid = soup.find('strong', {'class':
+                                                         'current-id'}).text
+                    except AttributeError:
+                        self.pmid = None
+                    entry['pmid'] = self.pmid
+                if not hasattr(self, 'manifest'):
+                    self.manifest = {}
+                try:
+                    cite = soup.find('span', {'class': 'cit'}).text
+                    date = cite[:cite.find(';')]
+                    date = self._parse_date(date)
+                    a_list = soup.find('div', {'class': 'authors-list'})
+                    if a_list is not None:
+                        authors = a_list.find_all('a', {'class': 'full-name'})
+                    else:
+                        authors = []
+                    a_list = []
+                    for a in authors:
+                        a_list.append(a.text.strip())
+                    if self.manifest.get('title') is None:
+                        self.manifest['title'] = soup.find('h1',
+                                                           {'class':
+                                                            'heading-title'})\
+                                                           .text.strip()
+                    if self.manifest.get('journal') is None:
+                        self.manifest['journal'] = \
+                            soup.find('button',
+                                      {'id':
+                                       'full-view-journal-trigger'})['title'].\
+                            strip()
+                    if self.manifest.get('date') is None:
+                        self.manifest['date'] = date.isoformat()
+                    if self.manifest.get('author') is None:
+                        self.manifest['authors'] = a_list
+                    self.manifest['metadate'] = datetime.now().isoformat()
+                except AttributeError:
+                    pass
+            entry['title'] = self.manifest.get('title')
+            entry['authors'] = self.manifest.get('authors')
+            entry['date'] = self.manifest.get('date')
+            self.manifest['local'] = bool(entry.get('local'))
+            self.manifest['doi'] = self.doi
+            self.manifest['pmid'] = self.pmid
+            await self.update_meta_db(entry)
+            return entry
+>>>>>>> Started transition to aiosqlite
 
     def add_content(self, content, overwrite=True):
         if not hasattr(self, 'content'):
