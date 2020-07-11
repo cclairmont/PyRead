@@ -471,7 +471,6 @@ class Article:
                         return entry
                 entry = await self._fetch_from_pubmed(title=title)
             else:
-                self.path = Path('files', doi)
                 with open('files/database.json', 'r') as f:
                     db = json.loads(f.read())
                 entry = db['doi'].get(doi)
