@@ -10,6 +10,8 @@ import aiofiles
 from difflib import SequenceMatcher
 from yarl import URL
 import asyncio
+import re
+import urllib
 
 sslcontext = ssl.create_default_context(cafile=certifi.where())
 
@@ -270,6 +272,77 @@ class Article:
         self._ainit_done = True
         return entry
 
+    def _parse_date(self, date):
+        months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG',
+                  'SEP', 'OCT', 'NOV', 'DEC']
+        long_months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+                       'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER',
+                       'DECEMBER']
+        try:
+            return datetime.strptime(date, '%Y %b %d')
+        except ValueError:
+            pass
+        try:
+            return datetime.strptime(date, '%Y %B %d')
+        except ValueError:
+            pass
+        try:
+            return datetime.strptime(date, '%b %Y')
+        except ValueError:
+            pass
+        try:
+            return datetime.strptime(date, '%B %Y')
+        except ValueError:
+            pass
+        try:
+            return datetime.strptime(date, '%Y %b')
+        except ValueError:
+            pass
+        try:
+            return datetime.strptime(date, '%Y %B')
+        except ValueError:
+            pass
+        try:
+            return datetime.strptime(date, '%Y')
+        except ValueError:
+            pass
+        datestring = ''
+        pstring = ''
+        match = re.search(r'(\d+)?(.*)?(\d\d\d\d)', date)
+        if match[1] is not None and match[1] != '':
+            datestring += match[1]
+            pstring += '%d'
+        if match[2] is not None and match[2] != '':
+            first_match_pos = -1
+            month = ''
+            for m in months:
+                match_pos = datestring.find(m)
+                if first_match_pos == -1 or match_pos < first_match_pos:
+                    month = m
+                    first_match_pos = match_pos
+            if month != '':
+                datestring += month
+                pstring += '%b'
+            else:
+                first_match_pos = -1
+                month = ''
+                for m in long_months:
+                    match_pos = datestring.find(m)
+                    if first_match_pos == -1 or match_pos < first_match_pos:
+                        month = m
+                        first_match_pos = match_pos
+                    if month != '':
+                        datestring += month
+                        pstring += '%B'
+        if match[3] is not None and match[3] != '':
+            datestring += match[3]
+            pstring += '%Y'
+        return datetime.strptime(datestring, pstring)
+
+    def _sanitize(self, s):
+        s = re.sub(r'\\n', '', s)
+        return ' '.join(s.split())
+
     async def fetch_metadata(self, doi=None, pmid=None, title=None):
         if not Path('files/database.json').exists():
             with open('files/database.json', 'w') as f:
@@ -286,12 +359,15 @@ class Article:
                         return entry
                 entry = {'title': title}
                 # Search pubmed by title to get DOI and PMID
-                async with self.session.get('https://pubmed.ncbi.nlm.nih.gov/'
-                                            '?term="' +
-                                            title.replace(' ', '+') + '"',
-                                            cookies=self.cookies,
-                                            ssl=sslcontext) as response:
-                    soup = BeautifulSoup(await response.read(), 'lxml')
+                retry = True
+                while retry:
+                    async with self.session.get(
+                            'https://pubmed.ncbi.nlm.nih.gov/?term="' +
+                            title.replace(' ', '+') + '"',
+                            cookies=self.cookies, ssl=sslcontext) as response:
+                        if response.status == 200:
+                            retry = False
+                            soup = BeautifulSoup(await response.read(), 'lxml')
                 d_soup = soup.find('span', {'class': 'doi'})
                 if d_soup is None:
                     # This means there was more than one search result,
@@ -355,14 +431,23 @@ class Article:
                 return entry
             entry = {'doi': doi}
             if pmid is None:
+                url = URL('https://pubmed.ncbi.nlm.nih.gov/')
+                encoded_query = 'term=' + urllib.parse.quote(f'"{doi}"')
+                url._val = urllib.parse.SplitResult(url._val.scheme,
+                                                    url._val.netloc,
+                                                    url._val.path,
+                                                    encoded_query,
+                                                    url._val.fragment)
                 # Fetch the PMID from pubmed by searching for the DOI
-                async with self.session.get('https://pubmed.ncbi.nlm.nih.'
-                                            'gov/?term=' + doi,
-                                            cookies=self.cookies,
-                                            ssl=sslcontext) as\
-                        response:
-                    soup = BeautifulSoup(await response.read(),
-                                         'lxml')
+                retry = True
+                while retry:
+                    async with self.session.get(url, cookies=self.cookies,
+                                                ssl=sslcontext) as\
+                            response:
+                        if response.status == 200:
+                            soup = BeautifulSoup(await response.read(),
+                                                 'lxml')
+                            retry = False
                 try:
                     entry['pmid'] = soup.find('strong',
                                               {'class': 'current-id'}).text
@@ -397,37 +482,100 @@ class Article:
                                         ssl=sslcontext) as response:
                 try:
                     self.update_metadata(await response.read())
-                    doi_success = True
+                    if (self.manifest.get('title') is not None and
+                            self.manifest.get('authors') is not None and
+                            self.manifest.get('journal') is not None and
+                            self.manifest.get('date') is not None):
+                        doi_success = True
                 except AttributeError:  # Issue with crossref entry
                     pass
-        if not doi_success and self.pmid is not None:
-            async with self.session.get('https://pubmed.ncbi.nlm.nih.gov/'
-                                        + self.pmid, cookies=self.cookies,
-                                        ssl=sslcontext) as response:
-                soup = BeautifulSoup(await response.read(), 'lxml')
-            cite = soup.find('span', {'class': 'cit'}).text
-            date = cite[:cite.find(';')]
+        entry['doi_success'] = doi_success
+        if not doi_success:
+            if self.pmid is not None:
+                retry = True
+                while retry:
+                    async with self.session.get(
+                            'https://pubmed.ncbi.nlm.nih.gov/'
+                            + self.pmid, cookies=self.cookies,
+                            ssl=sslcontext) as response:
+                        if response.status == 200:
+                            retry = False
+                            soup = BeautifulSoup(await response.read(), 'lxml')
+            else:
+                url = URL('https://pubmed.ncbi.nlm.nih.gov/')
+                encoded_query = 'term=' + urllib.parse.quote(f'"{doi}"')
+                url._val = urllib.parse.SplitResult(url._val.scheme,
+                                                    url._val.netloc,
+                                                    url._val.path,
+                                                    encoded_query,
+                                                    url._val.fragment)
+                retry = True
+                while retry:
+                    async with self.session.get(url, cookies=self.cookies,
+                                                ssl=sslcontext) as response:
+                        if response.status == 200:
+                            retry = False
+                            soup = BeautifulSoup(await response.read(), 'lxml')
+                d_soup = soup.find('span', {'class': 'doi'})
+                if d_soup is None:
+                    d_soup = soup.find_all('a',
+                                           {'class':
+                                            'labs-docsum-title'})
+                    max_score = 0
+                    max_link = ''
+                    for d in d_soup:
+                        score = SequenceMatcher(None, title,
+                                                d.text.strip()).ratio()
+                        if score > max_score:
+                            max_score = score
+                            max_link = d['href']
+                    if max_score > 0.9:
+                        async with self.session.get('https://pubmed.ncbi.nlm.'
+                                                    'nih.gov' + max_link,
+                                                    cookies=self.cookies,
+                                                    ssl=sslcontext)\
+                                as response:
+                            soup = BeautifulSoup(await response.read(),
+                                                 'lxml')
+                try:
+                    self.pmid = soup.find('strong', {'class':
+                                                     'current-id'}).text
+                except AttributeError:
+                    self.pmid = None
+                entry['pmid'] = self.pmid
+            if not hasattr(self, 'manifest'):
+                self.manifest = {}
             try:
-                date = datetime.strptime(date, '%Y %b %d')
-            except ValueError:
-                date = datetime.strptime(date, '%Y')
-            a_list = soup.find('div', {'class': 'authors-list'})
-            authors = a_list.find_all('a', {'class': 'full-name'})
-            a_list = []
-            for a in authors:
-                a_list.append(a.text)
-            self.manifest['title'] = soup.find('h1',
-                                               {'class':
-                                                'heading-title'}).text
-            self.manifest['journal'] = \
-                soup.find('button',
-                          {'id': 'full-view-journal-trigger'}).title
-            self.manifest['date'] = date.isoformat()
-            self.manifest['authors'] = a_list
-            self.manifest['metadate'] = datetime.now().isoformat()
-        else:
-            self.manifest['title'] = title
-        entry['title'] = self.manifest['title']
+                cite = soup.find('span', {'class': 'cit'}).text
+                date = cite[:cite.find(';')]
+                date = self._parse_date(date)
+                a_list = soup.find('div', {'class': 'authors-list'})
+                if a_list is not None:
+                    authors = a_list.find_all('a', {'class': 'full-name'})
+                else:
+                    authors = []
+                a_list = []
+                for a in authors:
+                    a_list.append(a.text.strip())
+                if self.manifest.get('title') is None:
+                    self.manifest['title'] = soup.find('h1',
+                                                       {'class':
+                                                        'heading-title'})\
+                                                       .text.strip()
+                if self.manifest.get('journal') is None:
+                    self.manifest['journal'] = \
+                        soup.find('button',
+                                  {'id':
+                                   'full-view-journal-trigger'})['title'].\
+                        strip()
+                if self.manifest.get('date') is None:
+                    self.manifest['date'] = date.isoformat()
+                if self.manifest.get('author') is None:
+                    self.manifest['authors'] = a_list
+                self.manifest['metadate'] = datetime.now().isoformat()
+            except AttributeError:
+                pass
+        entry['title'] = self.manifest.get('title')
         entry['authors'] = self.manifest.get('authors')
         entry['date'] = self.manifest.get('date')
         self.manifest['local'] = bool(entry.get('local'))
@@ -480,7 +628,7 @@ class Article:
             if a['contributor_role'] == 'author':
                 name = a.given_name.text + ' ' + a.surname.text
                 authors.append(name)
-        self.manifest['title'] = title
+        self.manifest['title'] = self._sanitize(title)
         self.manifest['journal'] = journal
         self.manifest['date'] = date.isoformat()
         self.manifest['authors'] = authors
@@ -541,25 +689,30 @@ class Article:
                         # Must be an author list
                         match = False
                         nested = False
-                        for i, e1 in enumerate(v1):
-                            # If these are strings, its not a nested list
-                            if isinstance(e1, str):
-                                if e1 != ref[k1][i]:
-                                    break
-                            elif isinstance(e1, list):
-                                # DB is a nested list
-                                nested = True
-                                for i, e2 in enumerate(e1):
-                                    if e2 != ref[k1][i]:
+                        if v1 == [] or ref[k1] == []:
+                            nested = False
+                            match = ref[k1] == v1
+                        else:
+                            for i, e1 in enumerate(v1):
+                                # If these are strings, its not a nested list
+                                if isinstance(e1, str):
+                                    if e1 != ref[k1][i]:
                                         break
-                                if i == len(e2) and i == len(ref[k1]):
-                                    match = True
-                                    break
-                            else:
-                                if e1 != ref[k1][i]:
-                                    break
-                        if not nested and i == len(e1) and i == len(ref[k1]):
-                            match = True
+                                elif isinstance(e1, list):
+                                    # DB is a nested list
+                                    nested = True
+                                    for i, e2 in enumerate(e1):
+                                        if e2 != ref[k1][i]:
+                                            break
+                                    if i == len(e2) and i == len(ref[k1]):
+                                        match = True
+                                        break
+                                else:
+                                    if e1 != ref[k1][i]:
+                                        break
+                            if (not nested and i == len(e1) and
+                                i == len(ref[k1])):
+                                match = True
                         if not match:
                             if nested:
                                 db[k1].append(ref[k1])
