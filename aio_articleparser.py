@@ -456,38 +456,42 @@ class Article:
         return ' '.join(s.split())
 
     async def fetch_metadata(self, doi=None, pmid=None, title=None):
-        if not Path('files/database.json').exists():
-            with open('files/database.json', 'w') as f:
-                f.write(json.dumps({'doi': {}, 'pmid': {}, 'title': {}}))
-        if pmid is None:
-            if doi is None:
-                if title is None:
-                    raise ArticleError("Must provide doi, pmid or title"
-                                       " to set article metadata")
-                with open('files/database.json', 'r') as f:
-                    db = json.loads(f.read())
-                    entry = db['title'].get(title)
-                    if entry is not None:
-                        return entry
-                entry = await self._fetch_from_pubmed(title=title)
-            else:
-                with open('files/database.json', 'r') as f:
-                    db = json.loads(f.read())
-                entry = db['doi'].get(doi)
-                if entry is not None:
-                    return entry
-                entry = await self._fetch_from_pubmed(doi=doi)
-                entry['doi'] = doi
-        else:
-            with open('files/database.json', 'r') as f:
-                db = json.loads(f.read())
-            entry = db['pmid'].get(pmid)
-            if entry is not None:
-                return entry
-            entry = await self._fetch_from_pubmed(pmid=pmid)
+        async with aiosqlite.connect('files/pyread.db') as db_conn:
+            async with db_conn.cursor() as db:
+                await db.execute('CREATE TABLE IF NOT EXISTS ref_database ('
+                                 'DOI varchar(255),'
+                                 'PMID int,'
+                                 'Title text,'
+                                 'Authors text,'
+                                 'Journal varchar(255),'
+                                 'Date char(19)'
+                                 ');')
+                if pmid is None:
+                    if doi is None:
+                        if title is None:
+                            raise ArticleError('Must provide doi, pmid or '
+                                               'title to set article metadata')
+                        await db.execute('SELECT * FROM ref_database '
+                                         'WHERE Title=?;', (title,))
+                    else:
+                        await db.execute('SELECT * FROM ref_database '
+                                         'WHERE DOI=?;', (doi,))
+                else:
+                    await db.execute('SELECT * FROM ref_database '
+                                     'WHERE PMID=?;', (pmid,))
+                entry = await db.fetchone()
+        if entry is not None:
+            return {'doi': entry[0], 'pmid': str(entry[1]),
+                    'title': entry[2], 'authors': json.loads(entry[3]),
+                    'journal': entry[4], 'date': entry[5]}
+        entry = await self._fetch_from_pubmed(doi=doi, pmid=pmid,
+                                              title=title)
+        if entry.get('doi') is None:
+            entry['doi'] = doi
+        if entry.get('pmid') is None:
             entry['pmid'] = pmid
-            assert(doi is None or doi == entry['doi'])
-        print(f'{entry["doi"]}: {json.dumps(entry).encode("utf-8")}')
+        if entry.get('title') is None:
+            entry['title'] = title
         pubmed_success = False
         for v in entry.values():
             if v is None:
@@ -497,7 +501,20 @@ class Article:
             for k, v in entry.items():
                 if v is None or v == []:
                     entry[k] = result.get(k)
-        await self.update_meta_db(entry)
+        if entry['pmid'] is not None:
+            db_pmid = int(entry['pmid'])
+        else:
+            db_pmid = None
+        async with aiosqlite.connect('files/pyread.db') as db_conn:
+            async with db_conn.cursor() as db:
+                await db.execute('INSERT INTO ref_database VALUES '
+                                 '(?,?,?,?,?,?)', (entry['doi'], db_pmid,
+                                                   entry['title'],
+                                                   json.dumps(
+                                                       entry['authors']),
+                                                   entry['journal'],
+                                                   entry['date']))
+            await db_conn.commit()
         return entry
 
     def add_content(self, content, overwrite=True):
@@ -523,8 +540,6 @@ class Article:
                                                    doi=ref.get('doi'),
                                                    pmid=ref.get('pmid'),
                                                    title=ref.get('title'))
-            entry = self.update_dbentry(entry, ref)
-            await self.update_meta_db(entry)
         if not hasattr(self, 'references'):
             self.references = []
         if num >= len(self.references):
@@ -555,101 +570,6 @@ class Article:
         async with aiofiles.open(str(manifest_path), 'w',
                                  encoding='utf-8') as m:
             await m.write(json.dumps(self.manifest))
-
-    async def update_meta_db(self, entry):
-        with open('files/database.json', 'r') as f:
-            db = json.loads(f.read())
-        if entry.get('doi') is not None:
-            db_entry = db['doi'].get(entry['doi'])
-            db_entry = self.update_dbentry(db_entry, entry)
-            db['doi'][entry['doi']] = db_entry
-        if entry.get('pmid') is not None:
-            db_entry = db['pmid'].get(entry['pmid'])
-            db_entry = self.update_dbentry(db_entry, entry)
-            db['pmid'][entry['pmid']] = db_entry
-        if entry.get('title') is not None:
-            db_entry = db['title'].get(entry['title'])
-            db_entry = self.update_dbentry(db_entry, entry)
-            db['title'][entry['title']] = db_entry
-        with open('files/database.json', 'w') as f:
-            f.write(json.dumps(db))
-
-    def update_dbentry(self, db, ref):
-        if db is None:
-            return ref
-        if ref is None:
-            return db
-        for k1, v1 in db.items():
-            if k1 in ref and ref[k1] is not None:
-                if k1 == 'local':
-                    if not v1 and k1 in ref:
-                        db[k1] = ref[k1]
-                    continue
-                if v1 is None:
-                    db[k1] = ref[k1]
-                    continue
-                if isinstance(v1, str):
-                    if v1 == ref[k1]:
-                        continue
-                    else:
-                        db[k1] = [v1].append(ref[k1])
-                elif isinstance(v1, list):
-                    # Either author list of list of variants
-                    if isinstance(ref[k1], str):
-                        # Must not be an author list
-                        if ref[k1] in v1:
-                            continue
-                        else:
-                            db[k1].append(ref[k1])
-                    elif isinstance(ref[k1], list):
-                        # Must be an author list
-                        match = False
-                        nested = False
-                        if v1 == [] or ref[k1] == []:
-                            nested = False
-                            match = ref[k1] == v1
-                        else:
-                            for i, e1 in enumerate(v1):
-                                # If these are strings, its not a nested list
-                                if isinstance(e1, str):
-                                    if e1 != ref[k1][i]:
-                                        break
-                                elif isinstance(e1, list):
-                                    # DB is a nested list
-                                    nested = True
-                                    for i, e2 in enumerate(e1):
-                                        if e2 != ref[k1][i]:
-                                            break
-                                    if i == len(e2) and i == len(ref[k1]):
-                                        match = True
-                                        break
-                                else:
-                                    if e1 != ref[k1][i]:
-                                        break
-                            if (not nested and i == len(e1) and
-                                    i == len(ref[k1])):
-                                match = True
-                        if not match:
-                            if nested:
-                                db[k1].append(ref[k1])
-                            if not nested:
-                                db[k1] = [v1].append(ref[k1])
-                    else:
-                        if ref[k1] in v1:
-                            continue
-                        else:
-                            db[k1].append(ref[k1])
-                else:
-                    if v1 == ref[k1]:
-                        continue
-                    else:
-                        db[k1] = [v1].append(ref[k1])
-            else:
-                ref[k1] = v1
-        for k2, v2 in ref.items():
-            if k2 not in db:
-                db[k2] = v2
-        return db
 
     async def save(self):
         async with aiofiles.open(str(self.path.joinpath('content.json')),
