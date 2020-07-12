@@ -12,7 +12,7 @@ from aio_articleparser import Article, ArticleItem
 import json
 from pathlib import Path
 from collections.abc import MutableMapping
-import arsenic
+import arsenic_hacks as arsenic
 
 # Workaround to use cookies with illegal keys with aiohttp
 http.cookies._is_legal_key = lambda _: True
@@ -272,15 +272,13 @@ class AIOProxy:
         doi = request.query.get('doi')
         if doi is None:
             raise web.HTTPBadRequest
-        service = arsenic.services.Geckodriver(binary='C:\\webdrivers\\'
-                                                      'geckodriver.exe')
-        browser = arsenic.browsers.Firefox(**{'moz:firefoxOptions':
-                                              {'args': ['-headless']}})
-        # browser = arsenic.browsers.Firefox()
-        async with arsenic.get_session(service, browser) as session:
+        service = arsenic.PyrGeckodriver(
+            binary='C:\\webdrivers\\geckodriver.exe')
+        browser = arsenic.PyrFirefox(**{'moz:firefoxOptions':
+                                     {'args': ['-headless']}})
+        async with arsenic.pyr_get_session(service, browser) as session:
             await session.get('https://dx.doi.org/' + doi)
-            await asyncio.sleep(1000)
-            return web.Response(text="OK")
+            return web.Response(text=await session.get_url())
 
     async def pyreadredirect(self, request):
         page = (b'<!DOCTYPE html>'
