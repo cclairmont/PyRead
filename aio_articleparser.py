@@ -230,9 +230,19 @@ class ArticleFile:
 
 class Article:
 
-    headers = {'User-Agent':
+    HEADERS = {'User-Agent':
                'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:77.0) '
                'Gecko/20100101 Firefox/77.0'}
+
+    DB_LOCATION = 'files/pyread.db'
+
+    DB_COLS = {'doi': 'varchar(255)',
+               'pmid': 'int',
+               'title': 'text',
+               'authors': 'text',
+               'journal': 'varchar(255)',
+               'date': 'char(19)',
+               'local': 'char'}
 
     def __init__(self, session, cookies):
         self._ainit_done = False
@@ -361,7 +371,7 @@ class Article:
     async def _fetch_from_crossref(self, doi):
         result = {'title': None, 'authors': None, 'journal': None,
                   'date': None}
-        headers = {**self.headers,
+        headers = {**self.HEADERS,
                    'Accept': 'application/vnd.crossref.unixsd+xml'}
         url = 'http://dx.doi.org/' + doi
         async with self.session.get(url, headers=headers,
@@ -456,36 +466,16 @@ class Article:
         return ' '.join(s.split())
 
     async def fetch_metadata(self, doi=None, pmid=None, title=None):
-        async with aiosqlite.connect('files/pyread.db') as db_conn:
+        async with aiosqlite.connect(self.DB_LOCATION) as db_conn:
             async with db_conn.cursor() as db:
-                await db.execute('CREATE TABLE IF NOT EXISTS ref_database ('
-                                 'DOI varchar(255),'
-                                 'PMID int,'
-                                 'Title text,'
-                                 'Authors text,'
-                                 'Journal varchar(255),'
-                                 'Date char(19)'
-                                 ');')
-                if pmid is None:
-                    if doi is None:
-                        if title is None:
-                            raise ArticleError('Must provide doi, pmid or '
-                                               'title to set article metadata')
-                        await db.execute('SELECT * FROM ref_database '
-                                         'WHERE Title=?;', (title,))
-                    else:
-                        await db.execute('SELECT * FROM ref_database '
-                                         'WHERE DOI=?;', (doi,))
-                else:
-                    await db.execute('SELECT * FROM ref_database '
-                                     'WHERE PMID=?;', (pmid,))
-                entry = await db.fetchone()
-        if entry is not None:
-            return {'doi': entry[0], 'pmid': str(entry[1]),
-                    'title': entry[2], 'authors': json.loads(entry[3]),
-                    'journal': entry[4], 'date': entry[5]}
-        entry = await self._fetch_from_pubmed(doi=doi, pmid=pmid,
-                                              title=title)
+                await db.execute('CREATE TABLE IF NOT EXISTS ref_database (' +
+                                 ','.join([' '.join([k, v])
+                                           for k, v in self.DB_COLS.items()]) +
+                                 ')')
+        entry, key = await self._from_db({'doi': doi, 'pmid': pmid})
+        if entry is not None and entry != {}:
+            return entry
+        entry = await self._fetch_from_pubmed(doi=doi, pmid=pmid, title=title)
         if entry.get('doi') is None:
             entry['doi'] = doi
         if entry.get('pmid') is None:
@@ -501,20 +491,7 @@ class Article:
             for k, v in entry.items():
                 if v is None or v == []:
                     entry[k] = result.get(k)
-        if entry['pmid'] is not None:
-            db_pmid = int(entry['pmid'])
-        else:
-            db_pmid = None
-        async with aiosqlite.connect('files/pyread.db') as db_conn:
-            async with db_conn.cursor() as db:
-                await db.execute('INSERT INTO ref_database VALUES '
-                                 '(?,?,?,?,?,?)', (entry['doi'], db_pmid,
-                                                   entry['title'],
-                                                   json.dumps(
-                                                       entry['authors']),
-                                                   entry['journal'],
-                                                   entry['date']))
-            await db_conn.commit()
+        await self._add_to_db(entry)
         return entry
 
     def add_content(self, content, overwrite=True):
@@ -694,6 +671,85 @@ class Article:
 
     def meta_date(self):
         return self.manifest.get('metadate')
+
+    async def _from_db(self, entry):
+        result = None
+        async with aiosqlite.connect(self.DB_LOCATION) as db_conn:
+            async with db_conn.cursor() as db:
+                if entry.get('doi') is not None:
+                    await db.execute('SELECT * FROM ref_database '
+                                     'WHERE doi=?;', (entry['doi'],))
+                    key = 'doi'
+                    result = await db.fetchone()
+                if result is None and entry.get('pmid') is not None:
+                    await db.execute('SELECT * FROM ref_database '
+                                     'WHERE pmid=?;', (entry['pmid'],))
+                    key = 'pmid'
+                    result = await db.fetchone()
+                if result is None:
+                    key = None
+            new_entry = {}
+            if result is not None:
+                for k, e in zip(self.DB_COLS.keys(), result):
+                    if k == 'pmid':
+                        if e is not None:
+                            e = str(e)
+                    elif k == 'local':
+                        e = e == 'T'
+                    elif k == 'authors':
+                        e = json.loads(e)
+                    new_entry[k] = e
+            return new_entry, key
+
+    async def _add_to_db(self, entry):
+        new_entry = {**entry}
+        if entry.get('pmid') is not None:
+            new_entry['pmid'] = int(entry['pmid'])
+        if entry.get('local') is True:
+            new_entry['local'] = 'T'
+        else:
+            new_entry['local'] = 'F'
+        if entry.get('authors') is not None:
+            new_entry['authors'] = json.dumps(entry['authors'])
+        async with aiosqlite.connect(self.DB_LOCATION) as db_conn:
+            async with db_conn.cursor() as db:
+                await db.execute('INSERT INTO ref_database VALUES (' +
+                                 ','.join(["?"]*len(self.DB_COLS)) + ')',
+                                 tuple(new_entry.get(k) for k in
+                                       self.DB_COLS.keys()))
+            await db_conn.commit()
+
+    async def _update_db(self, entry, key='doi'):
+        new_entry = {**entry}
+        if entry.get('pmid') is not None:
+            new_entry['pmid'] = int(entry['pmid'])
+        if entry.get('local') is True:
+            new_entry['local'] = 'T'
+        else:
+            new_entry['local'] = 'F'
+        if entry.get('authors') is not None:
+            new_entry['authors'] = json.dumps(entry['authors'])
+        async with aiosqlite.connect(self.DB_LOCATION) as db_conn:
+            async with db_conn.cursor() as db:
+                await db.execute('UPDATE ref_database SET ' +
+                                 ','.join([k + ' = ?' for k in
+                                           self.DB_COLS.keys()]) +
+                                 f'WHERE {key}=?'
+                                 (new_entry.get(k) for k
+                                  in self.DB_COLS.keys()) + (entry[key],))
+
+    async def update_meta_db(self, entry, overwrite=False):
+        result, key = await self._from_db(entry)
+        if not overwrite:
+            for k, v in result.items():
+                if entry.get(k) is not None:
+                    if k != 'local':
+                        assert(entry[k] == v)
+
+        if key is None:
+            await self._add_to_db(entry)
+        else:
+            await self._update_db(entry, key=key)
 
     async def check_local(self):
         result = await self.verify_integrity()
