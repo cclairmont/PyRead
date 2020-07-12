@@ -599,7 +599,14 @@ function add_reflinks() {
           })(slicers, k);
           var reftiplabel = document.createElement("span");
           reftiplabel.className = "ref-tip-label";
-          reftiplabel.innerHTML = references[slicers[0] - 1 + k].label;
+          var authors = references[slicers[0] - 1 + k].authors;
+          var first_auth = authors[0].slice(authors[0].lastIndexOf(' '));
+          var year = references[slicers[0] - 1 + k].date.slice(0,4);
+          if (authors.length == 1) {
+            reftiplabel.innerHTML = first_auth + ' ' + year;
+          } else {
+            reftiplabel.innerHTML = first_auth + ' et al. ' + year;
+          }
           var reftiptitle = document.createElement("span");
           reftiptitle.className = "ref-tip-title";
           reftiptitle.innerHTML = references[slicers[0] - 1 + k].title;
