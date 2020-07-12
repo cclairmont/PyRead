@@ -734,9 +734,9 @@ class Article:
                 await db.execute('UPDATE ref_database SET ' +
                                  ','.join([k + ' = ?' for k in
                                            self.DB_COLS.keys()]) +
-                                 f'WHERE {key}=?'
-                                 (new_entry.get(k) for k
-                                  in self.DB_COLS.keys()) + (entry[key],))
+                                 f'WHERE {key}=?',
+                                 tuple(new_entry.get(k) for k
+                                       in self.DB_COLS.keys()) + (entry[key],))
 
     async def update_meta_db(self, entry, overwrite=False):
         result, key = await self._from_db(entry)
