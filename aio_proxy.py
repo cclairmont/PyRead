@@ -19,6 +19,10 @@ http.cookies._is_legal_key = lambda _: True
 
 sslcontext = ssl.create_default_context(cafile=certifi.where())
 
+CAPABILITIES = {
+    'https://www.sciencedirect.com': 'sciencedirect.js'
+}
+
 
 class PyrCache(MutableMapping):
 
@@ -243,9 +247,19 @@ class AIOProxy:
                                     max_redirects=20) as response:
             body = await response.content.read()
             if response.content_type == 'text/html':
+                scraper = None
+                for c in CAPABILITIES:
+                    if (self.netloc + str(request.rel_url)).startswith(c):
+                        scraper = CAPABILITIES[c].encode('utf-8')
                 head_end = body.find(b'</head>')
                 if head_end != -1:
-                    body = body[:head_end] +\
+                    if scraper is not None:
+                        scraper_str = b'<script type="text/javascript"'\
+                                      b' src="/pyreadasset?file=scrapers/' +\
+                                      scraper + b'"></script>'
+                    else:
+                        scraper_str = b''
+                    body = body[:head_end] + scraper_str +\
                         b'<script type="text/javascript"'\
                         b' src="/pyreadasset?file=pyreadscrape.js"></script>'\
                         + body[head_end:]
@@ -270,9 +284,7 @@ class AIOProxy:
 
     async def pyreadresolve(self, request):
         TIMEOUT = 20
-        data = await request.json()
-        doi = data.get('doi')
-        capabilities = data.get('capabilities')
+        doi = request.query.get('doi')
         if doi is None:
             raise web.HTTPBadRequest
         service = arsenic.PyrGeckodriver(
@@ -285,7 +297,7 @@ class AIOProxy:
             while not found and retry_num < TIMEOUT:
                 await session.get('https://dx.doi.org/' + doi)
                 current_url = await session.get_url()
-                for c in capabilities:
+                for c in CAPABILITIES:
                     if current_url.startswith(c):
                         found = True
                         break

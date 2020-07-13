@@ -26,15 +26,7 @@ function clean_elem(elem) {
   }
 }
 
-var script = 'sciencedirect.js';
-
-if (script != null) {
-  s = document.createElement("script");
-  s.type = "text/javascript";
-  s.src = "/pyreadasset?file=scrapers/" + script;
-  s.onload = scrape;
-  document.head.appendChild(s);
-}
+window.onload = scrape;
 
 var id_xhr = new XMLHttpRequest();
 var abs_xhr = new XMLHttpRequest();
