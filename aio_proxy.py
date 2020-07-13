@@ -269,16 +269,33 @@ class AIOProxy:
                 raise web.HTTPNotFound
 
     async def pyreadresolve(self, request):
-        doi = request.query.get('doi')
+        TIMEOUT = 20
+        data = await request.json()
+        doi = data.get('doi')
+        capabilities = data.get('capabilities')
         if doi is None:
             raise web.HTTPBadRequest
         service = arsenic.PyrGeckodriver(
             binary='C:\\webdrivers\\geckodriver.exe')
         browser = arsenic.PyrFirefox(**{'moz:firefoxOptions':
                                      {'args': ['-headless']}})
+        found = False
+        retry_num = 0
         async with arsenic.pyr_get_session(service, browser) as session:
-            await session.get('https://dx.doi.org/' + doi)
-            return web.Response(text=await session.get_url())
+            while not found and retry_num < TIMEOUT:
+                await session.get('https://dx.doi.org/' + doi)
+                current_url = await session.get_url()
+                for c in capabilities:
+                    if current_url.startswith(c):
+                        found = True
+                        break
+                if found:
+                    break
+                retry_num += 1
+                await asyncio.sleep(0.5)
+        if found:
+            return web.Response(text=current_url)
+        raise web.HTTPNotFound
 
     async def pyreadredirect(self, request):
         page = (b'<!DOCTYPE html>'

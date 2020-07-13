@@ -26,10 +26,8 @@ function clean_elem(elem) {
   }
 }
 
-var script;
-if (document.title.endsWith("ScienceDirect")) {
-  script = 'sciencedirect.js';
-}
+var script = 'sciencedirect.js';
+
 if (script != null) {
   s = document.createElement("script");
   s.type = "text/javascript";

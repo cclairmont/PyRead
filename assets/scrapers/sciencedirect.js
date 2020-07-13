@@ -78,7 +78,11 @@ function have_access() {
 }
 
 function get_abstract() {
-  return document.querySelector("div#abssec0010");
+  var abs = document.querySelector("div[id^=abssec]");
+  if (abs == null) {
+    abs = document.querySelector("div[id^=aep-abstract-sec]")
+  }
+  return abs;
 }
 
 function get_figures() {
@@ -192,7 +196,6 @@ function get_references() {
     ref_list[refnum - 1] = ref_entry;
   }
   return ref_list;
-  console.log(ref_list);
 }
 
 function get_files() {
