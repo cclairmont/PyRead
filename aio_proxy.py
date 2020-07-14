@@ -166,21 +166,23 @@ class AIOProxy:
 
     async def pyreadscrapi(self, request):
         data = await request.json()
-        if 'doi' in data or 'pmid' in data or 'title' in data:
-            self.article = Article(self.session, self.cookies)
-            result = await self.article.a_init(doi=data.get('doi'),
-                                               pmid=data.get('pmid'),
-                                               title=data.get('title'))
-            self.metadata = result
-            self.cache[result['doi']] = self.article
-            return web.Response(text=json.dumps(result))
-        elif 'abstract' in data:
-            self.article.add_content([{'title': 'Abstract',
-                                       'content': data['abstract']}])
-            await self.article.save()
+        doi = data.get('doi')
+        if doi is None:
+            raise web.HTTPBadRequest
+        article = self.cache.get(doi)
+        if article is None:
+            article = Article(self.session, self.cookies)
+            self.cache[doi] = article
+        entry = await article.a_init(doi=doi)
+        if 'info' in data:
+            return web.Response(text=json.dumps(entry))
+        if 'abstract' in data:
+            article.add_content([{'title': 'Abstract',
+                                  'content': data['abstract']}])
+            await article.save()
             return web.Response(text=json.dumps({'item': 'abstract',
                                                  'status': 'success'}))
-        elif 'figures' in data:
+        if 'figures' in data:
             for f in data['figures']:
                 for res in ['lr', 'hr']:
                     if res not in f:
@@ -197,30 +199,29 @@ class AIOProxy:
                         identity = ArticleItem.OTHER
                         number = 0
                     try:
-                        await self.article.add_file(f[res], identity=identity,
-                                                    number=number,
-                                                    title=f['title'],
-                                                    caption=f.get('legend'),
-                                                    low_res=(res == 'lr'))
+                        await article.add_file(f[res], identity=identity,
+                                               number=number, title=f['title'],
+                                               caption=f.get('legend'),
+                                               low_res=(res == 'lr'))
                     except FileExistsError:
                         pass
             return web.Response(text=json.dumps({'item': 'figures',
                                                  'status': 'success'}))
 
-        elif 'main' in data:
-            self.article.add_content(data['main'])
-            await self.article.save()
+        if 'main' in data:
+            article.add_content(data['main'])
+            await article.save()
             return web.Response(text=json.dumps({'item': 'main',
                                                  'status': 'success'}))
-        elif 'references' in data:
-            await asyncio.gather(*[self.article.add_reference(ref, num)
+        if 'references' in data:
+            await asyncio.gather(*[article.add_reference(ref, num)
                                    for num, ref in
                                    enumerate(data['references'])])
-            await self.article.save()
+            await article.save()
             return web.Response(text=json.dumps({'item': 'references',
                                                  'status': 'success'}))
 
-        elif 'files' in data:
+        if 'files' in data:
             for file, link in data['files'].items():
                 if file == 'pdf':
                     identity = ArticleItem.PDF
@@ -229,14 +230,12 @@ class AIOProxy:
                 else:
                     identity = ArticleItem.OTHER
                 try:
-                    await self.article.add_file(link, identity=identity,
-                                                title=file)
+                    await article.add_file(link, identity=identity, title=file)
                 except FileExistsError:
                     pass
             return web.Response(text=json.dumps({'item': 'files',
                                                  'status': 'success'}))
-        else:
-            raise web.HTTPBadRequest
+        raise web.HTTPBadRequest
 
     async def proxy(self, request):
         headers = {'User-Agent': request.headers['User-Agent']}
@@ -294,9 +293,10 @@ class AIOProxy:
         found = False
         retry_num = 0
         async with arsenic.pyr_get_session(service, browser) as session:
+            await session.get('https://dx.doi.org/' + doi)
             while not found and retry_num < TIMEOUT:
-                await session.get('https://dx.doi.org/' + doi)
                 current_url = await session.get_url()
+                print(current_url)
                 for c in CAPABILITIES:
                     if current_url.startswith(c):
                         found = True
@@ -306,7 +306,7 @@ class AIOProxy:
                 retry_num += 1
                 await asyncio.sleep(0.5)
         if found:
-            return web.Response(text=current_url)
+            return web.Response(text=json.dumps({'url': current_url}))
         raise web.HTTPNotFound
 
     async def pyreadredirect(self, request):

@@ -282,11 +282,14 @@ function new_session(doi, title = null, inactive = [], scroll = 0,
     link.innerHTML = title;
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
-      var title = JSON.parse(xhr.response).title;
-      if (title != null) {
-        sessions[newest_session].title = title;
-        link.innerHTML = title;
-        link.title = title;
+      var response = JSON.parse(xhr.response);
+      if (response.title != null) {
+        sessions[newest_session].title = response.title;
+        link.innerHTML = response.title;
+        link.title = response.title;
+      }
+      if (!response.local) {
+        load_scraper(doi);
       }
     };
     xhr.open('POST', 'pyreadapi');
@@ -301,6 +304,20 @@ function new_session(doi, title = null, inactive = [], scroll = 0,
     sidebar.classList.remove('highlight');
     sidenav.classList.remove('active');
   }, 500);
+}
+
+function load_scraper(doi) {
+  resolver = new XMLHttpRequest();
+  resolver.onload = function() {
+    var target_url = JSON.parse(resolver.response).url;
+    var netloc = new URL(window.location).origin;
+    var path = netloc + "/pyreadproxy?location=" + target_url;
+    save_session();
+    window.open('pyreadhome');
+    window.location.replace(path, '_blank');
+  };
+  resolver.open('GET', '/pyreadresolve?doi=' + doi);
+  resolver.send();
 }
 
 /*****************************************************************************/

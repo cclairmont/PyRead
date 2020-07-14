@@ -34,7 +34,7 @@ var fig_xhr = new XMLHttpRequest();
 var main_xhr = new XMLHttpRequest();
 var ref_xhr = new XMLHttpRequest();
 var file_xhr = new XMLHttpRequest();
-var abstract, figures, main_text, references, files;
+var abstract, figures, main_text, references, files, id;
 
 function scrape() {
 
@@ -46,9 +46,9 @@ function scrape() {
   /* the title alone should be a last resort.                             */
 
   id_xhr.onload = pyr_abstract;
-  var id = get_identifiers();
+  id = get_identifiers();
   id_xhr.open("POST", "/pyreadscrapi");
-  id_xhr.send(JSON.stringify(id));
+  id_xhr.send(JSON.stringify({"doi": id.doi, "info": true}));
 }
 
 function pyr_abstract() {
@@ -62,7 +62,7 @@ function pyr_abstract() {
       clearInterval(interval);
       abstract = clean_elem(abstract);
       abs_xhr.open("POST", "/pyreadscrapi");
-      abs_xhr.send(JSON.stringify({"abstract": abstract}));
+      abs_xhr.send(JSON.stringify({"doi": id.doi, "abstract": abstract}));
       pyr_figures();
     }
   }, 500);
@@ -80,7 +80,7 @@ function pyr_figures() {
         }
       }
       fig_xhr.open("POST", "/pyreadscrapi");
-      fig_xhr.send(JSON.stringify({"figures": figures}));
+      fig_xhr.send(JSON.stringify({"doi": id.doi, "figures": figures}));
       pyr_content();
     }
   }, 500);
@@ -102,7 +102,7 @@ function pyr_content() {
         }
       }
       main_xhr.open("POST", "/pyreadscrapi");
-      main_xhr.send(JSON.stringify({"main": main_text}));
+      main_xhr.send(JSON.stringify({"doi": id.doi, "main": main_text}));
       pyr_references();
     }
   }, 500);
@@ -114,7 +114,7 @@ function pyr_references() {
     if (references.length > 0 ) {
       clearInterval(interval);
       ref_xhr.open("POST", "/pyreadscrapi");
-      ref_xhr.send(JSON.stringify({"references": references}));
+      ref_xhr.send(JSON.stringify({"doi": id.doi, "references": references}));
       pyr_files();
     }
   }, 500);
@@ -126,7 +126,7 @@ function pyr_files() {
     if (Object.keys(files).length > 0 ) {
       clearInterval(interval);
       file_xhr.open("POST", "/pyreadscrapi");
-      file_xhr.send(JSON.stringify({"files": files}));
+      file_xhr.send(JSON.stringify({"doi": id.doi, "files": files}));
       show_results();
     }
   }, 500);
