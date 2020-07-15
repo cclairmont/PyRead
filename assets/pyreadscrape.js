@@ -54,7 +54,7 @@ function scrape() {
 function pyr_abstract() {
   var response = JSON.parse(id_xhr.response);
   if (!have_access()) {
-    window.location.replace("/pyreadredirect");
+    window.location.replace("/pyreadredirect?doi=" + id.doi);
   }
   var interval = setInterval(function() {
     abstract = get_abstract();

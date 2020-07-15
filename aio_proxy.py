@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 from collections.abc import MutableMapping
 import arsenic_hacks as arsenic
+import time
 
 # Workaround to use cookies with illegal keys with aiohttp
 http.cookies._is_legal_key = lambda _: True
@@ -83,11 +84,13 @@ class AIOProxy:
                        '.jpg': 'image/jpeg'}
 
     ARTICLE_CACHE_SIZE = 50
+    ACTIVE_TIMEOUT = 10
 
     def __init__(self):
         self.netloc = ''
         self.cookies = ''
         self.cache = PyrCache(self.ARTICLE_CACHE_SIZE)
+        self.active_tab = 0
 
     async def create_session(self):
         self.session = aiohttp.ClientSession()
@@ -122,6 +125,10 @@ class AIOProxy:
             raise web.HTTPBadRequest
         doi = data.get('doi')
         type = data.get('type')
+        if type == 'active':
+            return web.Response(text=json.dumps((time.time() -
+                                                 self.active_tab) <
+                                                self.ACTIVE_TIMEOUT))
         if doi is None or type is None:
             raise web.HTTPBadRequest
         article = self.cache.get(doi)
@@ -130,7 +137,8 @@ class AIOProxy:
             self.cache[doi] = article
         entry = await article.a_init(doi=doi)
         if type == 'info':
-            return web.Response(text=json.dumps(entry),
+            status = await article.verify_integrity()
+            return web.Response(text=json.dumps({**entry, **status}),
                                 content_type='application/json')
         if type == 'fileinfo':
             try:
@@ -175,13 +183,15 @@ class AIOProxy:
             self.cache[doi] = article
         entry = await article.a_init(doi=doi)
         if 'info' in data:
-            return web.Response(text=json.dumps(entry))
+            status = await article.verify_integrity()
+            return web.Response(text=json.dumps({**entry, **status}))
         if 'abstract' in data:
             article.add_content([{'title': 'Abstract',
                                   'content': data['abstract']}])
             await article.save()
             return web.Response(text=json.dumps({'item': 'abstract',
-                                                 'status': 'success'}))
+                                                 'status': 'success'}),
+                                content_type='application/json')
         if 'figures' in data:
             for f in data['figures']:
                 for res in ['lr', 'hr']:
@@ -206,20 +216,23 @@ class AIOProxy:
                     except FileExistsError:
                         pass
             return web.Response(text=json.dumps({'item': 'figures',
-                                                 'status': 'success'}))
+                                                 'status': 'success'}),
+                                content_type='application/json')
 
         if 'main' in data:
             article.add_content(data['main'])
             await article.save()
             return web.Response(text=json.dumps({'item': 'main',
-                                                 'status': 'success'}))
+                                                 'status': 'success'}),
+                                content_type='application/json')
         if 'references' in data:
             await asyncio.gather(*[article.add_reference(ref, num)
                                    for num, ref in
                                    enumerate(data['references'])])
             await article.save()
             return web.Response(text=json.dumps({'item': 'references',
-                                                 'status': 'success'}))
+                                                 'status': 'success'}),
+                                content_type='application/json')
 
         if 'files' in data:
             for file, link in data['files'].items():
@@ -234,7 +247,8 @@ class AIOProxy:
                 except FileExistsError:
                     pass
             return web.Response(text=json.dumps({'item': 'files',
-                                                 'status': 'success'}))
+                                                 'status': 'success'}),
+                                content_type='application/json')
         raise web.HTTPBadRequest
 
     async def proxy(self, request):
@@ -310,6 +324,14 @@ class AIOProxy:
         raise web.HTTPNotFound
 
     async def pyreadredirect(self, request):
+        doi = request.query.get('doi')
+        if doi is None:
+            raise web.HTTPNotFound
+        article = self.cache.get(doi)
+        if article is None:
+            article = Article(self.session, self.cookies)
+            self.cache[doi] = article
+        entry = await article.a_init(doi=doi)
         page = (b'<!DOCTYPE html>'
                 b'<html>'
                 b'<head>'
@@ -323,7 +345,7 @@ class AIOProxy:
                 b'<div class="view-box">'
                 b'<div class="pyread-msg"></div>'
                 b'<div class="article-title">' +
-                self.metadata['title'].encode('utf-8') +
+                entry['title'].encode('utf-8') +
                 b'</div>'
                 b'<div class="pyread-msg"></div>'
                 b'<div class="pyread-msg"></div>'
@@ -331,12 +353,17 @@ class AIOProxy:
                 b'<div class="pyread-msg"></div>'
                 b'<div class="pyread-msg"></div>'
                 b'<a class="article-link" href="https://dx.doi.org/' +
-                self.metadata['doi'].encode('utf-8') +
+                doi.encode('utf-8') +
                 b'">Go to Article</a>'
                 b'</div>'
                 b'</body>'
                 b'</html>')
         return web.Response(body=page, content_type='text/html')
+
+    async def pyreadactive(self, request):
+        print('PING')
+        self.active_tab = time.time()
+        return web.Response(text='')
 
     async def handler(self, request):
         path = request.rel_url.path
@@ -354,6 +381,8 @@ class AIOProxy:
             return await self.pyreadhome(request)
         elif path.startswith('/pyreadresolve'):
             return await self.pyreadresolve(request)
+        elif path.startswith('/pyreadactive'):
+            return await self.pyreadactive(request)
         else:
             return await self.proxy(request)
 

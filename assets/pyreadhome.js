@@ -11,6 +11,11 @@ var sessions = [];
 var references;
 var updater;
 var img_sem = 0;
+var active_interval = setInterval(function() {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '/pyreadactive');
+  xhr.send();
+}, 1000);
 
 /*****************************************************************************/
 /*                              Helper Functions                             */
