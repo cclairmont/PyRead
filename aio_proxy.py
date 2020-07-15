@@ -320,7 +320,8 @@ class AIOProxy:
                 retry_num += 1
                 await asyncio.sleep(0.5)
         if found:
-            return web.Response(text=json.dumps({'url': current_url}))
+            return web.Response(text=json.dumps({'url': current_url}),
+                                content_type='application/json')
         raise web.HTTPNotFound
 
     async def pyreadredirect(self, request):
@@ -361,7 +362,6 @@ class AIOProxy:
         return web.Response(body=page, content_type='text/html')
 
     async def pyreadactive(self, request):
-        print('PING')
         self.active_tab = time.time()
         return web.Response(text='')
 

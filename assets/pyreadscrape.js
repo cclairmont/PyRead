@@ -1,4 +1,5 @@
 function clean_elem(elem) {
+  var result;
   if (elem.nodeType == Node.TEXT_NODE) {
     return elem.textContent;
   }
@@ -7,9 +8,9 @@ function clean_elem(elem) {
       elem.tagName == "SECTION" ||
       (elem.tagName == "SPAN" && elem.className != "ref" &&
        elem.className != "figure-ref")) {
-      return nodes.map(clean_elem).join("");
+    result = nodes.map(clean_elem).join("");
   } else if (elem.tagName == "FIGURE") {
-    return "<figure></figure>";
+    result = "<figure></figure>";
   } else {
     num_attributes = 0;
     while(elem.attributes.length > num_attributes) {
@@ -22,8 +23,10 @@ function clean_elem(elem) {
       }
     }
     elem.innerHTML =  nodes.map(clean_elem).join("");
-    return elem.outerHTML;
+    result = elem.outerHTML;
   }
+  result = result.replace(/\((<span[^>]*>[^\)^\(]*<\/span>)\)/g, "$1");
+  return result;
 }
 
 window.onload = scrape;

@@ -6,8 +6,10 @@ function handle_figs_refs(elem) {
   var refs = elem.querySelectorAll("a.workspace-trigger");
   for (var i = 0; i < refs.length; i++) {
     var new_ref, refnum, is_figref;
-    if (refs[i].name.startsWith("bbib") || refs[i].name.startsWith("bfig")) {
-      is_figref = refs[i].name.startsWith("bfig");
+    if (refs[i].name.startsWith("bbib") || refs[i].name.startsWith("bfig") ||
+        refs[i].name.startsWith("bapp")) {
+      is_figref = refs[i].name.startsWith("bfig") ||
+                  refs[i].name.startsWith("bapp");
       refnum = refs[i].name.slice(4);
       new_ref = document.createElement("span");
       if (is_figref) {
@@ -44,11 +46,8 @@ function handle_figs_refs(elem) {
       }
       new_ref.dataset.refnum = matches.join(",");
     }
-    if (prev && prev.textContent.endsWith("(")) {
-      prev.textContent = prev.textContent.slice(0,-1);
-    }
+
     if (next && (next.textContent.startsWith(";") ||
-                 next.textContent.startsWith(")") ||
                  next.textContent.startsWith(","))) {
       next.textContent = next.textContent.slice(1);
     }

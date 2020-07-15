@@ -563,6 +563,40 @@ function add_reflinks() {
       }
       var ref_str = merge_refs(ref_nums);
       var spans = ref_str.split(",");
+      var search = true;
+      var prev_elem = consec_elems[0].previousSibling;
+      var inside_parens = false;
+      while (search && prev_elem != null) {
+        for(var k = prev_elem.textContent.length - 1; k >= 0; k--) {
+          if (prev_elem.textContent[k] == '(') {
+            inside_parens = true;
+            search = false;
+            break;
+          } else if (prev_elem.textContent[k] == ')') {
+            search = false;
+            break;
+          }
+        }
+        prev_elem = prev_elem.previousSibling;
+      }
+      var closing_paren = false;
+      if (inside_parens) {
+        search = true;
+        var next_elem = consec_elems[consec_elems.length - 1].nextSibling;
+        while (search && next_elem != null) {
+          for(var k = 0; k < next_elem.textContent.length; k++) {
+            if (next_elem.textContent[k] == ')') {
+              closing_paren = true;
+              search = false;
+              break;
+            } else if (next_elem.textContent[k] == '(') {
+              search = false;
+              break;
+            }
+          }
+          next_elem = next_elem.nextSibling;
+        }
+      }
       for (var j = 0; j < spans.length; j++) {
         var s = document.createElement("span");
         s.className = "ref";
@@ -582,12 +616,12 @@ function add_reflinks() {
           s.dataset.local = references[slicers[0] - 1].local;
         }
         consec_elems[0].insertAdjacentElement("beforebegin", s);
-        if (j == 0) {
+        if (j == 0 && !inside_parens) {
           s.insertAdjacentText("beforebegin", " (");
         }
         if (j + 1 < spans.length) {
           s.insertAdjacentText("afterend", ",");
-        } else {
+        } else if (!inside_parens || !closing_paren){
           s.insertAdjacentText("afterend", ")");
         }
         var reftip = document.createElement("span");
