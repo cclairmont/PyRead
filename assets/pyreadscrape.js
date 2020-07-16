@@ -26,6 +26,7 @@ function clean_elem(elem) {
     result = elem.outerHTML;
   }
   result = result.replace(/\((<span[^>]*>[^\)^\(]*<\/span>)\)/g, "$1");
+  result = result.replace(/<\/span>[\s]*<span/g, "</span><span");
   return result;
 }
 

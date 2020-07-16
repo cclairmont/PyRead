@@ -681,9 +681,10 @@ function add_reflinks() {
 }
 
 function add_figlinks() {
-  var fig_links = document.querySelectorAll("span.figure_ref");
+  var fig_links = document.querySelectorAll("span.figure-ref");
   var consec_elems = [];
   for (var i = 0; i < fig_links.length; i++) {
+    console.log(fig_links[i]);
     var consec = false;
     if (consec_elems.length == 0 ||
         elemsAreAdjacent(fig_links[i-1], fig_links[i])) {
@@ -691,8 +692,42 @@ function add_figlinks() {
       consec = true;
     }
     if (!consec || i + 1 == fig_links.length) {
+      var search = true;
+      var prev_elem = consec_elems[0].previousSibling;
+      var inside_parens = false;
+      while (search && prev_elem != null) {
+        for(var k = prev_elem.textContent.length - 1; k >= 0; k--) {
+          if (prev_elem.textContent[k] == '(') {
+            inside_parens = true;
+            search = false;
+            break;
+          } else if (prev_elem.textContent[k] == ')') {
+            search = false;
+            break;
+          }
+        }
+        prev_elem = prev_elem.previousSibling;
+      }
+      var closing_paren = false;
+      if (inside_parens) {
+        search = true;
+        var next_elem = consec_elems[consec_elems.length - 1].nextSibling;
+        while (search && next_elem != null) {
+          for(var k = 0; k < next_elem.textContent.length; k++) {
+            if (next_elem.textContent[k] == ')') {
+              closing_paren = true;
+              search = false;
+              break;
+            } else if (next_elem.textContent[k] == '(') {
+              search = false;
+              break;
+            }
+          }
+          next_elem = next_elem.nextSibling;
+        }
+      }
       for (var j = 0; j < consec_elems.length; j++) {
-        var fignum = consec_elems[j].dataset.fignum;
+        var fignum = consec_elems[j].dataset.refnum;
         var file = fignum.indexOf("-");
         if (file > -1) {
           fignum = fignum.substring(0, file);
@@ -704,19 +739,30 @@ function add_figlinks() {
         }
         var fig_str = fignum.substring(0, num_index) +
                       merge_refs(fignum.substring(num_index).split(","));
+        fig_str = fig_str.split(",").join(", ");
         consec_elems[j].innerHTML = fig_str;
         if (j == 0) {
           if (consec_elems.length == 1 && fig_str.indexOf(",") == -1 &&
               fig_str.indexOf("-") == -1) {
-            consec_elems[j].insertAdjacentText("beforebegin", " (Figure ");
+            if(!inside_parens) {
+              consec_elems[j].insertAdjacentText("beforebegin", " (Figure ");
+            } else {
+              consec_elems[j].insertAdjacentText("beforebegin", " Figure ");
+            }
           } else {
-            consec_elems[j].insertAdjacentText("beforebegin", " (Figures ");
+            if (!inside_parens) {
+              consec_elems[j].insertAdjacentText("beforebegin", " (Figures ");
+            } else {
+              consec_elems[j].insertAdjacentText("beforebegin", " Figures ");
+            }
           }
         }
         if (j + 1 < consec_elems.length) {
-          consec_elems[j].insertAdjacentText("afterend", ",");
+          consec_elems[j].insertAdjacentText("afterend", ", ");
         } else {
-          consec_elems[j].insertAdjacentText("afterend", ")");
+          if (!inside_parens && !closing_paren) {
+            consec_elems[j].insertAdjacentText("afterend", ")");
+          }
         }
       }
       consec_elems = [fig_links[i]];

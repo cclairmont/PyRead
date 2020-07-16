@@ -25,24 +25,22 @@ function handle_figs_refs(elem) {
     var prev = new_ref.previousSibling;
     var next = new_ref.nextSibling;
     if (is_figref) {
-      var fig_ref = "";
+      refnum = "";
+      var fig_ref = refs[i].textContent;
       if (next) {
-        fig_ref = next.textContent;
+        fig_ref = fig_ref + next.textContent;
       }
       var ref_end = fig_ref.indexOf(")");
       if (ref_end != -1) {
-        fig_ref = fig_ref.slice(0,ref_end);
-        next.textContent = next.textContent.slice(ref_end);
-      }
-      var first_panel = fig_ref[0];
-      if (first_panel >= 'A' && first_panel <= 'Z') {
-        refnum += first_panel;
+        fig_ref = fig_ref.slice(0, ref_end);
       }
       var matches = fig_ref.match(/S?\d[A-Z]/g);
-      if (matches) {
-        matches.unshift(refnum);
+      if (matches == null) {
+        matches = [];
       } else {
-        matches = [refnum];
+        ref_end = next.textContent.lastIndexOf(matches[matches.length - 1]) +
+                  matches[matches.length - 1].length;
+        next.textContent = next.textContent.slice(ref_end);
       }
       new_ref.dataset.refnum = matches.join(",");
     }
