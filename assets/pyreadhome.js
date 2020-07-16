@@ -760,7 +760,7 @@ function add_figlinks() {
         if (j + 1 < consec_elems.length) {
           consec_elems[j].insertAdjacentText("afterend", ", ");
         } else {
-          if (!inside_parens && !closing_paren) {
+          if (!inside_parens || !closing_paren) {
             consec_elems[j].insertAdjacentText("afterend", ")");
           }
         }

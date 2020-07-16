@@ -32,14 +32,18 @@ function handle_figs_refs(elem) {
       }
       var ref_end = fig_ref.indexOf(")");
       if (ref_end != -1) {
-        fig_ref = fig_ref.slice(0, ref_end);
+        fig_ref = fig_ref.slice(0, ref_end + 1);
       }
-      var matches = fig_ref.match(/S?\d[A-Z]/g);
+      var matches = fig_ref.match(/S?\d[A-Z][,; \)]/g);
       if (matches == null) {
         matches = [];
       } else {
-        ref_end = next.textContent.lastIndexOf(matches[matches.length - 1]) +
-                  matches[matches.length - 1].length;
+        for (var j = 0; j < matches.length; j++) {
+          matches[j] = matches[j].slice(0, matches[j].length - 1);
+        }
+        ref_end = fig_ref.lastIndexOf(matches[matches.length - 1]) +
+                  matches[matches.length - 1].length -
+                  refs[i].textContent.length;
         next.textContent = next.textContent.slice(ref_end);
       }
       new_ref.dataset.refnum = matches.join(",");
