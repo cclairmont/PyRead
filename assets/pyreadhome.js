@@ -656,9 +656,16 @@ function add_reflinks() {
           var reftiplabel = document.createElement("span");
           reftiplabel.className = "ref-tip-label";
           var authors = references[slicers[0] - 1 + k].authors;
-          var first_auth = authors[0].slice(authors[0].lastIndexOf(' '));
-          var year = references[slicers[0] - 1 + k].date.slice(0,4);
-          if (authors.length == 1) {
+          console.log(slicers, k);
+          var first_auth = null;
+          if (authors != null) {
+            first_auth = authors[0].slice(authors[0].lastIndexOf(' '));
+          }
+          var year = references[slicers[0] - 1 + k].date;
+          if (year != null) {
+            year = year.slice(0,4);
+          }
+          if (authors != null && authors.length == 1) {
             reftiplabel.innerHTML = first_auth + ' ' + year;
           } else {
             reftiplabel.innerHTML = first_auth + ' et al. ' + year;

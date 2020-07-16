@@ -27,23 +27,47 @@ function handle_figs_refs(elem) {
     if (is_figref) {
       refnum = "";
       var fig_ref = refs[i].textContent;
-      if (next) {
+      var ref_end = -1;
+      var del_len = 0;
+      while (next != null && next.nodeType == Node.TEXT_NODE) {
         fig_ref = fig_ref + next.textContent;
+        console.log(fig_ref);
+        ref_end = fig_ref.search(/[\[\(\)\]\.]/);
+        if (ref_end != -1) {
+          fig_ref = fig_ref.slice(0, ref_end + 1);
+          break;
+        }
+        del_len = del_len + next.textContent.length;
+        next.textContent = "";
+        next = next.nextSibling;
       }
-      var ref_end = fig_ref.indexOf(")");
-      if (ref_end != -1) {
-        fig_ref = fig_ref.slice(0, ref_end + 1);
+      console.log(fig_ref);
+      fig_ref = fig_ref.replace(/&nbsp;/g, ' ');
+      var matches = fig_ref.match(/[\s–]S?\d[A-Z]?([,; \)\]]|$)/g);
+      var hyp_matches = fig_ref.match(/S?\d[A-Z]?–S?\d[A-Z]?/g);
+      console.log(matches);
+      if (hyp_matches == null) {
+        hyp_matches = [];
       }
-      var matches = fig_ref.match(/S?\d[A-Z][,; \)]/g);
       if (matches == null) {
-        matches = [];
+        matches = hyp_matches;
       } else {
         for (var j = 0; j < matches.length; j++) {
-          matches[j] = matches[j].slice(0, matches[j].length - 1);
+          matches[j] = matches[j].slice(1);
+          if (matches[j].search(/S?\d[A-Z]?[,; \)\]]/) == 0) {
+            matches[j] = matches[j].slice(0, matches[j].length - 1);
+          }
+          for (var k = 0; k < hyp_matches.length; k++) {
+            if (hyp_matches[k].indexOf(matches[j]) != -1) {
+              console.log(matches[j]);
+              console.log(hyp_matches[k]);
+              matches[j] = hyp_matches[k];
+            }
+          }
         }
         ref_end = fig_ref.lastIndexOf(matches[matches.length - 1]) +
                   matches[matches.length - 1].length -
-                  refs[i].textContent.length;
+                  refs[i].textContent.length - del_len;
         next.textContent = next.textContent.slice(ref_end);
       }
       new_ref.dataset.refnum = matches.join(",");
