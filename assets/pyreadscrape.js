@@ -142,4 +142,7 @@ function show_results() {
   console.log(main_text);
   console.log(references);
   console.log(files);
+  status_updater = new XMLHttpRequest();
+  status_updater.open('GET', '/pyreadstatus?loading=false&doi=' + id.doi);
+  status_updater.send();
 }

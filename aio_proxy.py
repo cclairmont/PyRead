@@ -138,7 +138,10 @@ class AIOProxy:
         entry = await article.a_init(doi=doi)
         if type == 'info':
             status = await article.verify_integrity()
-            return web.Response(text=json.dumps({**entry, **status}),
+            if not hasattr(article, 'loading'):
+                article.loading = False
+            return web.Response(text=json.dumps({'loading': article.loading,
+                                                 **entry, **status}),
                                 content_type='application/json')
         if type == 'fileinfo':
             try:
@@ -184,7 +187,11 @@ class AIOProxy:
         entry = await article.a_init(doi=doi)
         if 'info' in data:
             status = await article.verify_integrity()
-            return web.Response(text=json.dumps({**entry, **status}))
+            if not hasattr(article, 'loading'):
+                article.loading = False
+            return web.Response(text=json.dumps({'loading': article.loading,
+                                                 **entry, **status}),
+                                content_type='application/json')
         if 'abstract' in data:
             article.add_content([{'title': 'Abstract',
                                   'content': data['abstract']}])
@@ -361,9 +368,29 @@ class AIOProxy:
                 b'</html>')
         return web.Response(body=page, content_type='text/html')
 
-    async def pyreadactive(self, request):
-        self.active_tab = time.time()
-        return web.Response(text='')
+    async def pyreadstatus(self, request):
+        doi = request.query.get('doi')
+        loading = request.query.get('loading')
+        if doi is None:
+            self.active_tab = time.time()
+            return web.Response(text='')
+        if loading is not None:
+            article = self.cache.get(doi)
+            if article is None:
+                article = Article(self.session, self.cookies)
+                self.cache[doi] = article
+            await article.a_init(doi=doi)
+            if loading == 'true':
+                article.loading = True
+            elif loading == 'false':
+                article.loading = False
+            else:
+                raise web.HTTPBadRequest
+        else:
+            if not hasattr(article, 'loading'):
+                article.loading = False
+        return web.Response(text=json.dumps({'loading': article.loading}),
+                            content_type='application/json')
 
     async def handler(self, request):
         path = request.rel_url.path
@@ -381,8 +408,8 @@ class AIOProxy:
             return await self.pyreadhome(request)
         elif path.startswith('/pyreadresolve'):
             return await self.pyreadresolve(request)
-        elif path.startswith('/pyreadactive'):
-            return await self.pyreadactive(request)
+        elif path.startswith('/pyreadstatus'):
+            return await self.pyreadstatus(request)
         else:
             return await self.proxy(request)
 

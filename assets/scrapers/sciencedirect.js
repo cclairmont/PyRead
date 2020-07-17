@@ -29,7 +29,7 @@ function handle_figs_refs(elem) {
       var fig_ref = refs[i].textContent;
       var ref_end = -1;
       var del_len = 0;
-      while (next != null && next.nodeType == Node.TEXT_NODE) {
+      while (next != null && next.tagName != 'A') {
         fig_ref = fig_ref + next.textContent;
         ref_end = fig_ref.search(/[\[\(\)\]\.]/);
         if (ref_end != -1) {
@@ -42,7 +42,8 @@ function handle_figs_refs(elem) {
       }
       console.log(fig_ref);
       fig_ref = fig_ref.replace(/&nbsp;/g, ' ');
-      var matcher = fig_ref.matchAll(/(^|\s)(S?\d[A-Z]?)([,;\s\.\)\]]|–S?\d?[A-Z]?|$)/g);
+      var matcher = fig_ref.matchAll(
+        /(^|\s)(S?\d[A-Z]?)([,;\s\.\)\]]|–S?\d?[A-Z]?|$)/g);
       var matches = [];
       for (m of matcher) {
         console.log(m);
@@ -118,7 +119,7 @@ function get_figures() {
       var caption_list = captions.querySelectorAll("p");
       fig_entry.title = caption_list[0].textContent;
       caption_list[0].parentElement.removeChild(caption_list[0]);
-      fig_entry.legend = captions;
+      fig_entry.legend = handle_figs_refs(captions);
     } else {
       fig_entry.title = "Graphical Abstract";
     }

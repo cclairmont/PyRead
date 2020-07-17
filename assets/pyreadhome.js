@@ -13,7 +13,7 @@ var updater;
 var img_sem = 0;
 var active_interval = setInterval(function() {
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', '/pyreadactive');
+  xhr.open('GET', '/pyreadstatus');
   xhr.send();
 }, 1000);
 
@@ -293,7 +293,8 @@ function new_session(doi, title = null, inactive = [], scroll = 0,
         link.innerHTML = response.title;
         link.title = response.title;
       }
-      if (!response.local) {
+      console.log(response);
+      if (!response.local && !response.loading) {
         load_scraper(doi);
       }
     };
@@ -317,6 +318,9 @@ function load_scraper(doi) {
     var target_url = JSON.parse(resolver.response).url;
     var netloc = new URL(window.location).origin;
     var path = netloc + "/pyreadproxy?location=" + target_url;
+    status_updater = new XMLHttpRequest();
+    status_updater.open('GET', '/pyreadstatus?loading=true&doi=' + doi);
+    status_updater.send();
     save_session();
     window.open('pyreadhome');
     window.location.replace(path, '_blank');
