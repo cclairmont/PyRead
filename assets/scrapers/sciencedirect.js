@@ -31,7 +31,6 @@ function handle_figs_refs(elem) {
       var del_len = 0;
       while (next != null && next.nodeType == Node.TEXT_NODE) {
         fig_ref = fig_ref + next.textContent;
-        console.log(fig_ref);
         ref_end = fig_ref.search(/[\[\(\)\]\.]/);
         if (ref_end != -1) {
           fig_ref = fig_ref.slice(0, ref_end + 1);
@@ -43,34 +42,24 @@ function handle_figs_refs(elem) {
       }
       console.log(fig_ref);
       fig_ref = fig_ref.replace(/&nbsp;/g, ' ');
-      var matches = fig_ref.match(/[\s–]S?\d[A-Z]?([,; \)\]]|$)/g);
-      var hyp_matches = fig_ref.match(/S?\d[A-Z]?–S?\d[A-Z]?/g);
-      console.log(matches);
-      if (hyp_matches == null) {
-        hyp_matches = [];
-      }
-      if (matches == null) {
-        matches = hyp_matches;
-      } else {
-        for (var j = 0; j < matches.length; j++) {
-          matches[j] = matches[j].slice(1);
-          if (matches[j].search(/S?\d[A-Z]?[,; \)\]]/) == 0) {
-            matches[j] = matches[j].slice(0, matches[j].length - 1);
-          }
-          for (var k = 0; k < hyp_matches.length; k++) {
-            if (hyp_matches[k].indexOf(matches[j]) != -1) {
-              console.log(matches[j]);
-              console.log(hyp_matches[k]);
-              matches[j] = hyp_matches[k];
-            }
-          }
+      var matcher = fig_ref.matchAll(/(^|\s)(S?\d[A-Z]?)([,;\s\.\)\]]|–S?\d?[A-Z]?|$)/g);
+      var matches = [];
+      for (m of matcher) {
+        console.log(m);
+        if (m[3].startsWith("–")) {
+          matches.push(m[2] + m[3]);
+        } else {
+          matches.push(m[2]);
         }
+      }
+      console.log(matches);
+      if (matches.length > 0) {
         ref_end = fig_ref.lastIndexOf(matches[matches.length - 1]) +
                   matches[matches.length - 1].length -
                   refs[i].textContent.length - del_len;
         next.textContent = next.textContent.slice(ref_end);
+        new_ref.dataset.refnum = matches.join(",");
       }
-      new_ref.dataset.refnum = matches.join(",");
     }
 
     if (next && (next.textContent.startsWith(";") ||
