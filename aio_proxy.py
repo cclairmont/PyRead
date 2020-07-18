@@ -236,6 +236,7 @@ class AIOProxy:
             await asyncio.gather(*[article.add_reference(ref, num)
                                    for num, ref in
                                    enumerate(data['references'])])
+            print("===============Refs Done==============")
             await article.save()
             return web.Response(text=json.dumps({'item': 'references',
                                                  'status': 'success'}),
@@ -369,7 +370,6 @@ class AIOProxy:
         return web.Response(body=page, content_type='text/html')
 
     async def pyreadstatus(self, request):
-        print(request.query)
         doi = request.query.get('doi')
         loading = request.query.get('loading')
         if doi is None:

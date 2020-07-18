@@ -129,7 +129,8 @@ function save_session() {
 }
 
 function elemsAreAdjacent(e1, e2) {
-  return e1.nextSibling.isSameNode(e2) || e1.previousSibling.isSameNode(e2);
+  return (e1.nextSibling != null && e1.nextSibling.isSameNode(e2)) ||
+         (e1.previousSibling != null && e1.previousSibling.isSameNode(e2));
 }
 
 function merge_refs(ref_list) {
@@ -543,17 +544,18 @@ function add_figures() {
 function add_reflinks() {
   var ref_links = document.querySelectorAll("span.ref");
   var consec_elems = [];
-  for (var i = 0; i < ref_links.length; i++) {
+  for (var i = 0; i <= ref_links.length; i++) {
     var consec = false;
-    if (consec_elems.length == 0 ||
-        (ref_links[i-1].nextElementSibling != null &&
-         (ref_links[i-1].nextSibling.isSameNode(ref_links[i]) ||
-          (ref_links[i-1].nextElementSibling.isSameNode(ref_links[i]) &&
-           ref_links[i-1].nextSibling.textContent.trim() == "")))) {
+    if (i < ref_links.length &&
+        (consec_elems.length == 0 ||
+         (ref_links[i-1].nextElementSibling != null &&
+          (ref_links[i-1].nextSibling.isSameNode(ref_links[i]) ||
+           (ref_links[i-1].nextElementSibling.isSameNode(ref_links[i]) &&
+            ref_links[i-1].nextSibling.textContent.trim() == ""))))) {
       consec_elems.push(ref_links[i]);
       consec = true;
     }
-    if (!consec || i + 1 == ref_links.length) {
+    if (!consec || i == ref_links.length) {
       var ref_nums = [];
       for (var j = 0; j < consec_elems.length; j++) {
         ref_nums.push(consec_elems[j].dataset.refnum);
@@ -682,26 +684,29 @@ function add_reflinks() {
       for (var j = 0; j < consec_elems.length; j++) {
         consec_elems[j].remove();
       }
-    consec_elems = [ref_links[i]];
+    if (i < ref_links.length) {
+      consec_elems = [ref_links[i]];
+    }
     }
   }
 }
 
 function add_figlinks() {
-  fig_types = [["Figure", "span.figure-ref"],
-               ["Table", "span.table-ref"]];
+  fig_types = [["Figure ", "Figures ", "span.figure-ref"],
+               ["Table ", "Tables ", "span.table-ref"],
+               ["", "", "span.other-ref"]];
   for (var ft of fig_types) {
-    var fig_links = document.querySelectorAll(ft[1]);
+    var fig_links = document.querySelectorAll(ft[2]);
     var consec_elems = [];
-    for (var i = 0; i < fig_links.length; i++) {
-      console.log(fig_links[i]);
+    for (var i = 0; i <= fig_links.length; i++) {
       var consec = false;
-      if (consec_elems.length == 0 ||
-          elemsAreAdjacent(fig_links[i-1], fig_links[i])) {
+      if (i < fig_links.length && (consec_elems.length == 0 ||
+                                   elemsAreAdjacent(fig_links[i-1],
+                                                    fig_links[i]))) {
         consec_elems.push(fig_links[i]);
         consec = true;
       }
-      if (!consec || i + 1 == fig_links.length) {
+      if (!consec || i == fig_links.length) {
         var search = true;
         var prev_elem = consec_elems[0].previousSibling;
         var inside_parens = false;
@@ -738,10 +743,6 @@ function add_figlinks() {
         }
         for (var j = 0; j < consec_elems.length; j++) {
           var fignum = consec_elems[j].dataset.refnum;
-          var file = fignum.indexOf("-");
-          if (file > -1) {
-            fignum = fignum.substring(0, file);
-          }
           if (fignum[0] == "S") {
             num_index = 2;
           } else {
@@ -756,18 +757,16 @@ function add_figlinks() {
                 fig_str.indexOf("-") == -1) {
               if(!inside_parens) {
                 consec_elems[j].insertAdjacentText("beforebegin", " (" +
-                                                   ft[0] + " ");
+                                                   ft[0]);
               } else {
-                consec_elems[j].insertAdjacentText("beforebegin", " " +
-                                                   ft[0]+ " ");
+                consec_elems[j].insertAdjacentText("beforebegin", " " + ft[0]);
               }
             } else {
               if (!inside_parens) {
                 consec_elems[j].insertAdjacentText("beforebegin", " (" +
-                                                   ft[0] + " ");
+                                                   ft[1]);
               } else {
-                consec_elems[j].insertAdjacentText("beforebegin", " " +
-                                                   ft[0] + " ");
+                consec_elems[j].insertAdjacentText("beforebegin", " " + ft[1]);
               }
             }
           }
@@ -779,7 +778,9 @@ function add_figlinks() {
             }
           }
         }
-        consec_elems = [fig_links[i]];
+        if (i < fig_links.length) {
+          consec_elems = [fig_links[i]];
+        }
       }
     }
   }

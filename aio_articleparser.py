@@ -517,6 +517,7 @@ class Article:
                                                    doi=ref.get('doi'),
                                                    pmid=ref.get('pmid'),
                                                    title=ref.get('title'))
+        print(f"REF {num}: {json.dumps(entry).encode('utf-8')}")
         if not hasattr(self, 'references'):
             self.references = []
         if num >= len(self.references):

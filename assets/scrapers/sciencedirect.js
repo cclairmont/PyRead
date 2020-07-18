@@ -1,10 +1,12 @@
+/*jshint esversion: 6 */
+
 //
 // Internal Functions
 //
 
 function handle_figs_refs(elem) {
   var refs = elem.querySelectorAll("a.workspace-trigger");
-  var fig_type = "";
+  var fig_type = "other-ref";
   for (var i = 0; i < refs.length; i++) {
     console.log(refs[i]);
     var new_ref, refnum, is_figref;
@@ -35,27 +37,31 @@ function handle_figs_refs(elem) {
     if (is_figref) {
       refnum = "";
       var fig_ref = refs[i].textContent;
+      var orig_ref = fig_ref;
       var ref_end = -1;
       var del_len = 0;
+      var searched_nodes = [refs[i]];
       while (next != null && next.tagName != 'A') {
+        searched_nodes.push(next);
         fig_ref = fig_ref + next.textContent;
-        ref_end = fig_ref.search(/[\[\(\)\]\.]/);
-        if (ref_end != -1) {
+        fig_ref = fig_ref.replace(/&nbsp;/g, ' ');
+        fig_ref = fig_ref.replace(/–/g, '-');
+        ref_end = fig_ref.match(/(Figures?|Tables?|^)((,|;|\sand)?(\s|^)S?\d[A-Z]?(-S?\d?[A-Z]?)?)+/g);
+        if (ref_end != null) {
+          console.log(ref_end[0]);
+          ref_end = fig_ref.indexOf(ref_end[0]) + ref_end[0].length;
           fig_ref = fig_ref.slice(0, ref_end + 1);
           break;
         }
-        del_len = del_len + next.textContent.length;
-        next.textContent = "";
         next = next.nextSibling;
       }
       console.log(fig_ref);
-      fig_ref = fig_ref.replace(/&nbsp;/g, ' ');
       var matcher = fig_ref.matchAll(
-        /(^|\s)(S?\d[A-Z]?)([,;\s\.\)\]]|–S?\d?[A-Z]?|$)/g);
+        /(^|Figures?\s|Tables?\s|,\s|;\s|and\s)(S?\d[A-Z]?)(-S?\d?[A-Z]?|$)?/g);
       var matches = [];
-      for (m of matcher) {
+      for (var m of matcher) {
         console.log(m);
-        if (m[3].startsWith("–")) {
+        if (m[3] != null && m[3].startsWith("-")) {
           matches.push(m[2] + m[3]);
         } else {
           matches.push(m[2]);
@@ -64,12 +70,21 @@ function handle_figs_refs(elem) {
       console.log(matches);
       if (matches.length > 0) {
         ref_end = fig_ref.lastIndexOf(matches[matches.length - 1]) +
-                  matches[matches.length - 1].length -
-                  refs[i].textContent.length - del_len;
-        if (next != null && next.tagName != "A") {
-          next.textContent = next.textContent.slice(ref_end);
+                  matches[matches.length - 1].length;
+        for (var sn of searched_nodes) {
+          console.log(ref_end);
+          console.log(sn.textContent);
+          if (ref_end >= sn.textContent.length) {
+            ref_end -= sn.textContent.length;
+            sn.textContent = "";
+          } else {
+            sn.textContent = sn.textContent.slice(ref_end);
+            break;
+          }
         }
         new_ref.dataset.refnum = matches.join(",");
+      } else {
+        new_ref.dataset.refnum = orig_ref;
       }
       console.log(new_ref);
     }

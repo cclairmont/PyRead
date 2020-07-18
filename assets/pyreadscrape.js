@@ -1,3 +1,5 @@
+/*jshint esversion: 6 */
+
 function clean_elem(elem) {
   var result;
   if (elem.nodeType == Node.TEXT_NODE) {
@@ -7,7 +9,8 @@ function clean_elem(elem) {
   if (elem.tagName == "A" || elem.tagName == "DIV" ||
       elem.tagName == "SECTION" ||
       (elem.tagName == "SPAN" && elem.className != "ref" &&
-       elem.className != "figure-ref" && elem.className != "table-ref")) {
+       elem.className != "figure-ref" && elem.className != "table-ref" &&
+       elem.className != "other-ref")) {
     result = nodes.map(clean_elem).join("");
   } else if (elem.tagName == "FIGURE") {
     result = "<figure></figure>";
@@ -17,7 +20,8 @@ function clean_elem(elem) {
       if (elem.attributes[0].name != "class" ||
           (elem.attributes[0].value != "ref" &&
            elem.attributes[0].value != "figure-ref" &&
-           elem.attributes[0].value != "table-ref")) {
+           elem.attributes[0].value != "table-ref" &&
+           elem.attributes[0].value != "other-ref")) {
         elem.removeAttribute(elem.attributes[0].name);
       } else {
         num_attributes++;
@@ -34,12 +38,11 @@ function clean_elem(elem) {
 window.onload = scrape;
 
 var id_xhr = new XMLHttpRequest();
-var abs_xhr = new XMLHttpRequest();
-var fig_xhr = new XMLHttpRequest();
-var main_xhr = new XMLHttpRequest();
-var ref_xhr = new XMLHttpRequest();
-var file_xhr = new XMLHttpRequest();
 var abstract, figures, main_text, references, files, id;
+
+var results = {"abs": new XMLHttpRequest(), "fig": new XMLHttpRequest(),
+               "main": new XMLHttpRequest(), "ref": new XMLHttpRequest(),
+               "file": new XMLHttpRequest()};
 
 function scrape() {
 
@@ -66,8 +69,8 @@ function pyr_abstract() {
     if (abstract) {
       clearInterval(interval);
       abstract = clean_elem(abstract);
-      abs_xhr.open("POST", "/pyreadscrapi");
-      abs_xhr.send(JSON.stringify({"doi": id.doi, "abstract": abstract}));
+      results.abs.open("POST", "/pyreadscrapi");
+      results.abs.send(JSON.stringify({"doi": id.doi, "abstract": abstract}));
       pyr_figures();
     }
   }, 500);
@@ -84,8 +87,8 @@ function pyr_figures() {
           figures[i].legend = clean_elem(figures[i].legend);
         }
       }
-      fig_xhr.open("POST", "/pyreadscrapi");
-      fig_xhr.send(JSON.stringify({"doi": id.doi, "figures": figures}));
+      results.fig.open("POST", "/pyreadscrapi");
+      results.fig.send(JSON.stringify({"doi": id.doi, "figures": figures}));
       pyr_content();
     }
   }, 500);
@@ -106,8 +109,8 @@ function pyr_content() {
           main_text[i].content = clean_elem(main_text[i].content);
         }
       }
-      main_xhr.open("POST", "/pyreadscrapi");
-      main_xhr.send(JSON.stringify({"doi": id.doi, "main": main_text}));
+      results.main.open("POST", "/pyreadscrapi");
+      results.main.send(JSON.stringify({"doi": id.doi, "main": main_text}));
       pyr_references();
     }
   }, 500);
@@ -118,8 +121,8 @@ function pyr_references() {
     references = get_references();
     if (references.length > 0 ) {
       clearInterval(interval);
-      ref_xhr.open("POST", "/pyreadscrapi");
-      ref_xhr.send(JSON.stringify({"doi": id.doi, "references": references}));
+      results.ref.open("POST", "/pyreadscrapi");
+      results.ref.send(JSON.stringify({"doi": id.doi, "references": references}));
       pyr_files();
     }
   }, 500);
@@ -130,21 +133,31 @@ function pyr_files() {
     files = get_files();
     if (Object.keys(files).length > 0 ) {
       clearInterval(interval);
-      file_xhr.open("POST", "/pyreadscrapi");
-      file_xhr.send(JSON.stringify({"doi": id.doi, "files": files}));
-      show_results();
+      results.file.open("POST", "/pyreadscrapi");
+      results.file.send(JSON.stringify({"doi": id.doi, "files": files}));
+      collect_results();
     }
   }, 500);
 }
 
-function show_results() {
-  console.log(abstract);
-  console.log(figures);
-  console.log(main_text);
-  console.log(references);
-  console.log(files);
-  status_updater = new XMLHttpRequest();
-  status_updater.open('GET', '/pyreadstatus?loading=false&doi=' + id.doi);
-  status_updater.send();
-  window.location.replace('/pyreadhome?doi=' + id.doi);
+function collect_results() {
+  var interval = setInterval(function() {
+    var success = true;
+    for (var x in results) {
+      console.log(x);
+      success = success && results[x].readyState == 4;
+      if (!success) {
+        break;
+      }
+    }
+    if (success) {
+      clearInterval(interval);
+      status_updater = new XMLHttpRequest();
+      status_updater.onload = function() {
+        window.location.replace('/pyreadhome?doi=' + id.doi);
+      };
+      status_updater.open('GET', '/pyreadstatus?loading=false&doi=' + id.doi);
+      status_updater.send();
+    }
+  }, 500);
 }
