@@ -4,16 +4,24 @@
 
 function handle_figs_refs(elem) {
   var refs = elem.querySelectorAll("a.workspace-trigger");
+  var fig_type = "";
   for (var i = 0; i < refs.length; i++) {
+    console.log(refs[i]);
     var new_ref, refnum, is_figref;
     if (refs[i].name.startsWith("bbib") || refs[i].name.startsWith("bfig") ||
-        refs[i].name.startsWith("bapp")) {
+        refs[i].name.startsWith("bapp") || refs[i].name.startsWith("bmmc")) {
       is_figref = refs[i].name.startsWith("bfig") ||
-                  refs[i].name.startsWith("bapp");
+                  refs[i].name.startsWith("bapp") ||
+                  refs[i].name.startsWith("bmmc");
       refnum = refs[i].name.slice(4);
       new_ref = document.createElement("span");
       if (is_figref) {
-        new_ref.className = "figure-ref";
+        if (refs[i].textContent.startsWith('Figure')) {
+          fig_type = "figure-ref";
+        } else if (refs[i].textContent.startsWith('Table')) {
+          fig_type = "table-ref";
+        }
+        new_ref.className = fig_type;
       } else {
         new_ref.className = "ref";
         new_ref.dataset.refnum = refnum;
@@ -58,9 +66,12 @@ function handle_figs_refs(elem) {
         ref_end = fig_ref.lastIndexOf(matches[matches.length - 1]) +
                   matches[matches.length - 1].length -
                   refs[i].textContent.length - del_len;
-        next.textContent = next.textContent.slice(ref_end);
+        if (next != null && next.tagName != "A") {
+          next.textContent = next.textContent.slice(ref_end);
+        }
         new_ref.dataset.refnum = matches.join(",");
       }
+      console.log(new_ref);
     }
 
     if (next && (next.textContent.startsWith(";") ||
@@ -93,9 +104,11 @@ function have_access() {
 }
 
 function get_abstract() {
-  var abs = document.querySelector("div[id^=abssec]");
+  var abs = document.querySelector("div.abstract.author");
   if (abs == null) {
-    abs = document.querySelector("div[id^=aep-abstract-sec]")
+    abs = document.querySelector("div[id^=aep-abstract-sec]");
+  } else {
+    abs = abs.querySelector("div");
   }
   return abs;
 }

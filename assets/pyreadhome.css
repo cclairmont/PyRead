@@ -15,7 +15,7 @@ ol {
   transition: margin-left .5s;
 }
 
-.ref, .figure-ref {
+.ref, .figure-ref, .table-ref{
   color: Blue;
   user-select: none;
   padding-left: 2px;
@@ -24,7 +24,7 @@ ol {
   display: inline-block;
 }
 
-.ref:hover, .figure-ref:hover {
+.ref:hover, .figure-ref:hover,.table-ref:hover {
   background-color: #F0F8FF;
   border-radius: 5px;
 }

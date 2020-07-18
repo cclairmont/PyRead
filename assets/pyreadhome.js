@@ -129,20 +129,7 @@ function save_session() {
 }
 
 function elemsAreAdjacent(e1, e2) {
-  if (e1.parentElement.isSameNode(e2.parentElement)) {
-    var p_html = e1.parentElement.innerHTML;
-    var c1_html = e1.outerHTML;
-    var c2_html = e2.outerHTML;
-    var in_between = p_html.slice(p_html.indexOf(c1_html) + c1_html.length,
-                                  p_html.indexOf(c2_html));
-    if (in_between == "") {
-      return true;
-    } else {
-      return false;
-    }
-  } else {
-    return false;
-  }
+  return e1.nextSibling.isSameNode(e2) || e1.previousSibling.isSameNode(e2);
 }
 
 function merge_refs(ref_list) {
@@ -314,16 +301,22 @@ function new_session(doi, title = null, inactive = [], scroll = 0,
 
 function load_scraper(doi) {
   resolver = new XMLHttpRequest();
+  status_updater = new XMLHttpRequest();
+  status_updater.open('GET', '/pyreadstatus?loading=true&doi=' + doi);
+  status_updater.send();
   resolver.onload = function() {
-    var target_url = JSON.parse(resolver.response).url;
-    var netloc = new URL(window.location).origin;
-    var path = netloc + "/pyreadproxy?location=" + target_url;
-    status_updater = new XMLHttpRequest();
-    status_updater.open('GET', '/pyreadstatus?loading=true&doi=' + doi);
-    status_updater.send();
-    save_session();
-    window.open('pyreadhome');
-    window.location.replace(path, '_blank');
+    console.log(resolver.response.status);
+    if (resolver.response.status == 200) {
+      var target_url = JSON.parse(resolver.response).url;
+      var netloc = new URL(window.location).origin;
+      var path = netloc + "/pyreadproxy?location=" + target_url;
+      save_session();
+      window.open('pyreadhome');
+      window.location.replace(path, '_blank');
+    } else {
+      status_updater.open('GET', '/pyreadstatus?loading=false&doi=' + doi);
+      status_updater.send();
+    }
   };
   resolver.open('GET', '/pyreadresolve?doi=' + doi);
   resolver.send();
@@ -614,7 +607,7 @@ function add_reflinks() {
             slicers[0] - 1, slicers[1]).map(a => a.pmid).join(",");
           s.dataset.local = references.slice(
             slicers[0] - 1, slicers[1]).map(a => a.local).join(",");
-        } else {
+        } else if (references[slicers[0] - 1] != null){
           s.dataset.doi = references[slicers[0] - 1].doi;
           s.dataset.pmid = references[slicers[0] - 1].pmid;
           s.dataset.local = references[slicers[0] - 1].local;
@@ -659,24 +652,27 @@ function add_reflinks() {
           })(slicers, k);
           var reftiplabel = document.createElement("span");
           reftiplabel.className = "ref-tip-label";
-          var authors = references[slicers[0] - 1 + k].authors;
-          console.log(slicers, k);
-          var first_auth = null;
-          if (authors != null) {
-            first_auth = authors[0].slice(authors[0].lastIndexOf(' '));
-          }
-          var year = references[slicers[0] - 1 + k].date;
-          if (year != null) {
-            year = year.slice(0,4);
-          }
-          if (authors != null && authors.length == 1) {
-            reftiplabel.innerHTML = first_auth + ' ' + year;
-          } else {
-            reftiplabel.innerHTML = first_auth + ' et al. ' + year;
+          if (references[slicers[0] - 1 + k] != null) {
+            var authors = references[slicers[0] - 1 + k].authors;
+            var first_auth = null;
+            if (authors != null && authors[0] != null) {
+              first_auth = authors[0].slice(authors[0].lastIndexOf(' '));
+            }
+            var year = references[slicers[0] - 1 + k].date;
+            if (year != null) {
+              year = year.slice(0,4);
+            }
+            if (authors != null && authors.length == 1) {
+              reftiplabel.innerHTML = first_auth + ' ' + year;
+            } else {
+              reftiplabel.innerHTML = first_auth + ' et al. ' + year;
+            }
           }
           var reftiptitle = document.createElement("span");
           reftiptitle.className = "ref-tip-title";
-          reftiptitle.innerHTML = references[slicers[0] - 1 + k].title;
+          if (references[slicers[0] - 1 + k] != null) {
+            reftiptitle.innerHTML = references[slicers[0] - 1 + k].title;
+          }
           reftipcontainer.appendChild(reftiplabel);
           reftipcontainer.appendChild(reftiptitle);
           reftip.appendChild(reftipcontainer);
@@ -692,91 +688,99 @@ function add_reflinks() {
 }
 
 function add_figlinks() {
-  var fig_links = document.querySelectorAll("span.figure-ref");
-  var consec_elems = [];
-  for (var i = 0; i < fig_links.length; i++) {
-    console.log(fig_links[i]);
-    var consec = false;
-    if (consec_elems.length == 0 ||
-        elemsAreAdjacent(fig_links[i-1], fig_links[i])) {
-      consec_elems.push(fig_links[i]);
-      consec = true;
-    }
-    if (!consec || i + 1 == fig_links.length) {
-      var search = true;
-      var prev_elem = consec_elems[0].previousSibling;
-      var inside_parens = false;
-      while (search && prev_elem != null) {
-        for(var k = prev_elem.textContent.length - 1; k >= 0; k--) {
-          if (prev_elem.textContent[k] == '(') {
-            inside_parens = true;
-            search = false;
-            break;
-          } else if (prev_elem.textContent[k] == ')') {
-            search = false;
-            break;
-          }
-        }
-        prev_elem = prev_elem.previousSibling;
+  fig_types = [["Figure", "span.figure-ref"],
+               ["Table", "span.table-ref"]];
+  for (var ft of fig_types) {
+    var fig_links = document.querySelectorAll(ft[1]);
+    var consec_elems = [];
+    for (var i = 0; i < fig_links.length; i++) {
+      console.log(fig_links[i]);
+      var consec = false;
+      if (consec_elems.length == 0 ||
+          elemsAreAdjacent(fig_links[i-1], fig_links[i])) {
+        consec_elems.push(fig_links[i]);
+        consec = true;
       }
-      var closing_paren = false;
-      if (inside_parens) {
-        search = true;
-        var next_elem = consec_elems[consec_elems.length - 1].nextSibling;
-        while (search && next_elem != null) {
-          for(var k = 0; k < next_elem.textContent.length; k++) {
-            if (next_elem.textContent[k] == ')') {
-              closing_paren = true;
+      if (!consec || i + 1 == fig_links.length) {
+        var search = true;
+        var prev_elem = consec_elems[0].previousSibling;
+        var inside_parens = false;
+        while (search && prev_elem != null) {
+          for(var k = prev_elem.textContent.length - 1; k >= 0; k--) {
+            if (prev_elem.textContent[k] == '(') {
+              inside_parens = true;
               search = false;
               break;
-            } else if (next_elem.textContent[k] == '(') {
+            } else if (prev_elem.textContent[k] == ')') {
               search = false;
               break;
             }
           }
-          next_elem = next_elem.nextSibling;
+          prev_elem = prev_elem.previousSibling;
         }
-      }
-      for (var j = 0; j < consec_elems.length; j++) {
-        var fignum = consec_elems[j].dataset.refnum;
-        var file = fignum.indexOf("-");
-        if (file > -1) {
-          fignum = fignum.substring(0, file);
-        }
-        if (fignum[0] == "S") {
-          num_index = 2;
-        } else {
-          num_index = 1;
-        }
-        var fig_str = fignum.substring(0, num_index) +
-                      merge_refs(fignum.substring(num_index).split(","));
-        fig_str = fig_str.split(",").join(", ");
-        consec_elems[j].innerHTML = fig_str;
-        if (j == 0) {
-          if (consec_elems.length == 1 && fig_str.indexOf(",") == -1 &&
-              fig_str.indexOf("-") == -1) {
-            if(!inside_parens) {
-              consec_elems[j].insertAdjacentText("beforebegin", " (Figure ");
-            } else {
-              consec_elems[j].insertAdjacentText("beforebegin", " Figure ");
+        var closing_paren = false;
+        if (inside_parens) {
+          search = true;
+          var next_elem = consec_elems[consec_elems.length - 1].nextSibling;
+          while (search && next_elem != null) {
+            for(var k = 0; k < next_elem.textContent.length; k++) {
+              if (next_elem.textContent[k] == ')') {
+                closing_paren = true;
+                search = false;
+                break;
+              } else if (next_elem.textContent[k] == '(') {
+                search = false;
+                break;
+              }
             }
+            next_elem = next_elem.nextSibling;
+          }
+        }
+        for (var j = 0; j < consec_elems.length; j++) {
+          var fignum = consec_elems[j].dataset.refnum;
+          var file = fignum.indexOf("-");
+          if (file > -1) {
+            fignum = fignum.substring(0, file);
+          }
+          if (fignum[0] == "S") {
+            num_index = 2;
           } else {
-            if (!inside_parens) {
-              consec_elems[j].insertAdjacentText("beforebegin", " (Figures ");
+            num_index = 1;
+          }
+          var fig_str = fignum.substring(0, num_index) +
+                        merge_refs(fignum.substring(num_index).split(","));
+          fig_str = fig_str.split(",").join(", ");
+          consec_elems[j].innerHTML = fig_str;
+          if (j == 0) {
+            if (consec_elems.length == 1 && fig_str.indexOf(",") == -1 &&
+                fig_str.indexOf("-") == -1) {
+              if(!inside_parens) {
+                consec_elems[j].insertAdjacentText("beforebegin", " (" +
+                                                   ft[0] + " ");
+              } else {
+                consec_elems[j].insertAdjacentText("beforebegin", " " +
+                                                   ft[0]+ " ");
+              }
             } else {
-              consec_elems[j].insertAdjacentText("beforebegin", " Figures ");
+              if (!inside_parens) {
+                consec_elems[j].insertAdjacentText("beforebegin", " (" +
+                                                   ft[0] + " ");
+              } else {
+                consec_elems[j].insertAdjacentText("beforebegin", " " +
+                                                   ft[0] + " ");
+              }
+            }
+          }
+          if (j + 1 < consec_elems.length) {
+            consec_elems[j].insertAdjacentText("afterend", ", ");
+          } else {
+            if (!inside_parens || !closing_paren) {
+              consec_elems[j].insertAdjacentText("afterend", ")");
             }
           }
         }
-        if (j + 1 < consec_elems.length) {
-          consec_elems[j].insertAdjacentText("afterend", ", ");
-        } else {
-          if (!inside_parens || !closing_paren) {
-            consec_elems[j].insertAdjacentText("afterend", ")");
-          }
-        }
+        consec_elems = [fig_links[i]];
       }
-      consec_elems = [fig_links[i]];
     }
   }
 }

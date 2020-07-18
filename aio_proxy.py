@@ -21,7 +21,7 @@ http.cookies._is_legal_key = lambda _: True
 sslcontext = ssl.create_default_context(cafile=certifi.where())
 
 CAPABILITIES = {
-    'https://www.sciencedirect.com': 'sciencedirect.js'
+    'sciencedirect': 'sciencedirect.js'
 }
 
 
@@ -269,7 +269,7 @@ class AIOProxy:
             if response.content_type == 'text/html':
                 scraper = None
                 for c in CAPABILITIES:
-                    if (self.netloc + str(request.rel_url)).startswith(c):
+                    if self.netloc.find(c) != -1:
                         scraper = CAPABILITIES[c].encode('utf-8')
                 head_end = body.find(b'</head>')
                 if head_end != -1:
@@ -319,7 +319,7 @@ class AIOProxy:
                 current_url = await session.get_url()
                 print(current_url)
                 for c in CAPABILITIES:
-                    if current_url.startswith(c):
+                    if current_url.find(c) != -1:
                         found = True
                         break
                 if found:
@@ -369,12 +369,14 @@ class AIOProxy:
         return web.Response(body=page, content_type='text/html')
 
     async def pyreadstatus(self, request):
+        print(request.query)
         doi = request.query.get('doi')
         loading = request.query.get('loading')
         if doi is None:
             self.active_tab = time.time()
             return web.Response(text='')
         if loading is not None:
+            print(loading)
             article = self.cache.get(doi)
             if article is None:
                 article = Article(self.session, self.cookies)

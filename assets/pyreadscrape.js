@@ -7,7 +7,7 @@ function clean_elem(elem) {
   if (elem.tagName == "A" || elem.tagName == "DIV" ||
       elem.tagName == "SECTION" ||
       (elem.tagName == "SPAN" && elem.className != "ref" &&
-       elem.className != "figure-ref")) {
+       elem.className != "figure-ref" && elem.className != "table-ref")) {
     result = nodes.map(clean_elem).join("");
   } else if (elem.tagName == "FIGURE") {
     result = "<figure></figure>";
@@ -16,7 +16,8 @@ function clean_elem(elem) {
     while(elem.attributes.length > num_attributes) {
       if (elem.attributes[0].name != "class" ||
           (elem.attributes[0].value != "ref" &&
-           elem.attributes[0].value != "figure-ref")) {
+           elem.attributes[0].value != "figure-ref" &&
+           elem.attributes[0].value != "table-ref")) {
         elem.removeAttribute(elem.attributes[0].name);
       } else {
         num_attributes++;
@@ -145,4 +146,5 @@ function show_results() {
   status_updater = new XMLHttpRequest();
   status_updater.open('GET', '/pyreadstatus?loading=false&doi=' + id.doi);
   status_updater.send();
+  window.location.replace('/pyreadhome?doi=' + id.doi);
 }
