@@ -15,15 +15,14 @@ from collections.abc import MutableMapping
 import arsenic_hacks as arsenic
 import time
 import re
+from bs4 import BeautifulSoup
 
 # Workaround to use cookies with illegal keys with aiohttp
 http.cookies._is_legal_key = lambda _: True
 
 sslcontext = ssl.create_default_context(cafile=certifi.where())
 
-CAPABILITIES = {
-    'sciencedirect': 'sciencedirect.js'
-}
+CAPABILITIES = ['sciencedirect.com', 'nature.com']
 
 
 class PyrCache(MutableMapping):
@@ -92,6 +91,23 @@ class AIOProxy:
         self.cookies = ''
         self.cache = PyrCache(self.ARTICLE_CACHE_SIZE)
         self.active_tab = 0
+
+    def _get_parser(self, html):
+        soup = BeautifulSoup(html, 'lxml')
+
+        def sciencedirect():
+            return (soup.title.string.endswith('ScienceDirect'))
+
+        def nature():
+            app_name = soup.find('meta', {'name': 'application-name'})
+            return app_name is not None and app_name['content'] == 'Nature'
+
+        parsers = {'sciencedirect.js': sciencedirect,
+                   'nature.js': nature}
+        for fname, test in parsers.items():
+            if test():
+                return fname
+        return None
 
     async def create_session(self):
         self.session = aiohttp.ClientSession()
@@ -270,15 +286,13 @@ class AIOProxy:
             body = await response.content.read()
             if response.content_type == 'text/html':
                 scraper = None
-                for c in CAPABILITIES:
-                    if self.netloc.find(c) != -1:
-                        scraper = CAPABILITIES[c].encode('utf-8')
+                scraper = self._get_parser(body)
                 head_end = body.find(b'</head>')
                 if head_end != -1:
                     if scraper is not None:
                         scraper_str = b'<script type="text/javascript"'\
                                       b' src="/pyreadasset?file=scrapers/' +\
-                                      scraper + b'"></script>'
+                                      scraper.encode('utf-8') + b'"></script>'
                     else:
                         scraper_str = b''
                     body = body[:head_end] + scraper_str +\
