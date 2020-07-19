@@ -1,6 +1,9 @@
 /*jshint esversion: 6 */
 
 function clean_elem(elem) {
+  if (elem == null) {
+    return null;
+  }
   var result;
   if (elem.nodeType == Node.TEXT_NODE) {
     return elem.textContent;
@@ -44,6 +47,8 @@ var results = {"abs": new XMLHttpRequest(), "fig": new XMLHttpRequest(),
                "main": new XMLHttpRequest(), "ref": new XMLHttpRequest(),
                "file": new XMLHttpRequest()};
 
+var MAX_RETRY = 20;
+
 function scrape() {
 
   /* get_identifiers should return a JSON with the following information  */
@@ -60,13 +65,15 @@ function scrape() {
 }
 
 function pyr_abstract() {
+  var count = 0;
   var response = JSON.parse(id_xhr.response);
   if (!have_access()) {
     window.location.replace("/pyreadredirect?doi=" + id.doi);
   }
   var interval = setInterval(function() {
+    count++;
     abstract = get_abstract();
-    if (abstract) {
+    if (abstract || count > MAX_RETRY) {
       clearInterval(interval);
       abstract = clean_elem(abstract);
       results.abs.open("POST", "/pyreadscrapi");
@@ -77,10 +84,13 @@ function pyr_abstract() {
 }
 
 function pyr_figures() {
+  var count = 0;
   var interval = setInterval(function() {
+    count++;
     figures = get_figures();
-    if (figures.length > 0 && (figures.length > 1 ||
-                               figures[0].title != "Graphical Abstract")) {
+    if (count > MAX_RETRY ||
+        (figures.length > 0 && (figures.length > 1 ||
+                                figures[0].title != "Graphical Abstract"))) {
       clearInterval(interval);
       for (var i = 0; i < figures.length; i++) {
         if (figures[i].legend) {
@@ -95,9 +105,11 @@ function pyr_figures() {
 }
 
 function pyr_content() {
+  var count = 0;
   var interval = setInterval(function() {
+    count++;
     main_text = get_content();
-    if (main_text.length > 0 ) {
+    if (main_text.length > 1 || count > MAX_RETRY) {
       clearInterval(interval);
       for (var i = 0; i < main_text.length; i++) {
         if (main_text[i].content.length) {
@@ -117,21 +129,26 @@ function pyr_content() {
 }
 
 function pyr_references() {
+  var count = 0;
   var interval = setInterval(function() {
+    count++;
     references = get_references();
-    if (references.length > 0 ) {
+    if (references.length > 0 || count > MAX_RETRY) {
       clearInterval(interval);
       results.ref.open("POST", "/pyreadscrapi");
-      results.ref.send(JSON.stringify({"doi": id.doi, "references": references}));
+      results.ref.send(JSON.stringify({"doi": id.doi,
+                                       "references": references}));
       pyr_files();
     }
   }, 500);
 }
 
 function pyr_files() {
+  var count = 0;
   var interval = setInterval(function() {
+    count++;
     files = get_files();
-    if (Object.keys(files).length > 0 ) {
+    if (Object.keys(files).length > 0 || count > MAX_RETRY) {
       clearInterval(interval);
       results.file.open("POST", "/pyreadscrapi");
       results.file.send(JSON.stringify({"doi": id.doi, "files": files}));

@@ -404,6 +404,9 @@ get_content.onload = function () {
   var article = document.getElementsByClassName("article")[0];
   var response_data = JSON.parse(get_content.response);
   for (var i = 0; i < response_data.length; i++) {
+    if (response_data[i].content == null) {
+      continue;
+    }
     section = document.createElement("div");
     section.id = "sec" + i;
     title = document.createElement("div");

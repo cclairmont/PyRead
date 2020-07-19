@@ -10,7 +10,7 @@ function handle_figs_refs(elem) {
   for (var i = 0; i < refs.length; i++) {
     console.log(refs[i]);
     var new_ref, refnum, is_figref;
-    if (refs[i].name.startsWith("bbib") || refs[i].name.startsWith("bfig") ||
+    if (refs[i].name.startsWith("bb") || refs[i].name.startsWith("bfig") ||
         refs[i].name.startsWith("bapp") || refs[i].name.startsWith("bmmc")) {
       is_figref = refs[i].name.startsWith("bfig") ||
                   refs[i].name.startsWith("bapp") ||
@@ -168,6 +168,10 @@ function get_figures() {
 function get_content() {
   var content = [];
   var elems = document.querySelectorAll("section[id^=sec]");
+  if (elems.length == 0) {
+    var main = document.querySelector("div#body");
+    content = [{"title": "Body", "content": handle_figs_refs(main)}];
+  }
   for (var i = 0; i < elems.length; i++) {
     if (elems[i].id.indexOf(".") != -1 ||
         elems[i].parentElement.tagName == "SECTION") {
@@ -206,12 +210,12 @@ function get_content() {
 }
 
 function get_references() {
-  var bib_section = document.querySelector("section.bibliography");
+  var bib_section = document.querySelector("section[class^=bibliography]");
   var refs = bib_section.querySelectorAll("dt.label");
   var ref_list = [];
   for (var i = 0; i < refs.length; i++) {
     var refnum = refs[i].querySelector("a").href;
-    refnum = parseInt(refnum.slice(refnum.indexOf('#bbib') + 5), 10);
+    refnum = parseInt(refnum.slice(refnum.indexOf('#bb') + 5), 10);
     var ref_entry = {};
     ref_entry.label = refs[i].textContent;
     var ref_info = refs[i].nextSibling;
