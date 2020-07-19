@@ -14,6 +14,7 @@ from pathlib import Path
 from collections.abc import MutableMapping
 import arsenic_hacks as arsenic
 import time
+import re
 
 # Workaround to use cookies with illegal keys with aiohttp
 http.cookies._is_legal_key = lambda _: True
@@ -204,14 +205,14 @@ class AIOProxy:
                 for res in ['lr', 'hr']:
                     if res not in f:
                         continue
-                    if (f['title'].startswith('Figure S') or
-                        f['title'].encode('utf-8').startswith(
-                            b'Figure\xc2\xa0S')):
-                        identity = ArticleItem.SUPPLEMENTARY_FIGURE
-                        number = int(f['title'][8:f['title'].find('.')])
-                    elif f['title'].startswith('Figure'):
-                        identity = ArticleItem.FIGURE
-                        number = int(f['title'][7:f['title'].find('.')])
+                    print(f['title'])
+                    fig_re = re.match(r'^Fig(\.|ure)\s(S?)(\d+)', f['title'])
+                    if fig_re is not None:
+                        number = int(fig_re.group(3))
+                        if fig_re.group(2) == 'S':
+                            identity = ArticleItem.SUPPLEMENTARY_FIGURE
+                        else:
+                            identity = ArticleItem.FIGURE
                     else:
                         identity = ArticleItem.OTHER
                         number = 0

@@ -18,7 +18,7 @@ function handle_figs_refs(elem) {
       refnum = refs[i].name.slice(4);
       new_ref = document.createElement("span");
       if (is_figref) {
-        if (refs[i].textContent.startsWith('Figure')) {
+        if (refs[i].textContent.startsWith('Fig')) {
           fig_type = "figure-ref";
         } else if (refs[i].textContent.startsWith('Table')) {
           fig_type = "table-ref";
@@ -46,7 +46,7 @@ function handle_figs_refs(elem) {
         fig_ref = fig_ref + next.textContent;
         fig_ref = fig_ref.replace(/&nbsp;/g, ' ');
         fig_ref = fig_ref.replace(/–/g, '-');
-        ref_end = fig_ref.match(/(Figures?|Tables?|^)((,|;|\sand)?(\s|^)S?\d[A-Z]?(-S?\d?[A-Z]?)?)+/g);
+        ref_end = fig_ref.match(/(Figures?|Tables?|Figs?.|^)((,|;|\sand)?(\s|^)S?\d[A-Z]?(-S?\d?[A-Z]?)?)+/g);
         if (ref_end != null) {
           console.log(ref_end[0]);
           ref_end = fig_ref.indexOf(ref_end[0]) + ref_end[0].length;
@@ -57,7 +57,7 @@ function handle_figs_refs(elem) {
       }
       console.log(fig_ref);
       var matcher = fig_ref.matchAll(
-        /(^|Figures?\s|Tables?\s|,\s|;\s|and\s)(S?\d[A-Z]?)(-S?\d?[A-Z]?|$)?/g);
+        /(^|\s)(S?\d[A-Z]?)(-S?\d?[A-Z]?|$)?/g);
       var matches = [];
       for (var m of matcher) {
         console.log(m);
@@ -145,8 +145,17 @@ function get_figures() {
     var captions = figures[i].querySelector("span.captions");
     if (captions) {
       var caption_list = captions.querySelectorAll("p");
-      fig_entry.title = caption_list[0].textContent;
-      caption_list[0].parentElement.removeChild(caption_list[0]);
+      if (caption_list.length > 1) {
+        fig_entry.title = caption_list[0].textContent;
+        caption_list[0].parentElement.removeChild(caption_list[0]);
+      } else {
+        var title = caption_list[0].textContent.match(
+          /Fig\.\s\d+\.\s[^\.]*\.\s/);
+        if (title != null) {
+          fig_entry.title = title[0];
+          captions.textContent = captions.textContent.slice(title[0].length);
+        }
+      }
       fig_entry.legend = handle_figs_refs(captions);
     } else {
       fig_entry.title = "Graphical Abstract";
@@ -160,7 +169,8 @@ function get_content() {
   var content = [];
   var elems = document.querySelectorAll("section[id^=sec]");
   for (var i = 0; i < elems.length; i++) {
-    if (elems[i].id.indexOf(".") != -1) {
+    if (elems[i].id.indexOf(".") != -1 ||
+        elems[i].parentElement.tagName == "SECTION") {
       //Skipping subsections (Which have '.' in their id)
       continue;
     }
@@ -206,16 +216,24 @@ function get_references() {
     ref_entry.label = refs[i].textContent;
     var ref_info = refs[i].nextSibling;
     var auth_list = ref_info.querySelector("div.contribution");
-    var journal_year;
+    var journal_year, auth_list_end;
     if (auth_list) {
-      ref_entry.title = ref_info.querySelector("strong").textContent;
-      auth_list = auth_list.textContent.slice(
-        0, auth_list.textContent.indexOf(ref_entry.title));
+      auth_list = auth_list.textContent;
+      ref_entry.title = ref_info.querySelector("strong");
+      if (ref_entry.title != null) {
+        ref_entry.title = ref_entry.title.textContent;
+        auth_list_end = auth_list.indexOf(ref_entry.title);
+        if (auth_list_end != -1) {
+          auth_list = auth_list.slice(0, auth_list_end);
+        }
+      }
       journal_year = ref_info.querySelector("div.host").textContent;
     } else {
       var text = ref_info.textContent;
-      var auth_list_end = text.indexOf(" (");
-      auth_list = text.slice(0, auth_list_end);
+      auth_list_end = text.indexOf(" (");
+      if (auth_list_end != -1) {
+        auth_list = text.slice(0, auth_list_end);
+      }
       var title_start = text.indexOf("). ") + 3;
       text = text.slice(title_start);
       title_end = text.indexOf(". ");
@@ -260,18 +278,20 @@ function get_files() {
       result.pdf = response.slice(start, end);
     }
     var appendix = document.querySelector("div.Appendices");
-    var links = appendix.querySelectorAll("span.article-attachment");
-    for (var i = 0; i < links.length; i++) {
-      if (links[i].nextSibling == null) {
-        continue;
+    if (appendix != null) {
+      var links = appendix.querySelectorAll("span.article-attachment");
+      for (var i = 0; i < links.length; i++) {
+        if (links[i].nextSibling == null) {
+          continue;
+        }
+        var title = links[i].nextSibling.textContent;
+        if (title.indexOf("Supplemental Information") != -1 &&
+            !result.hasOwnProperty("extended")) {
+          title = "extended";
+        }
+        link = links[i].querySelector("a");
+        result[title] = link.href;
       }
-      var title = links[i].nextSibling.textContent;
-      if (title.indexOf("Supplemental Information") != -1 &&
-          !result.hasOwnProperty("extended")) {
-        title = "extended";
-      }
-      link = links[i].querySelector("a");
-      result[title] = link.href;
     }
   }
   return result;

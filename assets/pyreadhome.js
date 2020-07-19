@@ -492,6 +492,7 @@ get_refs.onload = function () {
 
 get_fileinfo.onload = function() {
   fileinfo = JSON.parse(get_fileinfo.response);
+  console.log(fileinfo);
   add_figures();
 };
 

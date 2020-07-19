@@ -252,6 +252,8 @@ class Article:
 
     async def a_init(self, doi=None, pmid=None, title=None):
         if self._ainit_done:
+            await self.check_local()
+            self.entry['local'] = self.manifest['local']
             return self.entry
         if self._ainit_start:
             await asyncio.sleep(1)
