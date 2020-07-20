@@ -8,7 +8,15 @@ function clean_elem(elem) {
   if (elem.nodeType == Node.TEXT_NODE) {
     return elem.textContent;
   }
-  var nodes = Array.from(elem.childNodes);
+  var nodes;
+  if (elem.nodeType == null) {
+    nodes = Array.from(elem);
+    if (nodes.length == 1) {
+      nodes = [];
+    }
+  } else {
+    nodes = Array.from(elem.childNodes);
+  }
   if (elem.tagName == "A" || elem.tagName == "DIV" ||
       elem.tagName == "SECTION" ||
       (elem.tagName == "SPAN" && elem.className != "ref" &&
@@ -18,20 +26,26 @@ function clean_elem(elem) {
   } else if (elem.tagName == "FIGURE") {
     result = "<figure></figure>";
   } else {
-    num_attributes = 0;
-    while(elem.attributes.length > num_attributes) {
-      if (elem.attributes[0].name != "class" ||
-          (elem.attributes[0].value != "ref" &&
-           elem.attributes[0].value != "figure-ref" &&
-           elem.attributes[0].value != "table-ref" &&
-           elem.attributes[0].value != "other-ref")) {
-        elem.removeAttribute(elem.attributes[0].name);
-      } else {
-        num_attributes++;
+    if (elem.attributes != null) {
+      num_attributes = 0;
+      while(elem.attributes.length > num_attributes) {
+        if (elem.attributes[0].name != "class" ||
+            (elem.attributes[0].value != "ref" &&
+             elem.attributes[0].value != "figure-ref" &&
+             elem.attributes[0].value != "table-ref" &&
+             elem.attributes[0].value != "other-ref")) {
+          elem.removeAttribute(elem.attributes[0].name);
+        } else {
+          num_attributes++;
+        }
       }
     }
     elem.innerHTML =  nodes.map(clean_elem).join("");
-    result = elem.outerHTML;
+    if (elem.outerHTML == null) {
+      result = elem.innerHTML;
+    } else {
+      result = elem.outerHTML;
+    }
   }
   result = result.replace(/\((<span[^>]*>[^\)^\(]*<\/span>)\)/g, "$1");
   result = result.replace(/<\/span>[\s]*<span/g, "</span><span");
@@ -112,7 +126,7 @@ function pyr_content() {
     if (main_text.length > 1 || count > MAX_RETRY) {
       clearInterval(interval);
       for (var i = 0; i < main_text.length; i++) {
-        if (main_text[i].content.length) {
+        if (main_text[i].content.length && main_text[i].content[0].title) {
           for (var j = 0; j < main_text[i].content.length; j++) {
             main_text[i].content[j].content =
               clean_elem(main_text[i].content[j].content);
