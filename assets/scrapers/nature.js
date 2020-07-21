@@ -4,96 +4,96 @@
 // Internal Functions
 //
 
+var ref_selector = "a[id^=ref-link]";
+var ref_re = /\d+/;
+
+function ref_num(ref) {
+  return ref.href.match(/#[^\d]*(\d*)$/)[1];
+}
+
+var fig_ref_selector = "a[data-track-action='figure anchor']";
+var fig_ref_re = /((, )?(Extended Data )?Fig\. \d([a-z][,\-])*[a-z])+/;
+
+function fig_ref_num(ref) {
+  var num = ref.textContent.match(/^\d+/);
+  var link_num = ref.href.match(/\d+$/);
+  if (num == link_num) {
+    return num;
+  } else {
+    return "S" + num;
+  }
+}
+
 function handle_figs_refs(elem) {
-  // var refs = elem.querySelectorAll("a.workspace-trigger");
-  // var fig_type = "other-ref";
-  // for (var i = 0; i < refs.length; i++) {
-  //   console.log(refs[i]);
-  //   var new_ref, refnum, is_figref;
-  //   if (refs[i].name.startsWith("bb") || refs[i].name.startsWith("bfig") ||
-  //       refs[i].name.startsWith("bapp") || refs[i].name.startsWith("bmmc")) {
-  //     is_figref = refs[i].name.startsWith("bfig") ||
-  //                 refs[i].name.startsWith("bapp") ||
-  //                 refs[i].name.startsWith("bmmc");
-  //     refnum = refs[i].name.slice(4);
-  //     new_ref = document.createElement("span");
-  //     if (is_figref) {
-  //       if (refs[i].textContent.startsWith('Fig')) {
-  //         fig_type = "figure-ref";
-  //       } else if (refs[i].textContent.startsWith('Table')) {
-  //         fig_type = "table-ref";
-  //       }
-  //       new_ref.className = fig_type;
-  //     } else {
-  //       new_ref.className = "ref";
-  //       new_ref.dataset.refnum = refnum;
-  //     }
-  //     refs[i].replaceWith(new_ref);
-  //   } else {
-  //     continue;
-  //   }
-  //   var prev = new_ref.previousSibling;
-  //   var next = new_ref.nextSibling;
-  //   if (is_figref) {
-  //     refnum = "";
-  //     var fig_ref = refs[i].textContent;
-  //     var orig_ref = fig_ref;
-  //     var ref_end = -1;
-  //     var del_len = 0;
-  //     var searched_nodes = [refs[i]];
-  //     while (next != null && next.tagName != 'A') {
-  //       searched_nodes.push(next);
-  //       fig_ref = fig_ref + next.textContent;
-  //       fig_ref = fig_ref.replace(/&nbsp;/g, ' ');
-  //       fig_ref = fig_ref.replace(/–/g, '-');
-  //       ref_end = fig_ref.match(/(Figures?|Tables?|Figs?.|^)((,|;|\sand)?(\s|^)S?\d[A-Z]?(-S?\d?[A-Z]?)?)+/g);
-  //       if (ref_end != null) {
-  //         console.log(ref_end[0]);
-  //         ref_end = fig_ref.indexOf(ref_end[0]) + ref_end[0].length;
-  //         fig_ref = fig_ref.slice(0, ref_end + 1);
-  //         break;
-  //       }
-  //       next = next.nextSibling;
-  //     }
-  //     console.log(fig_ref);
-  //     var matcher = fig_ref.matchAll(
-  //       /(^|\s)(S?\d[A-Z]?)(-S?\d?[A-Z]?|$)?/g);
-  //     var matches = [];
-  //     for (var m of matcher) {
-  //       console.log(m);
-  //       if (m[3] != null && m[3].startsWith("-")) {
-  //         matches.push(m[2] + m[3]);
-  //       } else {
-  //         matches.push(m[2]);
-  //       }
-  //     }
-  //     console.log(matches);
-  //     if (matches.length > 0) {
-  //       ref_end = fig_ref.lastIndexOf(matches[matches.length - 1]) +
-  //                 matches[matches.length - 1].length;
-  //       for (var sn of searched_nodes) {
-  //         console.log(ref_end);
-  //         console.log(sn.textContent);
-  //         if (ref_end >= sn.textContent.length) {
-  //           ref_end -= sn.textContent.length;
-  //           sn.textContent = "";
-  //         } else {
-  //           sn.textContent = sn.textContent.slice(ref_end);
-  //           break;
-  //         }
-  //       }
-  //       new_ref.dataset.refnum = matches.join(",");
-  //     } else {
-  //       new_ref.dataset.refnum = orig_ref;
-  //     }
-  //     console.log(new_ref);
-  //   }
-  //
-  //   if (next && (next.textContent.startsWith(";") ||
-  //                next.textContent.startsWith(","))) {
-  //     next.textContent = next.textContent.slice(1);
-  //   }
-  // }
+  handlers = [{selector: ref_selector,
+               re: ref_re,
+               num: ref_num,
+               class: "ref-link"},
+              {selector: fig_ref_selector,
+               re: fig_ref_re,
+               num: fig_ref_num,
+               class: "fig-ref-link"}];
+
+  for (var h of handlers) {
+    var refs = elem.querySelectorAll(h.selector);
+    for (var i = 0; i < refs.length; i++) {
+      var new_ref = document.createElement("span");
+      new_ref.className = h.class;
+      new_ref.dataset.refnum = h.num(r);
+      var nodes = [refs[i]];
+      var text = refs[i].textContent;
+      var m;
+      while(true) {
+        m = text.match(h.re);
+        if (m != null) {
+          var start = text.indexOf(match[0]);
+          var end = start + match[0].length;
+          for (var j = 0; j < nodes.length; j++) {
+            if (start < nodes[j].textContent.length) {
+              for (var k = j; k < nodes.length; k++) {
+                if (end < nodes[k].textContent) {
+                  if (k > j) {
+                    nodes[k].textContent = nodes[k].textContent.slice(end);
+                    nodes[j].textContent = nodes[j].textContent.slice(0, start);
+                    for (var n = j + 1; n < k; n++) {
+                      nodes[n].textContent = "";
+                    }
+                  } else {
+                    nodes[k].textContent = nodes[k].textContent.slice(0, start) +
+                                           nodes[k].textContent.slice(end);
+                  }
+                  break;
+                }
+                end -= nodes[k].length;
+              }
+              break;
+            }
+            start -= nodes[j].length;
+          }
+          break;
+        }
+        var prev, next;
+        if (nodes[0].previousSibling != null &&
+            !nodes[0].previousSibling.isSameNode(refs[i - 1])) {
+          nodes.unshift(nodes[0].previousSibling);
+          text = nodes[0].textContent + text;
+          prev = true;
+        }
+        if (nodes[nodes.length - 1].nextSibling != null &&
+            !nodes[nodes.length - 1].nextSibling.isSameNode(refs[i + 1])) {
+          nodes.push(nodes[nodes.length - 1].nextSibling);
+          text = text + nodes[nodes.length - 1];
+          next = true;
+        }
+        if (!prev && !next) {
+          break;
+        }
+      }
+      if (m != null) {
+        refs[i].replaceWith(new_ref);
+      }
+    }
+  }
   return elem;
 }
 
