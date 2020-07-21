@@ -19,9 +19,9 @@ function clean_elem(elem) {
   }
   if (elem.tagName == "A" || elem.tagName == "DIV" ||
       elem.tagName == "SECTION" ||
-      (elem.tagName == "SPAN" && elem.className != "ref" &&
-       elem.className != "figure-ref" && elem.className != "table-ref" &&
-       elem.className != "other-ref")) {
+      ((elem.tagName == "SPAN" || elem.textContent == "") &&
+       (elem.className != "ref" && elem.className != "figure-ref" &&
+        elem.className != "table-ref" && elem.className != "other-ref"))) {
     result = nodes.map(clean_elem).join("");
   } else if (elem.tagName == "FIGURE") {
     result = "<figure></figure>";
@@ -185,7 +185,7 @@ function collect_results() {
       clearInterval(interval);
       status_updater = new XMLHttpRequest();
       status_updater.onload = function() {
-        window.location.replace('/pyreadhome?doi=' + id.doi);
+        //window.location.replace('/pyreadhome?doi=' + id.doi);
       };
       status_updater.open('GET', '/pyreadstatus?loading=false&doi=' + id.doi);
       status_updater.send();

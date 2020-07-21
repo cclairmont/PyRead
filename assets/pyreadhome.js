@@ -461,7 +461,8 @@ get_refs.onload = function () {
   for (var i = 0; i < response_data.length; i++) {
     if (response_data[i] == null ||
         Object.keys(response_data[i]).length == 0) {
-      continue;
+      response_data[i] = {title: null, doi: null, local: null, authors: null,
+                          year: null, journal: null};
     }
     var next_ref = document.createElement("li");
     next_ref.id = "ref" + i;

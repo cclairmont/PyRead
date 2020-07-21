@@ -5,7 +5,7 @@
 //
 
 var ref_selector = "a[id^=ref-link]";
-var ref_re = /\d+/;
+var ref_re = /(\d+,?)/;
 
 function ref_num(ref) {
   return ref.href.match(/#[^\d]*(\d*)$/)[1];
@@ -15,81 +15,111 @@ var fig_ref_selector = "a[data-track-action='figure anchor']";
 var fig_ref_re = /((, )?(Extended Data )?Fig\. \d([a-z][,\-])*[a-z])+/;
 
 function fig_ref_num(ref) {
-  var num = ref.textContent.match(/^\d+/);
-  var link_num = ref.href.match(/\d+$/);
+  console.log(ref);
+  var num = ref.textContent.match(/^\d+/)[0];
+  var link_num = ref.href.match(/\d+$/)[0];
+  console.log(num);
+    console.log(link_num);
   if (num == link_num) {
-    return num;
+    return ref.textContent.toUpperCase();
   } else {
-    return "S" + num;
+    return "S" + ref.textContent.toUpperCase();
   }
 }
 
 function handle_figs_refs(elem) {
+  if (elem.length != null) {
+    return elem.map(handle_figs_refs);
+  }
   handlers = [{selector: ref_selector,
                re: ref_re,
                num: ref_num,
-               class: "ref-link"},
+               class: "ref"},
               {selector: fig_ref_selector,
                re: fig_ref_re,
                num: fig_ref_num,
-               class: "fig-ref-link"}];
+               class: "figure-ref"}];
+  var class_names = handlers.map(a => a.class);
 
   for (var h of handlers) {
+    h.re = new RegExp("(" + h.re.source + ")|(^$)");
     var refs = elem.querySelectorAll(h.selector);
     for (var i = 0; i < refs.length; i++) {
       var new_ref = document.createElement("span");
       new_ref.className = h.class;
-      new_ref.dataset.refnum = h.num(r);
+      new_ref.dataset.refnum = h.num(refs[i]);
       var nodes = [refs[i]];
       var text = refs[i].textContent;
-      var m;
+      var m, pm;
+      var matched = false;
       while(true) {
+        text = text.replace("–", "-");
+        text = text.replace("&nbsp;", " ");
         m = text.match(h.re);
         if (m != null) {
-          var start = text.indexOf(match[0]);
-          var end = start + match[0].length;
-          for (var j = 0; j < nodes.length; j++) {
-            if (start < nodes[j].textContent.length) {
-              for (var k = j; k < nodes.length; k++) {
-                if (end < nodes[k].textContent) {
-                  if (k > j) {
-                    nodes[k].textContent = nodes[k].textContent.slice(end);
-                    nodes[j].textContent = nodes[j].textContent.slice(0, start);
-                    for (var n = j + 1; n < k; n++) {
-                      nodes[n].textContent = "";
-                    }
-                  } else {
-                    nodes[k].textContent = nodes[k].textContent.slice(0, start) +
-                                           nodes[k].textContent.slice(end);
-                  }
-                  break;
-                }
-                end -= nodes[k].length;
-              }
-              break;
-            }
-            start -= nodes[j].length;
+          if (!matched) {
+            matched = true;
+          } else if (m[0].length == pm[0].length) {
+            break;
           }
-          break;
+          pm = m;
         }
-        var prev, next;
-        if (nodes[0].previousSibling != null &&
-            !nodes[0].previousSibling.isSameNode(refs[i - 1])) {
-          nodes.unshift(nodes[0].previousSibling);
-          text = nodes[0].textContent + text;
-          prev = true;
+        var prev = nodes[0].previousSibling;
+        var next = nodes[nodes.length - 1].nextSibling;
+        if (prev != null && (i == 0 || !prev.isSameNode(refs[i - 1]))) {
+          nodes.unshift(prev);
+          text = prev.textContent + text;
+        } else {
+          prev = null;
         }
-        if (nodes[nodes.length - 1].nextSibling != null &&
-            !nodes[nodes.length - 1].nextSibling.isSameNode(refs[i + 1])) {
-          nodes.push(nodes[nodes.length - 1].nextSibling);
-          text = text + nodes[nodes.length - 1];
-          next = true;
+        if (next != null && (i == refs.length - 1 ||
+                             !next.isSameNode(refs[i + 1]))) {
+          nodes.push(next);
+          text = text + next.textContent;
+        } else {
+          next = null;
         }
-        if (!prev && !next) {
+        console.log(prev, next);
+        if (prev == null && next == null) {
           break;
         }
       }
-      if (m != null) {
+      if (matched) {
+        if (m == null) {
+          refs[i].replaceWith(new_ref);
+          continue;
+        }
+        console.log(text);
+        var start = text.indexOf(m[0]);
+        var end = start + m[0].length;
+        console.log(nodes);
+        for (var j = 0; j < nodes.length; j++) {
+          if (start < nodes[j].textContent.length) {
+            for (var k = j; k < nodes.length; k++) {
+              if (end <= nodes[k].textContent.length) {
+                if (k > j) {
+                  console.log(start, end);
+                  console.log("j", nodes[j].textContent);
+                  console.log("k", nodes[k].textContent);
+                  nodes[k].textContent = nodes[k].textContent.slice(end);
+                  nodes[j].textContent = nodes[j].textContent.slice(0, start);
+                  for (var n = j + 1; n < k; n++) {
+                    console.log("n", nodes[n].textContent);
+                    nodes[n].textContent = "";
+                  }
+                } else {
+                  console.log(start, end);
+                  nodes[k].textContent = nodes[k].textContent.slice(0, start) +
+                                         nodes[k].textContent.slice(end);
+                }
+                break;
+              }
+              end -= nodes[k].textContent.length;
+            }
+            break;
+          }
+          start -= nodes[j].textContent.length;
+        }
         refs[i].replaceWith(new_ref);
       }
     }
