@@ -90,15 +90,17 @@ function handle_figs_refs(elem) {
           continue;
         }
         console.log(text);
+        console.log(m[0]);
         var start = text.indexOf(m[0]);
-        var end = start + m[0].length;
         console.log(nodes);
         for (var j = 0; j < nodes.length; j++) {
+          console.log("start", start);
           if (start < nodes[j].textContent.length) {
+            var end = start + m[0].length;
             for (var k = j; k < nodes.length; k++) {
+              console.log("end", end);
               if (end <= nodes[k].textContent.length) {
                 if (k > j) {
-                  console.log(start, end);
                   console.log("j", nodes[j].textContent);
                   console.log("k", nodes[k].textContent);
                   nodes[k].textContent = nodes[k].textContent.slice(end);
