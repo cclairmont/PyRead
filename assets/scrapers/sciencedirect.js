@@ -4,99 +4,136 @@
 // Internal Functions
 //
 
-function handle_figs_refs(elem) {
-  var refs = elem.querySelectorAll("a.workspace-trigger");
-  var fig_type = "other-ref";
-  for (var i = 0; i < refs.length; i++) {
-    console.log(refs[i]);
-    var new_ref, refnum, is_figref;
-    if (refs[i].name.startsWith("bb") || refs[i].name.startsWith("bfig") ||
-        refs[i].name.startsWith("bapp") || refs[i].name.startsWith("bmmc")) {
-      is_figref = refs[i].name.startsWith("bfig") ||
-                  refs[i].name.startsWith("bapp") ||
-                  refs[i].name.startsWith("bmmc");
-      refnum = refs[i].name.slice(4);
-      new_ref = document.createElement("span");
-      if (is_figref) {
-        if (refs[i].textContent.startsWith('Fig')) {
-          fig_type = "figure-ref";
-        } else if (refs[i].textContent.startsWith('Table')) {
-          fig_type = "table-ref";
-        }
-        new_ref.className = fig_type;
-      } else {
-        new_ref.className = "ref";
-        new_ref.dataset.refnum = refnum;
-      }
-      refs[i].replaceWith(new_ref);
-    } else {
-      continue;
-    }
-    var prev = new_ref.previousSibling;
-    var next = new_ref.nextSibling;
-    if (is_figref) {
-      refnum = "";
-      var fig_ref = refs[i].textContent;
-      var orig_ref = fig_ref;
-      var ref_end = -1;
-      var del_len = 0;
-      var searched_nodes = [refs[i]];
-      while (next != null && next.tagName != 'A') {
-        searched_nodes.push(next);
-        fig_ref = fig_ref + next.textContent;
-        fig_ref = fig_ref.replace(/&nbsp;/g, ' ');
-        fig_ref = fig_ref.replace(/–/g, '-');
-        ref_end = fig_ref.match(/(Figures?|Tables?|Figs?.|^)((,|;|\sand)?(\s|^)S?\d[A-Z]?(-S?\d?[A-Z]?)?)+/g);
-        if (ref_end != null) {
-          console.log(ref_end[0]);
-          ref_end = fig_ref.indexOf(ref_end[0]) + ref_end[0].length;
-          fig_ref = fig_ref.slice(0, ref_end + 1);
-          break;
-        }
-        next = next.nextSibling;
-      }
-      console.log(fig_ref);
-      var matcher = fig_ref.matchAll(
-        /(^|\s)(S?\d[A-Z]?)(-S?\d?[A-Z]?|$)?/g);
-      var matches = [];
-      for (var m of matcher) {
-        console.log(m);
-        if (m[3] != null && m[3].startsWith("-")) {
-          matches.push(m[2] + m[3]);
-        } else {
-          matches.push(m[2]);
-        }
-      }
-      console.log(matches);
-      if (matches.length > 0) {
-        ref_end = fig_ref.lastIndexOf(matches[matches.length - 1]) +
-                  matches[matches.length - 1].length;
-        for (var sn of searched_nodes) {
-          console.log(ref_end);
-          console.log(sn.textContent);
-          if (ref_end >= sn.textContent.length) {
-            ref_end -= sn.textContent.length;
-            sn.textContent = "";
-          } else {
-            sn.textContent = sn.textContent.slice(ref_end);
-            break;
-          }
-        }
-        new_ref.dataset.refnum = matches.join(",");
-      } else {
-        new_ref.dataset.refnum = orig_ref;
-      }
-      console.log(new_ref);
-    }
-
-    if (next && (next.textContent.startsWith(";") ||
-                 next.textContent.startsWith(","))) {
-      next.textContent = next.textContent.slice(1);
+function ref_selector(elem) {
+  var stuff = elem.querySelectorAll("a.workspace-trigger");
+  var refs = [];
+  for (var s of stuff) {
+    if (s.name.startsWith("bb")) {
+      refs.push(s);
     }
   }
-  return elem;
+  return refs;
 }
 
+function ref_matcher(text) {
+  var m = text.match(/([,;]\s)?([^\(^\s]+(\set\sal\.|\sand\s[^\(^\s]+)?,\s\d\d\d\d)+/);
+  if (m != null) {
+    return m[0];
+  } else {
+    return null;
+  }
+}
+
+function ref_num(ref, text) {
+  return ref.name.slice(4);
+}
+
+function fig_ref_selector(elem) {
+  var stuff = elem.querySelectorAll("a.workspace-trigger");
+  var fig_refs = [];
+  var is_figref = false;
+  for (var s of stuff) {
+    if (s.name.startsWith("bfig") || s.name.startsWith("bmmc") ||
+        s.name.startsWith("bapp")) {
+      if (s.textContent.startsWith("Fig")) {
+        is_figref = true;
+      } else if (s.textContent.startsWith("Table")) {
+        is_figref = false;
+      }
+      if (is_figref) {
+        fig_refs.push(s);
+      }
+    }
+  }
+  return fig_refs;
+}
+
+function fig_ref_matcher(text) {
+  var m = text.match(/(Figures?|Figs?.|^)((,|;|,?\sand)?(\s|^)S?\d[A-Z]?(-S?\d?[A-Z]?)?)+/g);
+  if (m != null) {
+    return m[0];
+  } else {
+    return null;
+  }
+}
+
+function fig_ref_num(ref, text) {
+  var start = text.indexOf(ref.textContent);
+  var num;
+  if (start == -1) {
+    return "";
+  }
+  num = text.slice(start);
+  console.log(text);
+  console.log(num);
+  var m =  num.match(/((,|,?\sand)?\sS?\d+[A-Z]?)+/);
+  if (m != null) {
+    console.log(m[0]);
+    m = m[0].replace(/\s/g, "");
+    console.log(m);
+    m = m.replace(/,?and/g, ",");
+    console.log(m);
+    var m_list = m.split(",");
+    console.log(m_list);
+    var prefix;
+    if (m_list[0].length > 0) {
+      prefix = m_list[0].match(/S?\d+/)[0];
+    } else {
+      prefix = m_list[1].match(/S?\d+/)[0];
+    }
+    for (var i = 0; i < m_list.length; i++) {
+      if (!m_list[i].startsWith(prefix)) {
+        m_list.splice(i, 1);
+        i--;
+      }
+    }
+    return m_list.join(",");
+  } else {
+    return "";
+  }
+}
+
+function table_ref_selector(elem) {
+  var stuff = elem.querySelectorAll("a.workspace-trigger");
+  var table_refs = [];
+  var is_table = false;
+  for (var s of stuff) {
+    if (s.name.startsWith("bfig") || s.name.startsWith("bmmc") ||
+        s.name.startsWith("bapp")) {
+      if (s.textContent.startsWith("Fig")) {
+        is_table = false;
+      } else if (s.textContent.startsWith("Table")) {
+        is_table = true;
+      }
+      if (is_table) {
+        table_refs.push(s);
+      }
+    }
+  }
+  return table_refs;
+}
+
+function table_ref_matcher(text) {
+  var m = text.match(/(Tables?|^)((,|;|\s,?and)?(\s|^)S?\d[A-Z]?(-S?\d?[A-Z]?)?)+/g);
+  if (m != null) {
+    return m[0];
+  } else {
+    return null;
+  }
+}
+
+var handlers = [{selector: ref_selector,
+                 matcher: ref_matcher,
+                 num: ref_num,
+                 class: "ref"},
+                {selector: fig_ref_selector,
+                 matcher: fig_ref_matcher,
+                 num: fig_ref_num,
+                 class: "figure-ref"},
+                 {selector: table_ref_selector,
+                  matcher: table_ref_matcher,
+                  num: fig_ref_num,
+                  class: "table-ref"}];
 
 //
 // PyRead functions
@@ -106,7 +143,7 @@ function get_identifiers() {
   var doi_elem = document.querySelector("a.doi");
   var link = doi_elem.href;
   console.log(link);
-  var slashes = [...link.matchAll(/\//g)]
+  var slashes = [...link.matchAll(/\//g)];
   var doi_start = slashes[slashes.length - 2].index + 1;
   var doi = link.slice(doi_start);
   var title = document.querySelector("span.title-text").textContent;
@@ -170,7 +207,10 @@ function get_content() {
   var elems = document.querySelectorAll("section[id^=sec]");
   if (elems.length == 0) {
     var main = document.querySelector("div#body");
-    content = [{"title": "Body", "content": handle_figs_refs(main)}];
+    console.log(main.textContent);
+    if (main.textContent != "Loading...") {
+      content = [{"title": "Body", "content": handle_figs_refs(main)}];
+    }
   }
   for (var i = 0; i < elems.length; i++) {
     if (elems[i].id.indexOf(".") != -1 ||

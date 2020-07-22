@@ -1,5 +1,103 @@
 /*jshint esversion: 6 */
 
+function handle_figs_refs(elem) {
+  if (elem.length != null) {
+    return elem.map(handle_figs_refs);
+  }
+  var class_names = handlers.map(a => a.class);
+
+  for (var h of handlers) {
+    var refs = h.selector(elem);
+    for (var i = 0; i < refs.length; i++) {
+      var new_ref = document.createElement("span");
+      new_ref.className = h.class;
+      var nodes = [refs[i]];
+      var text = refs[i].textContent;
+      var m, pm;
+      var matched = false;
+      while(true) {
+        if (text == "") {
+          matched = true;
+          break;
+        }
+        text = text.replace("–", "-");
+        text = text.replace("&nbsp;", " ");
+        m = h.matcher(text);
+        if (m != null) {
+          if (!matched) {
+            matched = true;
+          } else if (m.length == pm.length) {
+            break;
+          }
+          pm = m;
+        }
+        var prev = nodes[0].previousSibling;
+        var next = nodes[nodes.length - 1].nextSibling;
+        if (prev != null && (i == 0 || !prev.isSameNode(refs[i - 1]))) {
+          nodes.unshift(prev);
+          text = prev.textContent + text;
+        } else {
+          prev = null;
+        }
+        if (next != null && (i == refs.length - 1 ||
+                             !next.isSameNode(refs[i + 1]))) {
+          nodes.push(next);
+          text = text + next.textContent;
+        } else {
+          next = null;
+        }
+        console.log(prev, next);
+        if (prev == null && next == null) {
+          break;
+        }
+      }
+      if (matched) {
+        if (m == null) {
+          new_ref.dataset.refnum = h.num(refs[i], "");
+          refs[i].replaceWith(new_ref);
+          continue;
+        }
+        console.log(text);
+        console.log(m);
+        var start = text.indexOf(m);
+        console.log(nodes);
+        for (var j = 0; j < nodes.length; j++) {
+          console.log("start", start);
+          if (start < nodes[j].textContent.length) {
+            var end = start + m.length;
+            for (var k = j; k < nodes.length; k++) {
+              console.log("end", end);
+              if (end <= nodes[k].textContent.length) {
+                if (k > j) {
+                  console.log("j", nodes[j].textContent);
+                  console.log("k", nodes[k].textContent);
+                  nodes[k].textContent = nodes[k].textContent.slice(end);
+                  nodes[j].textContent = nodes[j].textContent.slice(0, start);
+                  for (var n = j + 1; n < k; n++) {
+                    console.log("n", nodes[n].textContent);
+                    nodes[n].textContent = "";
+                  }
+                } else {
+                  console.log(start, end);
+                  nodes[k].textContent = nodes[k].textContent.slice(0, start) +
+                                         nodes[k].textContent.slice(end);
+                }
+                break;
+              }
+              end -= nodes[k].textContent.length;
+            }
+            break;
+          }
+          start -= nodes[j].textContent.length;
+        }
+        new_ref.dataset.refnum = h.num(refs[i], m);
+        refs[i].replaceWith(new_ref);
+      }
+    }
+  }
+  return elem;
+}
+
 function clean_elem(elem) {
   if (elem == null) {
     return null;

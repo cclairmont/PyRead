@@ -306,8 +306,8 @@ function load_scraper(doi) {
   status_updater.open('GET', '/pyreadstatus?loading=true&doi=' + doi);
   status_updater.send();
   resolver.onload = function() {
-    console.log(resolver.response.status);
-    if (resolver.response.status == 200) {
+    console.log(resolver.status);
+    if (resolver.status == 200) {
       var target_url = JSON.parse(resolver.response).url;
       var netloc = new URL(window.location).origin;
       var path = netloc + "/pyreadproxy?location=" + target_url;
