@@ -177,20 +177,26 @@ function get_references() {
     ref_list[refnum - 1] = ref_entry;
   }
   var citations = document.querySelectorAll("li[itemprop=citation]");
-  for (var j = 0; j < citations.length; citations++) {
+  for (var j = 0; j < citations.length; j++) {
+    if (ref_list[j] == null) {
+      ref_list[j] = {};
+    }
     var cit_text = citations[j].querySelector("p");
-    var cit_match = cit_text.textContent.match(/((?:[^,^\.]+,(?:\s[A-Z]\.)+(?:,|\s&)\s)*[^,^\.]+,(?:\s[A-Z]\.)+)\s([^\.]+)\.\s([^\.]+)\.\s[^\(]+\((\d\d\d\d)/);
+    console.log(cit_text);
+    var cit_match = cit_text.textContent.match(/((?:[^,^\.]+,(?:\s[A-Z]\.)+(?:,|\s&)\s)*[^,^\.]+,(?:\s[A-Z]\.)+\s(?:et\sal\.\s)?)?([^\.]+)[^\(]+\((\d\d\d\d)/);
     if (ref_list[j].journal == null) {
-      ref_list[j].journal = cit_match[3];
+      ref_list[j].journal = cit_text.querySelector("i").textContent;
     }
     if (ref_list[j].title == null) {
       ref_list[j].title = cit_match[2];
     }
     if (ref_list[j].authors == null) {
-      ref_list[j].authors = cit_match[1].match(/[^&^,^\.^\s][^&^,^\.]+,(?:\s[A-Z]\.)/g);
+      if (cit_match[1] != null) {
+      ref_list[j].authors = cit_match[1].match(/([^&^,^\.^\s][^&^,^\.]+,(?:\s[A-Z]\.)|et\sal\.)/g);
+      }
     }
     if (ref_list[j].year == null) {
-      ref_list[j].year = cit_match[4];
+      ref_list[j].year = cit_match[3];
     }
     var cit_links = citations[j].querySelectorAll("a");
     for (var k = 0; k < cit_links.length; k++) {
