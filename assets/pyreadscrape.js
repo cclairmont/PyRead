@@ -57,6 +57,7 @@ function handle_figs_refs(elem) {
           refs[i].replaceWith(new_ref);
           continue;
         }
+        new_ref.dataset.refnum = h.num(refs[i], m);
         console.log(text);
         console.log(m);
         var start = text.indexOf(m);
@@ -90,7 +91,6 @@ function handle_figs_refs(elem) {
           }
           start -= nodes[j].textContent.length;
         }
-        new_ref.dataset.refnum = h.num(refs[i], m);
         refs[i].replaceWith(new_ref);
       }
     }
