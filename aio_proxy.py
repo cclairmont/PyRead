@@ -22,7 +22,7 @@ http.cookies._is_legal_key = lambda _: True
 
 sslcontext = ssl.create_default_context(cafile=certifi.where())
 
-CAPABILITIES = ['sciencedirect.com', 'nature.com']
+CAPABILITIES = ['sciencedirect.com', 'nature.com', 'academic.oup.com']
 
 
 class PyrCache(MutableMapping):
@@ -102,8 +102,13 @@ class AIOProxy:
             app_name = soup.find('meta', {'name': 'application-name'})
             return app_name is not None and app_name['content'] == 'Nature'
 
-        parsers = {'sciencedirect.js': sciencedirect,
-                   'nature.js': nature}
+        def oxford():
+            site_name = soup.find('meta', {'property': 'og:site_name'})
+            return (site_name is not None and
+                    site_name['content'] == 'OUP Academic')
+
+        parsers = {'sciencedirect.js': sciencedirect, 'nature.js': nature,
+                   'oxford.js': oxford}
         for fname, test in parsers.items():
             if test():
                 return fname

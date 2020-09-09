@@ -16,7 +16,8 @@ function ref_selector(elem) {
 }
 
 function ref_matcher(text) {
-  var m = text.match(/([,;]\s)?([^\(^\s]+(\set\sal\.|\sand\s[^\(^\s]+)?,\s\d\d\d\d)+/);
+  var m = text.match(
+    /([,;]\s)?([^\(^\s]+(\set\sal\.|\sand\s[^\(^\s]+)?,\s\d\d\d\d)+/);
   if (m != null) {
     return m[0];
   } else {
@@ -49,7 +50,8 @@ function fig_ref_selector(elem) {
 }
 
 function fig_ref_matcher(text) {
-  var m = text.match(/(Figures?|Figs?.|^)((,|;|,?\sand)?(\s|^)S?\d[A-Z]?(-S?\d?[A-Z]?)?)+/g);
+  var m = text.match(
+    /(Figures?|Figs?.|^)((,|;|,?\sand)?(\s|^)S?\d[A-Z]?(-S?\d?[A-Z]?)?)+/g);
   if (m != null) {
     return m[0];
   } else {
@@ -238,7 +240,7 @@ function get_content() {
         var subsection = {};
         var subtitle = subsects[j].querySelector("h3");
         if (subtitle == null) {
-          var subtitle = subsects[j].querySelector("h4");
+          subtitle = subsects[j].querySelector("h4");
         }
         console.log(subsects[j]);
         subsection.title = subtitle.innerHTML;
@@ -286,13 +288,17 @@ function get_references() {
       title_end = text.indexOf(". ");
       ref_entry.title = text.slice(0, title_end);
     }
-    var journal_end = journal_year.indexOf(",");
-    var year_start = journal_year.slice(journal_end).indexOf('(') +
-                     journal_end + 1;
-    var year_end = journal_year.slice(year_start).indexOf(')') + year_start;
-    ref_entry.journal = journal_year.slice(0, journal_end);
-    ref_entry.year = journal_year.slice(year_start, year_end);
-    ref_entry.authors = auth_list.split(", ");
+    if (journal_year != null) {
+      var journal_end = journal_year.indexOf(",");
+      var year_start = journal_year.slice(journal_end).indexOf('(') +
+                       journal_end + 1;
+      var year_end = journal_year.slice(year_start).indexOf(')') + year_start;
+      ref_entry.journal = journal_year.slice(0, journal_end);
+      ref_entry.year = journal_year.slice(year_start, year_end);
+    }
+    if (auth_list != null) {
+      ref_entry.authors = auth_list.split(", ");
+    }
     var links = ref_info.querySelectorAll("a");
     for (var j = 0; j < links.length; j++) {
       var doi_start = links[j].href.indexOf("doi.org/");
