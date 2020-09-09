@@ -237,6 +237,9 @@ function get_content() {
         }
         var subsection = {};
         var subtitle = subsects[j].querySelector("h3");
+        if (subtitle == null) {
+          var subtitle = subsects[j].querySelector("h4");
+        }
         console.log(subsects[j]);
         subsection.title = subtitle.innerHTML;
         subsects[j].removeChild(subtitle);

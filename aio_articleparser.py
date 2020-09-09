@@ -201,10 +201,10 @@ class ArticleFile:
                 raise FileChangedError
         self.source = list(set([*self.source, *other.source]))
 
-    async def fetch(self, session, cookies=None, source=0):
+    async def fetch(self, session, cookies=None, headers=None, source=0):
         self.reset()
-        async with session.get(self.source[source], cookies=cookies,
-                               ssl=sslcontext) as response:
+        async with session.get(self.source[source], headers=headers,
+                               cookies=cookies, ssl=sslcontext) as response:
             self.data = await response.read()
             content_disp = response.headers.get('Content-Disposition')
             content_type = response.headers.get('Content-Type')
@@ -244,11 +244,12 @@ class Article:
                'date': 'char(19)',
                'local': 'char'}
 
-    def __init__(self, session, cookies):
+    def __init__(self, session, cookies, headers):
         self._ainit_done = False
         self._ainit_start = False
         self.session = session
         self.cookies = cookies
+        self.headers = headers
 
     async def a_init(self, doi=None, pmid=None, title=None):
         if self._ainit_done:
@@ -546,6 +547,8 @@ class Article:
         self.manifest['metadate'] = datetime.now().isoformat()
 
     async def update_manifest(self):
+        if not self.path.exists():
+            self.path.mkdir(parents=True)
         manifest_path = self.path.joinpath('manifest.json')
         async with aiofiles.open(str(manifest_path), 'w',
                                  encoding='utf-8') as m:
@@ -586,7 +589,7 @@ class Article:
                                          'content_type': content_type,
                                          'content_length': content_length})
         if data is None:
-            await new_file.fetch(self.session, self.cookies)
+            await new_file.fetch(self.session, self.cookies, self.headers)
             data = new_file.data
             name = new_file.name
         if content_length is None:

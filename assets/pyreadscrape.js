@@ -283,7 +283,7 @@ function collect_results() {
       clearInterval(interval);
       status_updater = new XMLHttpRequest();
       status_updater.onload = function() {
-        //window.location.replace('/pyreadhome?doi=' + id.doi);
+        window.location.replace('/pyreadhome?doi=' + id.doi);
       };
       status_updater.open('GET', '/pyreadstatus?loading=false&doi=' + id.doi);
       status_updater.send();

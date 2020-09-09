@@ -298,6 +298,9 @@ function new_session(doi, title = null, inactive = [], scroll = 0,
     sidebar.classList.remove('highlight');
     sidenav.classList.remove('active');
   }, 500);
+  if (current_article == -1) {
+    current_article = newest_session;
+  }
 }
 
 function load_scraper(doi) {
@@ -347,7 +350,12 @@ function init_page() {
     var kv = a.split("=");
     cookies[kv[0]] = kv[1];
   });
-  var cookie = cookies[" session"];
+  var cookie = cookies[' session'];
+  if (cookie == null) {
+    cookie = cookies.session;
+  }
+  console.log(cookies);
+  console.log(cookie);
   if (cookie != null && cookie != "") {
     cookie.split(",").map(function(a) {
       if (a.indexOf(":") == -1) {
@@ -359,6 +367,7 @@ function init_page() {
       }
     });
   }
+  console.log(sessions);
   if (queries.doi == null && current_article != -1) {
     queries.doi = sessions[current_article].doi;
   }
@@ -704,6 +713,9 @@ function add_figlinks() {
     var fig_links = document.querySelectorAll(ft[2]);
     var consec_elems = [];
     for (var i = 0; i <= fig_links.length; i++) {
+      if (fig_links.length == 0) {
+        break;
+      }
       var consec = false;
       if (i < fig_links.length && (consec_elems.length == 0 ||
                                    elemsAreAdjacent(fig_links[i-1],
@@ -711,6 +723,7 @@ function add_figlinks() {
         consec_elems.push(fig_links[i]);
         consec = true;
       }
+      console.log(fig_links, i);
       if (!consec || i == fig_links.length) {
         var search = true;
         var prev_elem = consec_elems[0].previousSibling;

@@ -118,6 +118,7 @@ class AIOProxy:
                                 content_type='text/html')
 
     async def pyreadproxy(self, request):
+        self.headers = {'User-Agent': request.headers['User-Agent']}
         query = request.rel_url.query
         if 'location' not in query:
             raise web.HTTPBadRequest
@@ -150,7 +151,7 @@ class AIOProxy:
             raise web.HTTPBadRequest
         article = self.cache.get(doi)
         if article is None:
-            article = Article(self.session, self.cookies)
+            article = Article(self.session, self.cookies, self.headers)
             self.cache[doi] = article
         entry = await article.a_init(doi=doi)
         if type == 'info':
@@ -199,7 +200,7 @@ class AIOProxy:
             raise web.HTTPBadRequest
         article = self.cache.get(doi)
         if article is None:
-            article = Article(self.session, self.cookies)
+            article = Article(self.session, self.cookies, self.headers)
             self.cache[doi] = article
         entry = await article.a_init(doi=doi)
         if 'info' in data:
@@ -277,9 +278,8 @@ class AIOProxy:
         raise web.HTTPBadRequest
 
     async def proxy(self, request):
-        headers = {'User-Agent': request.headers['User-Agent']}
         async with self.session.get(self.netloc + str(request.rel_url),
-                                    headers=headers,
+                                    headers=self.headers,
                                     cookies=self.cookies,
                                     ssl=sslcontext,
                                     max_redirects=20) as response:
@@ -353,7 +353,7 @@ class AIOProxy:
             raise web.HTTPNotFound
         article = self.cache.get(doi)
         if article is None:
-            article = Article(self.session, self.cookies)
+            article = Article(self.session, self.cookies, self.headers)
             self.cache[doi] = article
         entry = await article.a_init(doi=doi)
         page = (b'<!DOCTYPE html>'
@@ -394,7 +394,7 @@ class AIOProxy:
             print(loading)
             article = self.cache.get(doi)
             if article is None:
-                article = Article(self.session, self.cookies)
+                article = Article(self.session, self.cookies, self.headers)
                 self.cache[doi] = article
             await article.a_init(doi=doi)
             if loading == 'true':
@@ -410,6 +410,7 @@ class AIOProxy:
                             content_type='application/json')
 
     async def handler(self, request):
+        Object = lambda **kwargs: type('Object', (), kwargs)
         path = request.rel_url.path
         if path.startswith('/pyreadproxy'):
             return await self.pyreadproxy(request)
@@ -427,6 +428,10 @@ class AIOProxy:
             return await self.pyreadresolve(request)
         elif path.startswith('/pyreadstatus'):
             return await self.pyreadstatus(request)
+        elif path.startswith('/favicon.ico'):
+            request = Object(rel_url=Object(query={'file':
+                                                   'icons/favicon.ico'}))
+            return await self.pyreadasset(request)
         else:
             return await self.proxy(request)
 

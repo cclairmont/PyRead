@@ -15,7 +15,13 @@ import structlog
 class SilentLogger(structlog.PrintLogger):
 
     def __init__(self):
-        super().__init__(file=open(os.devnull, 'w'))
+        super().__init__()
+        self._file = None
+
+        def noop(*args):
+            pass
+        self._write = noop
+        self._flush = noop
 
 
 class PyrWebDriver(arsenic.webdriver.WebDriver):
