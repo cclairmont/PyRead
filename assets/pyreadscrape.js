@@ -13,8 +13,8 @@ function handle_figs_refs(elem) {
       new_ref.className = h.class;
       var nodes = [refs[i]];
       var text = refs[i].textContent;
-      var m, pm;
-      var matched = false;
+      var m, pm; //m = current match, pm = previous match
+      var matched = false; //Have we found a match yet?
       while(true) {
         if (text == "") {
           matched = true;
@@ -27,6 +27,8 @@ function handle_figs_refs(elem) {
           if (!matched) {
             matched = true;
           } else if (m.length == pm.length) {
+            // If we've found a match and it doesn't get any longer after
+            // another iteration, then we stop searching.
             break;
           }
           pm = m;
@@ -36,14 +38,16 @@ function handle_figs_refs(elem) {
         if (prev != null && (i == 0 || !prev.isSameNode(refs[i - 1]))) {
           nodes.unshift(prev);
           text = prev.textContent + text;
-        } else {
+        } else { // Either we've reached the first node in the element or
+                 // we've reached the preceding reference.  Either way, we
+                 // should stop looking backwards.
           prev = null;
         }
         if (next != null && (i == refs.length - 1 ||
                              !next.isSameNode(refs[i + 1]))) {
           nodes.push(next);
           text = text + next.textContent;
-        } else {
+        } else { // Same logic as above
           next = null;
         }
         console.log(prev, next);
@@ -53,6 +57,7 @@ function handle_figs_refs(elem) {
       }
       if (matched) {
         if (m == null) {
+          // This can only happen if the reference node has no text content
           new_ref.dataset.refnum = h.num(refs[i], "");
           refs[i].replaceWith(new_ref);
           continue;
@@ -99,6 +104,7 @@ function handle_figs_refs(elem) {
 }
 
 function clean_elem(elem) {
+  elem = handle_figs_refs(elem);
   if (elem == null) {
     return null;
   }

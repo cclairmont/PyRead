@@ -4,9 +4,75 @@
 // Internal Functions
 //
 
+// The ref_selector function shoulf return a Node List containing all
+// references.  This list will be iterated through and each element will be
+// subjected to the ref_matcher and ref_selector functions defined below.
+// Usually a simple elem.querySelectorAll will suffice, but you can implement
+// more complex logic if needed.
+
 function ref_selector(elem) {
   return elem.querySelectorAll("a[id^=ref-link]");
 }
+
+// The ref matcher function should return a string corresponding to the full
+// text of a reference given a string. If there are multiple references in
+// a given string it should return only the first. The point of this function
+// is to tell the reference handler what text should be removed and replaced
+// by our custom reference format.  Therefore: commas, spaces etc. should also
+// be included in the returned string.  If not match is found, this function
+// should return null.
+//
+// The reference handler will continue to iterate through a given string
+// removing the returned substring and passing it back to ref_matcher until it
+// returns null.
+//
+// For example: Nature references are a simple comma separated list like so:
+// 1,2,3,4.  Given the input string "1,2,3,4" this function could return "1,".
+// On the next iteration, the function will be passed "2,3,4", it could then
+// return "2,".  This continues until the function is passed "" at which point
+// it will return null.  Note that the function could also return "1" for the
+// first iteration and then ",2" ",3" ",4" and null for the subsequent
+// iterations.
+//
+// The ref handler initially looks at the text inside of the ref element given
+// by ref_selector.  If no match is found it appends the text from the previous
+// and next nodes and checks again.  This process will continue until
+// ref_matcher returns a match or there are no more nodes in the given block or
+// another reference is reached on either side.
+//
+// If a match is returned by ref_matcher.  The ref handler will iterate at
+// least one more time to determine if a longer match can be found.  Therefore,
+// this can be considered a "greedy" matcher in that it will look for the
+// longest possible match.  It ref_matcher returns the same match twice in a
+// iteration with terminate.
+//
+// A more complex example: Sciencedirect figure references look like this:
+// (Figure <a>1A</a>, <a>1B</a> and <a>1C</a>).  Let's say that ref selector
+// gives us all of the <a></a> elements.  Our node list will look like:
+// [<a>1A</a>, <a>1B</a>, <a>1C</a>].  The text we want to match (and replace)
+// is "Figure 1A, ", "1B and", "1C", respectively, although the choice of
+// where to put the commas, whitespace and "and" is flexible.
+//
+// In most cases a regex is the simplest approach to these functions.  The
+// following regex is used in my implementation of the SD scraper:
+//
+// /(Figures?|Figs?.|^)((,|;|,?\sand)?(\s|^)S?\d[A-Z]?(-S?\d?[A-Z]?)?)+/g
+//
+// In the first iteration for the first node, this will return a match
+// immediately, which will be "1A", but on the the next iteration, ref_matcher
+// will be fed the text "(Figure 1A, " which will produce a longer match:
+// "Figure 1A".  Iteration will then terminate as there is no previous node
+// and the next node is in the reference list.  The original ref node will then
+// be replaced with our place holder (<span class='foo'></span>) and
+// adjacent matched text will be deleted.  So our whole reference block now
+// looks like: (<span class='foo'></span><a>1B</a> and <a>1C</a>).  So for our
+// next node, the longest string we will be given to match is: ", 1B and " and
+// our regex will match ", 1B".  For the last node, we'll get the string:
+// " and 1C", which will be fully matched.  So the final product in the html
+// will be:
+//(<span class='foo'></span><span class='foo'></span><span class='foo'></span>)
+// We don't need to worry about the parens.  Any parens with no text content
+// between then will be removed by the clean_html function.
 
 function ref_matcher(text) {
   var m = text.match(/(\d+,?)/);
@@ -16,6 +82,12 @@ function ref_matcher(text) {
     return null;
   }
 }
+
+// ref_num is fed the original node from the node list and optionally the
+// string returned by ref_matcher for that node.  In this case we just use
+// a regex on the href attribute of the element.  In other cases we may need to
+// factor in the matched string as well.  It should return the number
+// corresponsing to the item the given reference is referring to.
 
 function ref_num(ref) {
   return ref.href.match(/#[^\d]*(\d*)$/)[1];
@@ -46,6 +118,11 @@ function fig_ref_num(ref) {
     return "S" + ref.textContent.toUpperCase();
   }
 }
+
+// handlers defines the classes of reference we are looking for and their
+// respective handler functions.  selector, matcher and num correspond to the
+// functions described above.  Class will determine the class attribute of the
+// placeholder <span> elements that we create to replace the references.
 
 var handlers = [{selector: ref_selector,
                  matcher: ref_matcher,

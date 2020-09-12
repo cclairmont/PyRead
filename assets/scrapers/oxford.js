@@ -5,7 +5,7 @@
 //
 
 function ref_selector(elem) {
-  return elem.querySelectorAll("a[id^=ref-link]");
+  return elem.querySelectorAll("a.xref-bibr");
 }
 
 function ref_matcher(text) {
@@ -18,15 +18,22 @@ function ref_matcher(text) {
 }
 
 function ref_num(ref) {
-  return ref.href.match(/#[^\d]*(\d*)$/)[1];
+  return ref.dataset.open.split(" ").map(function(x) {
+    return x.slice(1);
+  }).join(",");
 }
 
 function fig_ref_selector(elem) {
-  return elem.querySelectorAll("a[data-track-action='figure anchor']");
+  main_figs = elem.querySelectorAll("a.xref-fig");
+  supp_figs = [...elem.querySelectorAll("span.supplementary-material")].filter(
+    function(x) {
+      return /Figure/.test(x);
+    });
+  return supp_figs.concat(...main_figs);
 }
 
 function fig_ref_matcher(text) {
-  var m = text.match(/((, )?(Extended Data )?Fig\. \d([a-z][,\-])*[a-z])+/);
+  var m = text.match(/((Supplementary )?Figures? |, | and )(\d+)?[A-Z]/);
   if (m != null) {
     return m[0];
   } else {
@@ -35,15 +42,12 @@ function fig_ref_matcher(text) {
 }
 
 function fig_ref_num(ref) {
-  console.log(ref);
-  var num = ref.textContent.match(/^\d+/)[0];
-  var link_num = ref.href.match(/\d+$/)[0];
-  console.log(num);
-  console.log(link_num);
-  if (num == link_num) {
-    return ref.textContent.toUpperCase();
-  } else {
-    return "S" + ref.textContent.toUpperCase();
+  if (ref.tagName == "A") {
+    return ref.dataset.open.split(" ").map(function(x) {
+      return x.slice(1);
+    }).join(",");
+  } else if (ref.tagName == "SPAN") {
+    return ref.childNodes[0].attributes['path-from-xml'].textContent;
   }
 }
 
@@ -61,93 +65,66 @@ var handlers = [{selector: ref_selector,
 //
 
 function get_identifiers() {
-  var doi = document.querySelector("meta[name=DOI]").content;
-  var title = document.querySelector("meta[name='dc.title']").content;
+  var doi = document.querySelector("div.ww-citation-primary").textContent.match(/doi.org\/(.*)/)[1];
+  var title = document.querySelector("meta[property='og.title']").content;
   return {"doi": doi, "title": title};
 }
 
 function have_access() {
-  return document.querySelector("#access-options") == null;
+  return true;
 }
 
 function get_abstract() {
-  var abs = document.querySelector("div[id^=Abs][id$=content]");
+  var abs = document.querySelector("section.abstract");
   return abs;
 }
 
 function get_figures() {
-  var figures = document.querySelector("div.c-article-body").querySelectorAll("figure");
+  var figures = document.querySelectorAll("div.fig-section");
   var result = [];
   for (var i = 0; i < figures.length; i++) {
     var fig_entry = {};
-    var fig_link = new URL("https:" + figures[i].querySelector("source").srcset);
-    fig_link.search = "";
-    fig_entry.lr = fig_link.href;
-    fig_link.pathname = fig_link.pathname.replace(/^\/[^\/]*/, '/full');
-    fig_entry.hr = fig_link.href;
-    var captions = figures[i].querySelector("p");
-    fig_entry.legend = handle_figs_refs(captions);
-    fig_entry.title = figures[i].querySelector("figcaption").textContent;
+    fig_entry.lr = figures[i].querySelector("img").src;
+    fig_entry.hr = figures[i].querySelector("a.fig-view-orig").href;
+    fig_entry.legend = figures[i].querySelector("div.fig-caption");
+    fig_entry.title = figures[i].querySelector("div.fig-label").textContent;
     result.push(fig_entry);
-  }
-  var elems = document.querySelectorAll("section[aria-labelledby^=Sec]");
-  for (var i = 0; i < elems.length; i++) {
-    var title = elems[i].querySelector("h2");
-    if (title != null && title.textContent == "Extended data") {
-      var ext_figs = elems[i].querySelectorAll("[id^=Fig]");
-      for (var j = 0; j < ext_figs.length; j++) {
-        var fig_entry = {};
-        fig_entry.title = ext_figs[j].querySelector("h3").textContent;
-        fig_entry.hr = "https:" +
-                       ext_figs[j].querySelector("a").dataset.suppInfoImage;
-        fig_entry.legend = handle_figs_refs(ext_figs[j].querySelector("div"));
-        result.push(fig_entry);
-      }
-    }
   }
   return result;
 }
 
 function get_content() {
   var content = [];
-  var elems = document.querySelectorAll("section[aria-labelledby^=Sec]");
-  for (var i = 0; i < elems.length; i++) {
+  var section_titles = document.querySelectorAll("h2.section-title");
+  for (var i = 0; i < section_titles.length; i++) {
     var section = {};
-    var title = elems[i].querySelector("h2");
-    if (title == null || title.textContent == "Extended data" ||
-        title.textContent == 'Supplementary information' ||
-        title.textContent == "Source data") {
-      continue;
-    }
+    section.title = section_titles[i].innerHTML;
     section.title = title.innerHTML;
-    var subtitles = elems[i].querySelectorAll("h3");
-    var subelem;
-    var p_list = [];
-    if (subtitles.length == 0) {
-      subelem = title.nextSibling.childNodes[0];
-      while(subelem != null) {
-        p_list.push(subelem);
-        subelem = subelem.nextSibling;
-      }
-      section.content = handle_figs_refs(p_list);
-    } else {
-      section.content = [];
-      for (var j = 0; j < subtitles.length; j++) {
+    section.content = [];
+    current_elem = section_titles[i].nextElementSibling;
+    while(current_elem != null &&
+          (i == section_titles.length - 1 ||
+           !current_elem.isSameNode(section_titles[i+1]))) {
+      if (current_elem.className == "chapter-para") {
+        section.content.push(current_elem);
+      } else if (current_elem.className == "section-title") {
         var subsection = {};
-        subsection.title = subtitles[j].innerHTML;
-        subelem = subtitles[j].nextSibling;
-        p_list = [];
-        while(subelem != null) {
-          if (subelem.tagName == "H3") {
-            break;
-          } else {
-            p_list.push(subelem);
+        subsection.title = current_elem.innerHTML;
+        subsection.content = [];
+        current_elem = current_elem.nextElementSibling;
+        while(current_elem != null &&
+              (i == section_titles.length - 1 ||
+               (!current_elem.isSameNode(section_titles[i+1]) &&
+                current_elem.tagName != "H3"))) {
+          if (current_elem.className == "chapter-para" ||
+              current_elem.className == "section-title") {
+            subsection.content.push(current_elem);
           }
-            subelem = subelem.nextSibling;
         }
-        subsection.content = handle_figs_refs(p_list);
         section.content.push(subsection);
+        continue;
       }
+      current_elem = current_elem.nextElementSibling;
     }
     content.push(section);
   }
