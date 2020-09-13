@@ -33,7 +33,7 @@ function fig_ref_selector(elem) {
 }
 
 function fig_ref_matcher(text) {
-  var m = text.match(/((?:(?:Supplementary )?Figures? |^)(?:\d|[A-Z])+,?)[ \)]/);
+  var m = text.match(/((?:(?:Supplementary )?Figures? |^)(?:\d|[A-Z])+,?)[ \):]/);
   console.log(text);
   if (m != null) {
     console.log(m);

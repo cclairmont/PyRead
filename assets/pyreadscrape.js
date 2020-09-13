@@ -23,13 +23,20 @@ function handle_figs_refs(elem) {
         text = text.replace("–", "-");
         text = text.replace("&nbsp;", " ");
         m = h.matcher(text);
+        if (matched) {
+          if (m == null || m.length <= pm.length ||
+              m.indexOf(pm) == -1) {
+            // If we've found a match and it doesn't get any longer after
+            // another iteration, then we stop searching.
+            // Or if the match is shorter or doesn't include the previous
+            // match.
+            m = pm;
+            break;
+          }
+        }
         if (m != null) {
           if (!matched) {
             matched = true;
-          } else if (m.length == pm.length) {
-            // If we've found a match and it doesn't get any longer after
-            // another iteration, then we stop searching.
-            break;
           }
           pm = m;
         }
