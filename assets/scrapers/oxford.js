@@ -132,56 +132,31 @@ function get_content() {
 }
 
 function get_references() {
-  var refs = document.querySelectorAll("meta[name=citation_reference]");
+  var refs = document.querySelectorAll("div.ref-content");
   var ref_list = [];
   for (var i = 0; i < refs.length; i++) {
-    var refnum, ref_entry = {};
-    for (var entry of refs[i].content.matchAll(/([^=]*)=([^;]*)(; |$)/g)) {
-      if (entry[1] == "citation_journal_title") {
-        ref_entry.journal = entry[2];
-      } else if (entry[1] == "citation_title") {
-        ref_entry.title = entry[2];
-      } else if (entry[1] == "citation_author") {
-        ref_entry.authors = entry[2].split(", ");
-      } else if (entry[1] == "citation_publication_date") {
-        ref_entry.year = entry[2];
-      } else if (entry[1] == "citation_doi") {
-        ref_entry.doi = entry[2];
-      } else if (entry[1] == "citation_id") {
-        refnum = parseInt(entry[2].match(/[^\d]*(\d*)$/)[1], 10);
-      }
+    var refnum = parseInt(refs[i].id.slice(10), 10);
+    var ref_entry = {};
+    var surnames = refs[i].querySelectorAll(".surname");
+    var given_names = refs[i].querySelectorAll(".given-names");
+    ref_entry.authors = [];
+    for (var j = 0; j < surnames.length; j++) {
+      ref_entry.authors.push(surnames[i].textContent + ", " +
+                             given_names[i].textContent);
     }
-    ref_list[refnum - 1] = ref_entry;
-  }
-  var citations = document.querySelectorAll("li[itemprop=citation]");
-  for (var j = 0; j < citations.length; j++) {
-    if (ref_list[j] == null) {
-      ref_list[j] = {};
+    ref_entry.title = document.querySelector(".article-title").textContent;
+    ref_entry.journal = document.querySelector(".source").textContent;
+    ref_entry.year = document.querySelector(".year").textContent;
+    var link;
+    var crossref = document.querySelector(".crossref-doi");
+    if (crossref != null) {
+      link = crossref.querySelector("a").href;
+      ref_entry.doi = link.match(/doi.org\/(.*)/)[1];
     }
-    var cit_text = citations[j].querySelector("p");
-    console.log(cit_text);
-    var cit_match = cit_text.textContent.match(/((?:[^,^\.]+,(?:\s[A-Z]\.)+(?:,|\s&)\s)*[^,^\.]+,(?:\s[A-Z]\.)+\s(?:et\sal\.\s)?)?([^\.]+)[^\(]+\((\d\d\d\d)/);
-    if (ref_list[j].journal == null) {
-      ref_list[j].journal = cit_text.querySelector("i").textContent;
-    }
-    if (ref_list[j].title == null) {
-      ref_list[j].title = cit_match[2];
-    }
-    if (ref_list[j].authors == null) {
-      if (cit_match[1] != null) {
-      ref_list[j].authors = cit_match[1].match(/([^&^,^\.^\s][^&^,^\.]+,(?:\s[A-Z]\.)|et\sal\.)/g);
-      }
-    }
-    if (ref_list[j].year == null) {
-      ref_list[j].year = cit_match[3];
-    }
-    var cit_links = citations[j].querySelectorAll("a");
-    for (var k = 0; k < cit_links.length; k++) {
-      if (cit_links[k].textContent == "Article" && ref_list[j].doi == null) {
-        ref_list[j].doi = decodeURIComponent(new URL(cit_links[k].href).pathname);
-      } else if (cit_links[k].textContent == "Pubmed" && ref_list[j].pmid == null) {
-        ref_list[j].pmid = cit_links[k].href.match(/\d+$/)[0];
-      }
+    var pubmed = document.querySelector(".pub-id");
+    if (pub_id != null) {
+      link = pubmed.querySelector("a").href;
+      ref_entry.pmid = link.match(/pubmed\/(.*)/)[1];
     }
   }
   return ref_list;
@@ -189,18 +164,11 @@ function get_references() {
 
 function get_files() {
   result = {};
-  result.pdf = document.querySelector("a.c-pdf-download__link").href;
-  var supplements = document.querySelectorAll(
-    "div[data-test=supplementary-info]");
+  result.pdf = document.querySelector("a.article-pdfLink").href;
+  var supplements = document.querySelectorAll("div.dataSuppLink");
   for (var i = 0; i < supplements.length; i++) {
-    if(supplements[i].parentElement.previousSibling.textContent ==
-       "Extended data") {
-         continue;
-    }
-    var files = supplements[i].querySelectorAll("h3");
-    for (var j = 0; j < files.length; j++) {
-      result[files[j].textContent] = files[j].querySelector("a").href;
-    }
+    var link = supplements[i].querySelector("a").href;
+    result[supplements[i].textContent] = link;
   }
   return result;
 }
