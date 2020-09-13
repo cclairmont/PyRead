@@ -50,7 +50,6 @@ function handle_figs_refs(elem) {
         } else { // Same logic as above
           next = null;
         }
-        console.log(prev, next);
         if (prev == null && next == null) {
           break;
         }
@@ -63,28 +62,19 @@ function handle_figs_refs(elem) {
           continue;
         }
         new_ref.dataset.refnum = h.num(refs[i], m);
-        console.log(text);
-        console.log(m);
         var start = text.indexOf(m);
-        console.log(nodes);
         for (var j = 0; j < nodes.length; j++) {
-          console.log("start", start);
           if (start < nodes[j].textContent.length) {
             var end = start + m.length;
             for (var k = j; k < nodes.length; k++) {
-              console.log("end", end);
               if (end <= nodes[k].textContent.length) {
                 if (k > j) {
-                  console.log("j", nodes[j].textContent);
-                  console.log("k", nodes[k].textContent);
                   nodes[k].textContent = nodes[k].textContent.slice(end);
                   nodes[j].textContent = nodes[j].textContent.slice(0, start);
                   for (var n = j + 1; n < k; n++) {
-                    console.log("n", nodes[n].textContent);
                     nodes[n].textContent = "";
                   }
                 } else {
-                  console.log(start, end);
                   nodes[k].textContent = nodes[k].textContent.slice(0, start) +
                                          nodes[k].textContent.slice(end);
                 }
@@ -104,7 +94,6 @@ function handle_figs_refs(elem) {
 }
 
 function clean_elem(elem) {
-  elem = handle_figs_refs(elem);
   if (elem == null) {
     return null;
   }
@@ -193,6 +182,7 @@ function pyr_abstract() {
     abstract = get_abstract();
     if (abstract || count > MAX_RETRY) {
       clearInterval(interval);
+      abstract = handle_figs_refs(abstract);
       abstract = clean_elem(abstract);
       results.abs.open("POST", "/pyreadscrapi");
       results.abs.send(JSON.stringify({"doi": id.doi, "abstract": abstract}));
@@ -212,6 +202,7 @@ function pyr_figures() {
       clearInterval(interval);
       for (var i = 0; i < figures.length; i++) {
         if (figures[i].legend) {
+          figures[i].legend = handle_figs_refs(figures[i].legend);
           figures[i].legend = clean_elem(figures[i].legend);
         }
       }
@@ -230,12 +221,32 @@ function pyr_content() {
     if (main_text.length > 1 || count > MAX_RETRY) {
       clearInterval(interval);
       for (var i = 0; i < main_text.length; i++) {
-        if (main_text[i].content.length && main_text[i].content[0].title) {
-          for (var j = 0; j < main_text[i].content.length; j++) {
-            main_text[i].content[j].content =
-              clean_elem(main_text[i].content[j].content);
+        var has_subsects = false;
+        if (main_text[i].content.length) {
+            var elem_list = [];
+            for (var j = 0; j < main_text[i].content.length; j++) {
+              if (main_text[i].content[j].title) {
+                has_subsects = true;
+                if (elem_list.length > 0) {
+                  j -= elem_list.length;
+                  var elem = main_text[i].content.splice(j, elem_list.length);
+                  elem = handle_figs_refs(elem);
+                  elem = clean_elem(elem);
+                  main_text[i].content.splice(j, 0, elem);
+                  j++;
+                  elem_list = [];
+                }
+                main_text[i].content[j].content =
+                  handle_figs_refs(main_text[i].content[j].content);
+                main_text[i].content[j].content =
+                  clean_elem(main_text[i].content[j].content);
+            } else {
+              elem_list.push(main_text[i].content[j]);
+            }
           }
-        } else {
+        }
+        if (!has_subsects) {
+          main_text[i].content = handle_figs_refs(main_text[i].content);
           main_text[i].content = clean_elem(main_text[i].content);
         }
       }
@@ -279,7 +290,6 @@ function collect_results() {
   var interval = setInterval(function() {
     var success = true;
     for (var x in results) {
-      console.log(x);
       success = success && results[x].readyState == 4;
       if (!success) {
         break;
@@ -289,7 +299,7 @@ function collect_results() {
       clearInterval(interval);
       status_updater = new XMLHttpRequest();
       status_updater.onload = function() {
-        window.location.replace('/pyreadhome?doi=' + id.doi);
+        //window.location.replace('/pyreadhome?doi=' + id.doi);
       };
       status_updater.open('GET', '/pyreadstatus?loading=false&doi=' + id.doi);
       status_updater.send();

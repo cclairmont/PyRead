@@ -33,10 +33,13 @@ function fig_ref_selector(elem) {
 }
 
 function fig_ref_matcher(text) {
-  var m = text.match(/((Supplementary )?Figures? |, | and )(\d+)?[A-Z]/);
+  var m = text.match(/((?:(?:Supplementary )?Figures? |^)(?:\d|[A-Z])+,?)[ \)]/);
+  console.log(text);
   if (m != null) {
-    return m[0];
+    console.log(m);
+    return m[1];
   } else {
+    console.log("null");
     return null;
   }
 }
@@ -66,7 +69,7 @@ var handlers = [{selector: ref_selector,
 
 function get_identifiers() {
   var doi = document.querySelector("div.ww-citation-primary").textContent.match(/doi.org\/(.*)/)[1];
-  var title = document.querySelector("meta[property='og.title']").content;
+  var title = document.querySelector("meta[property='og:title']").content;
   return {"doi": doi, "title": title};
 }
 
@@ -85,7 +88,16 @@ function get_figures() {
   for (var i = 0; i < figures.length; i++) {
     var fig_entry = {};
     fig_entry.lr = figures[i].querySelector("img").src;
-    fig_entry.hr = figures[i].querySelector("a.fig-view-orig").href;
+    fig_entry.hr = new XMLHttpRequest();
+    fig_entry.hr.open("GET", figures[i].querySelector("a.fig-view-orig").href,
+                      false);
+    fig_entry.hr.send();
+    img_start = fig_entry.hr.response.indexOf("<img");
+    src_start = fig_entry.hr.response.slice(img_start).indexOf("src=") +
+                img_start + 5;
+    src_end = fig_entry.hr.response.slice(src_start).indexOf('"') +
+              src_start;
+    fig_entry.hr = fig_entry.hr.response.slice(src_start, src_end);
     fig_entry.legend = figures[i].querySelector("div.fig-caption");
     fig_entry.title = figures[i].querySelector("div.fig-label").textContent;
     result.push(fig_entry);
@@ -99,7 +111,6 @@ function get_content() {
   for (var i = 0; i < section_titles.length; i++) {
     var section = {};
     section.title = section_titles[i].innerHTML;
-    section.title = title.innerHTML;
     section.content = [];
     current_elem = section_titles[i].nextElementSibling;
     while(current_elem != null &&
@@ -120,6 +131,7 @@ function get_content() {
               current_elem.className == "section-title") {
             subsection.content.push(current_elem);
           }
+          current_elem = current_elem.nextElementSibling;
         }
         section.content.push(subsection);
         continue;
@@ -141,23 +153,34 @@ function get_references() {
     var given_names = refs[i].querySelectorAll(".given-names");
     ref_entry.authors = [];
     for (var j = 0; j < surnames.length; j++) {
-      ref_entry.authors.push(surnames[i].textContent + ", " +
-                             given_names[i].textContent);
+      ref_entry.authors.push(surnames[j].textContent + ", " +
+                             given_names[j].textContent);
     }
-    ref_entry.title = document.querySelector(".article-title").textContent;
-    ref_entry.journal = document.querySelector(".source").textContent;
-    ref_entry.year = document.querySelector(".year").textContent;
+    console.log(refs[i]);
+    var title = refs[i].querySelector(".article-title");
+    if (title != null) {
+      ref_entry.title = title.textContent;
+    }
+    var journal = refs[i].querySelector(".source");
+    if (journal != null) {
+      ref_entry.journal = journal.textContent;
+    }
+    var year = refs[i].querySelector(".year");
+    if (year != null) {
+      ref_entry.year = year.textContent;
+    }
     var link;
-    var crossref = document.querySelector(".crossref-doi");
+    var crossref = refs[i].querySelector(".crossref-doi");
     if (crossref != null) {
       link = crossref.querySelector("a").href;
       ref_entry.doi = link.match(/doi.org\/(.*)/)[1];
     }
-    var pubmed = document.querySelector(".pub-id");
-    if (pub_id != null) {
+    var pubmed = refs[i].querySelector(".pub-id");
+    if (pubmed != null) {
       link = pubmed.querySelector("a").href;
       ref_entry.pmid = link.match(/pubmed\/(.*)/)[1];
     }
+    ref_list[refnum - 1] = ref_entry;
   }
   return ref_list;
 }

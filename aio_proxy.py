@@ -238,6 +238,7 @@ class AIOProxy:
                     else:
                         identity = ArticleItem.OTHER
                         number = 0
+                    print(identity, number)
                     try:
                         await article.add_file(f[res], identity=identity,
                                                number=number, title=f['title'],

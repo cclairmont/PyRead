@@ -160,6 +160,7 @@ class ArticleFile:
         self.date = datetime.now()
         self.reset()
         self.data = data
+        print(f'Saved {self.path}')
 
     def from_manifest(self, entry):
         self.name = entry.get('name')
@@ -515,8 +516,8 @@ class Article:
         if ref is None:
             entry = None
         else:
-            entry = await Article(self.session,
-                                  self.cookies).fetch_metadata(
+            entry = await Article(self.session, self.cookies,
+                                  self.headers).fetch_metadata(
                                                    doi=ref.get('doi'),
                                                    pmid=ref.get('pmid'),
                                                    title=ref.get('title'))
@@ -582,6 +583,7 @@ class Article:
             self.files = {}
         if date is None:
             date = datetime.now().isoformat()
+        print(f"Adding file to {self.path}")
         new_file = ArticleFile(data=data, path=self.path,
                                manifest={'name': name,
                                          'source': [source],
