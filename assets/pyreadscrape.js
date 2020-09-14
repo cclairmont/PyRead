@@ -94,6 +94,16 @@ function handle_figs_refs(elem) {
           start -= nodes[j].textContent.length;
         }
         refs[i].replaceWith(new_ref);
+        multi_refs = new_ref.dataset.refnum.split(",");
+        if (multi_refs.length > 1) {
+          for(var p = 0; p < multi_refs.length; p++) {
+            var single_ref = document.createElement("span");
+            single_ref.className = h.class;
+            single_ref.dataset.refnum = multi_refs[p];
+            new_ref.parentElement.insertBefore(single_ref, new_ref);
+          }
+          new_ref.parentElement.removeChild(new_ref);
+        }
       }
     }
   }

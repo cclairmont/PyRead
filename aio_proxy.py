@@ -91,6 +91,7 @@ class AIOProxy:
         self.cookies = ''
         self.cache = PyrCache(self.ARTICLE_CACHE_SIZE)
         self.active_tab = 0
+        self.headers = {}
 
     def _get_parser(self, html):
         soup = BeautifulSoup(html, 'lxml')
